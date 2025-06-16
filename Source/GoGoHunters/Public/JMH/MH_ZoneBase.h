@@ -23,4 +23,15 @@ public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
+	virtual  void OnPlayerInteracted_Implementation(AMH_ZoneBase* Player);
+
+protected:
+	UPROPERTY(EditAnywhere, Category = "Zone")
+	FName ZoneName;
+	UPROPERTY(VisibleAnywhere)
+	class UStaticMeshComponent* ZoneVisual;
+	// 진입 시 출력할 가이드 메시지
+	UPROPERTY(EditAnywhere, Category = "Zone")
+	FString GuideMessage;
+
 };
