@@ -1,0 +1,123 @@
+// Fill out your copyright notice in the Description page of Project Settings.
+
+#pragma once
+
+#include "CoreMinimal.h"
+#include "GameFramework/Character.h"
+#include "InputAction.h"
+#include "MH_VRPlayer.generated.h"
+
+UCLASS()
+class GOGOHUNTERS_API AMH_VRPlayer : public ACharacter
+{
+	GENERATED_BODY()
+
+public:
+	// Sets default values for this character's properties
+	AMH_VRPlayer();
+
+protected:
+	// Called when the game starts or when spawned
+	virtual void BeginPlay() override;
+
+public:	
+	// Called every frame
+	virtual void Tick(float DeltaTime) override;
+
+	// Called to bind functionality to input
+	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
+
+	UPROPERTY(VisibleAnywhere)
+	class UCameraComponent* VRCamera;
+
+	UPROPERTY(VisibleAnywhere)
+	class USceneComponent* L_Hand;
+	UPROPERTY(VisibleAnywhere)
+	class USceneComponent* R_Hand;
+
+	//마우스 회전방지
+	bool bUseMouse = true;
+
+	//텔레포트
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Input")
+	class UInputMappingContext* InputMappingContext;
+	
+	//텔레포트 구역 원
+	UPROPERTY(VisibleAnywhere)
+	class UNiagaraComponent* TeleportCircleA;
+
+	//텔레포트 나이아가라
+	UPROPERTY(VisibleAnywhere)
+	class UNiagaraComponent* TeleportUIComponent;
+	
+	//텔레포트 진행여부
+	bool bTeleporting = false;
+	bool bIsDebugDraw = true;
+
+	bool bCanTeleportLocationValid = false;
+	
+	UFUNCTION(exec)
+	void ActiveDebugDraw();
+
+	//키 이벤트 바인딩 함수
+	void F_TeleportStart(const struct FInputActionValue& Value);
+	void F_TeleportEnd(const struct FInputActionValue& Value);
+
+	//텔레포트 초기화 함수
+	UFUNCTION()
+	bool ResetTeleport();
+	UFUNCTION()
+	bool CheckHitTeleport(FVector LastPos, FVector& CurPos);
+	//텔레포트 곡선 방식
+	//곡선을 이루는 점의 개수(곡선의 부드러운 정도)
+	UPROPERTY(EditAnywhere,Category="Teleport")
+	int32 LineSmooth = 40;
+
+	//Curve 를 그리며 날아가는 힘의 세기
+	UPROPERTY(EditAnywhere,Category="Teleport")
+	float CurveForce = 2000;
+
+	//중력가속도
+	UPROPERTY(EditAnywhere,Category="Teleport")
+	float Gravity = -5000;
+
+	//Delta time
+	UPROPERTY(EditAnywhere,Category="Teleport")
+	float SimulateTime = 0.02f;
+
+	//텔레포트 위치
+	FVector TeleportLocation;
+	
+	//기억할 점 리스트
+	TArray<FVector> Lines;
+
+	//텔레포트 모드 전환 (Curve로 할지 직선으로 할지)
+	UPROPERTY(EditAnywhere,Category="Teleport")
+	bool bTeleportCurve = true;
+
+	//직선 텔레포트 그리기
+	void DrawTeleportStraight();
+	//곡선 텔레포트 그리기
+	void DrawTeleportCurve();
+
+	//test Key
+	UFUNCTION()
+	void TestTurn(const FInputActionValue& Value);
+	void TestLookUp(const FInputActionValue& Value);
+	UFUNCTION()
+	void TestInteract();
+	
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Input")
+	UInputAction* IA_MHInteract;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Input")
+	UInputAction* IA_MHTeleportEnd;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Input")
+	UInputAction* IA_MHTeleportStart;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Input")
+	UInputAction* IA_MHTurn;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Input")
+	UInputAction* IA_MHLookUp;
+	
+
+	
+};

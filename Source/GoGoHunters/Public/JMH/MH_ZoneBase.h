@@ -22,16 +22,35 @@ protected:
 public:	
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
-
+	
 	virtual  void OnPlayerInteracted_Implementation(AMH_ZoneBase* Player);
 
 protected:
 	UPROPERTY(EditAnywhere, Category = "Zone")
-	FName ZoneName;
+	FName ZoneTag;
+	
 	UPROPERTY(VisibleAnywhere)
 	class UStaticMeshComponent* ZoneVisual;
+	
 	// 진입 시 출력할 가이드 메시지
 	UPROPERTY(EditAnywhere, Category = "Zone")
 	FString GuideMessage;
 
+	// 콜리전 판정용 스피어 컴포넌트
+	UPROPERTY(VisibleAnywhere)
+	class USphereComponent* CollisionSphere;
+	
+	// 존 실행용 내부 함수들
+	UFUNCTION()
+	void HandleGlobeInteraction(AActor* Player);
+	UFUNCTION()
+	void HandleRestoreInteraction(AActor* Player);
+	UFUNCTION()
+	void HandleMyMuseumInteraction(AActor* Player);
+	UFUNCTION()
+	void HandleRecordInteraction(AActor* Player);
+	UFUNCTION()
+	void HandleSettingsInteraction(AActor* Player);
+	UFUNCTION()
+	void HandleExitInteraction(AActor* Player);
 };
