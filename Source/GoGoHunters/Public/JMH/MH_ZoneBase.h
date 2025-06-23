@@ -23,10 +23,12 @@ public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 	
-	virtual  void OnPlayerInteracted_Implementation(AMH_ZoneBase* Player);
+	UFUNCTION(BlueprintCallable, BlueprintNativeEvent)
+	void OnPlayerInteracted(AActor* Player);
+	virtual  void OnPlayerInteracted_Implementation(AActor* Player);
 
 protected:
-	UPROPERTY(EditAnywhere, Category = "Zone")
+	UPROPERTY(EditAnywhere,BlueprintReadWrite, Category = "Zone")
 	FName ZoneTag;
 	
 	UPROPERTY(VisibleAnywhere)
@@ -39,7 +41,19 @@ protected:
 	// 콜리전 판정용 스피어 컴포넌트
 	UPROPERTY(VisibleAnywhere)
 	class USphereComponent* CollisionSphere;
-	
+
+private:
+	UFUNCTION()
+	void OnZoneOverlapBegin(
+		UPrimitiveComponent* OverlappedComp, 
+		AActor* OtherActor,
+		UPrimitiveComponent* OtherComp, 
+		int32 OtherBodyIndex,
+		bool bFromSweep, 
+		const FHitResult& SweepResult
+	);
+
+public:
 	// 존 실행용 내부 함수들
 	UFUNCTION()
 	void HandleGlobeInteraction(AActor* Player);
@@ -53,4 +67,6 @@ protected:
 	void HandleSettingsInteraction(AActor* Player);
 	UFUNCTION()
 	void HandleExitInteraction(AActor* Player);
+
+	
 };

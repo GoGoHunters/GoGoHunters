@@ -4,6 +4,7 @@
 #include "JMH/MH_ZoneBase.h"
 
 #include "Components/SphereComponent.h"
+#include "JMH/MH_VRPlayer.h"
 
 // Sets default values
 AMH_ZoneBase::AMH_ZoneBase()
@@ -31,6 +32,7 @@ AMH_ZoneBase::AMH_ZoneBase()
 void AMH_ZoneBase::BeginPlay()
 {
 	Super::BeginPlay();
+	CollisionSphere->OnComponentBeginOverlap.AddDynamic(this, &AMH_ZoneBase::OnZoneOverlapBegin);
 }
 
 // Called every frame
@@ -39,7 +41,7 @@ void AMH_ZoneBase::Tick(float DeltaTime)
 	Super::Tick(DeltaTime);
 }
 
-void AMH_ZoneBase::OnPlayerInteracted_Implementation(AMH_ZoneBase* Player)
+void AMH_ZoneBase::OnPlayerInteracted_Implementation(AActor* Player)
 {
 	if (!GuideMessage.IsEmpty())
 	{
@@ -62,6 +64,18 @@ void AMH_ZoneBase::OnPlayerInteracted_Implementation(AMH_ZoneBase* Player)
 	else
 	{
 		GEngine->AddOnScreenDebugMessage(-1, 2.f, FColor::Red, TEXT("[ZoneBase] Unknown ZoneTag"));
+	}
+}
+
+void AMH_ZoneBase::OnZoneOverlapBegin(UPrimitiveComponent* OverlappedComp, AActor* OtherActor,
+	UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
+{
+	if (!OtherActor) return;
+
+	// 플레이어일 경우에만 실행 (플레이어 클래스 체크)
+	if (OtherActor->IsA(AMH_VRPlayer::StaticClass()))
+	{
+		OnPlayerInteracted(OtherActor);  // 지금 구조에서는 그냥 호출 (혹은 나중엔 Player 전달 가능)
 	}
 }
 
