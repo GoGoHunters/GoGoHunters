@@ -1,4 +1,4 @@
-#include "CGlobe.h"
+#include "LHJ/CGlobe.h"
 
 
 ACGlobe::ACGlobe()
