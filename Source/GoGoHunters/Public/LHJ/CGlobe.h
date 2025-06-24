@@ -10,12 +10,18 @@ class GOGOHUNTERS_API ACGlobe : public AActor
 	GENERATED_BODY()
 	
 public:	
+	void Grab(USceneComponent* MotionController);
+	void Release();
+
+private:
 	ACGlobe();
-
-protected:
-	virtual void BeginPlay() override;
-
-public:	
+	virtual void BeginPlay() override;	
 	virtual void Tick(float DeltaTime) override;
+	
+	UPROPERTY()
+	USceneComponent* GrabbedController = nullptr;
+	FQuat LastControllerQuat;
+	bool bIsGrabbed = false;
 
+	void UpdateRotationFromController();
 };
