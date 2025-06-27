@@ -36,12 +36,28 @@ public:
 	UPROPERTY(VisibleAnywhere)
 	class USceneComponent* R_Hand;
 
+	// Grab 잡을 범위
+	UPROPERTY(EditAnywhere, Category="Grab")
+	float GrabRadius = 100.f;
+
+	UPROPERTY()
+	UPrimitiveComponent* grabbedObject = nullptr;
+
+	//물체를 잡고있는지 여부
+	bool bIsGrabbing = false;
+
+	// 잡기 함수들
+	void TryGrab(const struct FInputActionValue& Value);
+	void TryUnGrab(const struct FInputActionValue& Value);
+	//물체를 잡은 상태로 컨트롤하기
+	void Grabbing();
+
+	//FHitResult LastHitResult;
+
+	
 	//마우스 회전방지
 	bool bUseMouse = true;
 
-	//텔레포트
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Input")
-	class UInputMappingContext* InputMappingContext;
 	
 	//텔레포트 구역 원
 	UPROPERTY(VisibleAnywhere)
@@ -107,6 +123,13 @@ public:
 	void TestLookUp(const FInputActionValue& Value);
 	UFUNCTION()
 	void TestInteract();
+
+	//IA
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Input")
+	class UInputMappingContext* InputMappingContext;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Input")
+	UInputAction* IA_MHGrab;
 	
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Input")
 	UInputAction* IA_MHInteract;

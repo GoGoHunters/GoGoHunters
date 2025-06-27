@@ -10,12 +10,13 @@
 #include "Camera/CameraComponent.h"
 #include "NiagaraComponent.h"
 #include "NiagaraDataInterfaceArrayFunctionLibrary.h"
+#include "Engine/OverlapResult.h"
 
 
 // Sets default values
 AMH_VRPlayer::AMH_VRPlayer()
 {
- 	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
+	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
 
 	VRCamera = CreateDefaultSubobject<UCameraComponent>(TEXT("VRCamera"));
@@ -27,23 +28,26 @@ AMH_VRPlayer::AMH_VRPlayer()
 	TeleportUIComponent = CreateDefaultSubobject<UNiagaraComponent>(TEXT("TeleportUIComponent"));
 	TeleportUIComponent->SetupAttachment(RootComponent);
 
-	//Attachement 나중에 RootComp로 바꿔야함 /수정
+	//Attachment 나중에 RootComp로 바꿔야함 /수정
 	L_Hand = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("L_Hand"));
 	L_Hand->SetupAttachment(VRCamera);
 	R_Hand = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("R_Hand"));
 	R_Hand->SetupAttachment(VRCamera);
+
+	//ConstructorHelpers::FObjectFinder<UInputAction>VRGrab(TEXT(""))
 }
 
 // Called when the game starts or when spawned
 void AMH_VRPlayer::BeginPlay()
 {
 	Super::BeginPlay();
-//텔레포트 초기화
+	//텔레포트 초기화
 	ResetTeleport();
 
 	if (APlayerController* PC = Cast<APlayerController>(GetController()))
 	{
-		if (UEnhancedInputLocalPlayerSubsystem* Subsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(PC->GetLocalPlayer()))
+		if (UEnhancedInputLocalPlayerSubsystem* Subsystem = ULocalPlayer::GetSubsystem<
+			UEnhancedInputLocalPlayerSubsystem>(PC->GetLocalPlayer()))
 		{
 			Subsystem->AddMappingContext(InputMappingContext, 0);
 		}
@@ -68,9 +72,9 @@ void AMH_VRPlayer::Tick(float DeltaTime)
 			DrawTeleportStraight();
 		}
 
-		UNiagaraDataInterfaceArrayFunctionLibrary::SetNiagaraArrayVector(TeleportUIComponent,TEXT("User.PointArray"),Lines);
+		UNiagaraDataInterfaceArrayFunctionLibrary::SetNiagaraArrayVector(
+			TeleportUIComponent,TEXT("User.PointArray"), Lines);
 	}
-
 }
 
 // Called to bind functionality to input
@@ -79,13 +83,93 @@ void AMH_VRPlayer::SetupPlayerInputComponent(UInputComponent* PlayerInputCompone
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
 
 	UEnhancedInputComponent* EnhancedInput = Cast<UEnhancedInputComponent>(PlayerInputComponent);
-	
-	EnhancedInput->BindAction(IA_MHTurn,ETriggerEvent::Triggered,this,&AMH_VRPlayer::TestTurn);
-	EnhancedInput->BindAction(IA_MHLookUp,ETriggerEvent::Triggered,this,&AMH_VRPlayer::TestLookUp);
-	EnhancedInput->BindAction(IA_MHInteract,ETriggerEvent::Triggered,this,&AMH_VRPlayer::TestInteract);
-	EnhancedInput->BindAction(IA_MHTeleportEnd,ETriggerEvent::Triggered,this,&AMH_VRPlayer::F_TeleportEnd);
-	EnhancedInput->BindAction(IA_MHTeleportStart,ETriggerEvent::Triggered,this,&AMH_VRPlayer::F_TeleportStart);
 
+	EnhancedInput->BindAction(IA_MHTurn, ETriggerEvent::Triggered, this, &AMH_VRPlayer::TestTurn);
+	EnhancedInput->BindAction(IA_MHLookUp, ETriggerEvent::Triggered, this, &AMH_VRPlayer::TestLookUp);
+	EnhancedInput->BindAction(IA_MHInteract, ETriggerEvent::Triggered, this, &AMH_VRPlayer::TestInteract);
+	EnhancedInput->BindAction(IA_MHTeleportEnd, ETriggerEvent::Triggered, this, &AMH_VRPlayer::F_TeleportEnd);
+	EnhancedInput->BindAction(IA_MHTeleportStart, ETriggerEvent::Triggered, this, &AMH_VRPlayer::F_TeleportStart);
+
+	//Grab
+	EnhancedInput->BindAction(IA_MHGrab, ETriggerEvent::Started, this, &AMH_VRPlayer::TryGrab);
+	EnhancedInput->BindAction(IA_MHGrab, ETriggerEvent::Completed, this, &AMH_VRPlayer::TryUnGrab);
+
+}
+
+void AMH_VRPlayer::TryGrab(const struct FInputActionValue& Value)
+{
+	if (bIsGrabbing) return;
+	//if (!LastHitResult.IsValidBlockingHit()) return;
+	
+	FVector HandPos = R_Hand->GetComponentLocation();
+
+	TArray<FOverlapResult> HitObjects;
+	FCollisionQueryParams Params;
+	Params.AddIgnoredActor(this);
+
+	bool bHit = GetWorld()->OverlapMultiByChannel(
+		HitObjects,
+		HandPos,
+		FQuat::Identity,
+		ECC_Visibility,
+		FCollisionShape::MakeSphere(GrabRadius),
+		Params
+	);
+
+	//충돌한 물체가 없으면 아무처리 하지 않는다.
+	if (!bHit || HitObjects.Num() == 0) return;
+
+	// 가장 가까운 물체를 검출
+	int Closest = 0;
+	FVector ClosestPos = HitObjects[Closest].GetActor()->GetActorLocation();
+	float ClosestDistance = FVector::Distance(ClosestPos, HandPos);
+
+	// 나머지 물체들 거리 비교
+	for (int i = 0; i < HitObjects.Num(); i++)
+	{
+		FVector NextPos = HitObjects[i].GetActor()->GetActorLocation();
+		float NextDistance = FVector::Distance(NextPos, HandPos);
+		if (NextDistance < ClosestDistance)
+		{
+			Closest = i;
+			ClosestPos = NextPos;
+			ClosestDistance = NextDistance;;
+		}
+	}
+	//만역 물체를 잡았다면
+
+		UPrimitiveComponent* HitComp = Cast<UPrimitiveComponent>(HitObjects[Closest].GetComponent());
+		if (!HitComp || !HitComp->IsSimulatingPhysics()) return;
+
+		// 붙이기 전에 물리 기능 끄고
+		HitComp->SetSimulatePhysics(false);
+		HitComp->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+
+		// 손에 붙이기
+		HitComp->AttachToComponent(R_Hand, FAttachmentTransformRules::KeepWorldTransform);
+
+		grabbedObject = HitComp;
+		bIsGrabbing = true;
+		UE_LOG(LogTemp, Warning, TEXT("Grabbed Object!"));
+	
+}
+
+void AMH_VRPlayer::TryUnGrab(const struct FInputActionValue& Value)
+{
+	if (!bIsGrabbing || grabbedObject == nullptr) return;
+
+	bIsGrabbing = false;
+
+	grabbedObject->DetachFromComponent(FDetachmentTransformRules::KeepWorldTransform);
+	grabbedObject->SetSimulatePhysics(true);
+	grabbedObject->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+	grabbedObject = nullptr;
+
+	UE_LOG(LogTemp, Warning, TEXT("Released Object!"));
+}
+
+void AMH_VRPlayer::Grabbing()
+{
 }
 
 bool AMH_VRPlayer::ResetTeleport()
@@ -106,7 +190,7 @@ bool AMH_VRPlayer::CheckHitTeleport(FVector LastPos, FVector& CurPos)
 	FHitResult outHit;
 	FCollisionQueryParams query;
 	query.AddIgnoredActor(this);
-	bool bHit = GetWorld()->LineTraceSingleByChannel(outHit,LastPos,CurPos,ECC_Visibility,query);
+	bool bHit = GetWorld()->LineTraceSingleByChannel(outHit, LastPos, CurPos, ECC_Visibility, query);
 	//3.Line과 부딪혔다면
 	AActor* HitActor = outHit.GetActor();
 	//4.그리고 부딫힌 액터이름이 Floor라면
@@ -138,19 +222,10 @@ void AMH_VRPlayer::DrawTeleportStraight()
 	//1.Line 만들기
 	FVector StartPoint = R_Hand->GetComponentLocation();
 	FVector EndPoint = StartPoint + R_Hand->GetForwardVector() * 1000;
-
-	bool bHit = CheckHitTeleport(StartPoint,EndPoint);
-
+	
 	Lines.Empty();
 	Lines.Add(StartPoint);
 	Lines.Add(EndPoint);
-
-	/*
-	if (bIsDebugDraw)
-	{
-		//선그리기
-		DrawDebugLine(GetWorld(),StartPoint,EndPoint,FColor::Red,false,-1,0,1);
-	}*/
 }
 
 void AMH_VRPlayer::DrawTeleportCurve()
@@ -177,7 +252,7 @@ void AMH_VRPlayer::DrawTeleportCurve()
 		//P= P0+vt
 		pos += velocity * SimulateTime;
 
-		bool bHit = CheckHitTeleport(LastPos,pos);
+		bool bHit = CheckHitTeleport(LastPos, pos);
 		Lines.Add(pos);
 
 		//부딪혔을 때 반복중단
@@ -185,16 +260,14 @@ void AMH_VRPlayer::DrawTeleportCurve()
 		{
 			break;
 		}
-		
 	}
 
 	//Line을 그려준다
-	int LineCount = Lines.Num();
-	for (int i = 0; i < LineCount-1; i++)
-	{
-		DrawDebugLine(GetWorld(),Lines[i],Lines[i + 1],FColor::Red,false,-1,0,1);
-	}
-	
+	//int LineCount = Lines.Num();
+	//for (int i = 0; i < LineCount - 1; i++)
+	//{
+	//	DrawDebugLine(GetWorld(), Lines[i], Lines[i + 1], FColor::Red, false, -1, 0, 1);
+	//}
 }
 
 void AMH_VRPlayer::TestTurn(const FInputActionValue& Value)
@@ -230,7 +303,7 @@ void AMH_VRPlayer::F_TeleportStart(const struct FInputActionValue& Value)
 
 void AMH_VRPlayer::TestInteract()
 {
-	GEngine->AddOnScreenDebugMessage(-1,5.f,FColor::Green,TEXT("Interact"));
+	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green,TEXT("Interact"));
 }
 
 void AMH_VRPlayer::TestLookUp(const FInputActionValue& Value)
@@ -238,7 +311,7 @@ void AMH_VRPlayer::TestLookUp(const FInputActionValue& Value)
 	float AxisValue = Value.Get<float>();
 	//AddControllerPitchInput(AxisValue);
 
-	
+
 	// VR 테스트 모드일 때만 적용 (예: HMD 미착용)
 	if (!GEngine->XRSystem.IsValid() || !GEngine->XRSystem->IsHeadTrackingAllowed())
 	{
@@ -248,5 +321,3 @@ void AMH_VRPlayer::TestLookUp(const FInputActionValue& Value)
 		VRCamera->SetRelativeRotation(NewRot);
 	}
 }
-
-
