@@ -33,8 +33,10 @@ AMH_VRPlayer::AMH_VRPlayer()
 	L_Hand->SetupAttachment(VRCamera);
 	R_Hand = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("R_Hand"));
 	R_Hand->SetupAttachment(VRCamera);
+	
+	MaxTeleportDistance = 3000.f;
+	FocusedGrabbableActor = nullptr;
 
-	//ConstructorHelpers::FObjectFinder<UInputAction>VRGrab(TEXT(""))
 }
 
 // Called when the game starts or when spawned
@@ -75,6 +77,32 @@ void AMH_VRPlayer::Tick(float DeltaTime)
 		UNiagaraDataInterfaceArrayFunctionLibrary::SetNiagaraArrayVector(
 			TeleportUIComponent,TEXT("User.PointArray"), Lines);
 	}
+
+	//Grab 액터 손으로 가져오기
+	if (bIsPullingObject && IsValid(PendingGrabComponent))
+	{
+		const FVector Target = R_Hand->GetComponentLocation();
+		FVector Current = PendingGrabComponent->GetComponentLocation();
+		FVector NewPos = FMath::VInterpTo(Current, Target, DeltaTime, GrabPullSpeed);
+		PendingGrabComponent->SetWorldLocation(NewPos);
+
+		if (FVector::Dist(NewPos, Target) < 10.f)
+		{
+			PendingGrabComponent->AttachToComponent(R_Hand, FAttachmentTransformRules::KeepWorldTransform);
+			grabbedObject = PendingGrabComponent;
+			bIsGrabbing = true;
+			PendingGrabComponent->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+			PendingGrabComponent = nullptr;
+			bIsPullingObject = false;
+			UE_LOG(LogTemp, Warning, TEXT("Grab Interp 완료!"));
+		}
+	}
+	else if (!IsValid(PendingGrabComponent))
+	{
+		// 안전하게 초기화
+		PendingGrabComponent = nullptr;
+		bIsPullingObject = false;
+	}
 }
 
 // Called to bind functionality to input
@@ -93,84 +121,10 @@ void AMH_VRPlayer::SetupPlayerInputComponent(UInputComponent* PlayerInputCompone
 	//Grab
 	EnhancedInput->BindAction(IA_MHGrab, ETriggerEvent::Started, this, &AMH_VRPlayer::TryGrab);
 	EnhancedInput->BindAction(IA_MHGrab, ETriggerEvent::Completed, this, &AMH_VRPlayer::TryUnGrab);
-
+	EnhancedInput->BindAction(IA_AdjustTeleportDirection, ETriggerEvent::Triggered, this, &AMH_VRPlayer::AdjustTeleportDirection);
+	EnhancedInput->BindAction(IA_RotateHeldObject, ETriggerEvent::Triggered, this, &AMH_VRPlayer::RotateHeldObject);
 }
 
-void AMH_VRPlayer::TryGrab(const struct FInputActionValue& Value)
-{
-	if (bIsGrabbing) return;
-	//if (!LastHitResult.IsValidBlockingHit()) return;
-	
-	FVector HandPos = R_Hand->GetComponentLocation();
-
-	TArray<FOverlapResult> HitObjects;
-	FCollisionQueryParams Params;
-	Params.AddIgnoredActor(this);
-
-	bool bHit = GetWorld()->OverlapMultiByChannel(
-		HitObjects,
-		HandPos,
-		FQuat::Identity,
-		ECC_Visibility,
-		FCollisionShape::MakeSphere(GrabRadius),
-		Params
-	);
-
-	//충돌한 물체가 없으면 아무처리 하지 않는다.
-	if (!bHit || HitObjects.Num() == 0) return;
-
-	// 가장 가까운 물체를 검출
-	int Closest = 0;
-	FVector ClosestPos = HitObjects[Closest].GetActor()->GetActorLocation();
-	float ClosestDistance = FVector::Distance(ClosestPos, HandPos);
-
-	// 나머지 물체들 거리 비교
-	for (int i = 0; i < HitObjects.Num(); i++)
-	{
-		FVector NextPos = HitObjects[i].GetActor()->GetActorLocation();
-		float NextDistance = FVector::Distance(NextPos, HandPos);
-		if (NextDistance < ClosestDistance)
-		{
-			Closest = i;
-			ClosestPos = NextPos;
-			ClosestDistance = NextDistance;;
-		}
-	}
-	//만역 물체를 잡았다면
-
-		UPrimitiveComponent* HitComp = Cast<UPrimitiveComponent>(HitObjects[Closest].GetComponent());
-		if (!HitComp || !HitComp->IsSimulatingPhysics()) return;
-
-		// 붙이기 전에 물리 기능 끄고
-		HitComp->SetSimulatePhysics(false);
-		HitComp->SetCollisionEnabled(ECollisionEnabled::NoCollision);
-
-		// 손에 붙이기
-		HitComp->AttachToComponent(R_Hand, FAttachmentTransformRules::KeepWorldTransform);
-
-		grabbedObject = HitComp;
-		bIsGrabbing = true;
-		UE_LOG(LogTemp, Warning, TEXT("Grabbed Object!"));
-	
-}
-
-void AMH_VRPlayer::TryUnGrab(const struct FInputActionValue& Value)
-{
-	if (!bIsGrabbing || grabbedObject == nullptr) return;
-
-	bIsGrabbing = false;
-
-	grabbedObject->DetachFromComponent(FDetachmentTransformRules::KeepWorldTransform);
-	grabbedObject->SetSimulatePhysics(true);
-	grabbedObject->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
-	grabbedObject = nullptr;
-
-	UE_LOG(LogTemp, Warning, TEXT("Released Object!"));
-}
-
-void AMH_VRPlayer::Grabbing()
-{
-}
 
 bool AMH_VRPlayer::ResetTeleport()
 {
@@ -190,11 +144,20 @@ bool AMH_VRPlayer::CheckHitTeleport(FVector LastPos, FVector& CurPos)
 	FHitResult outHit;
 	FCollisionQueryParams query;
 	query.AddIgnoredActor(this);
+	
 	bool bHit = GetWorld()->LineTraceSingleByChannel(outHit, LastPos, CurPos, ECC_Visibility, query);
-	//3.Line과 부딪혔다면
 	AActor* HitActor = outHit.GetActor();
+	if (!bHit || !HitActor)
+	{
+		TeleportCircleA->SetVisibility(false);
+		bCanTeleportLocationValid = false;
+		FocusedGrabbableActor = nullptr;
+		return false;
+	}
+	
+	//3.Line과 부딪혔다면
 	//4.그리고 부딫힌 액터이름이 Floor라면
-	if (bHit && HitActor && HitActor->GetActorNameOrLabel().Contains("Floor"))
+	if (HitActor->GetActorNameOrLabel().Contains("Floor"))
 	{
 		//텔레포트 UI활성화
 		TeleportCircleA->SetVisibility(true);
@@ -205,6 +168,13 @@ bool AMH_VRPlayer::CheckHitTeleport(FVector LastPos, FVector& CurPos)
 		TeleportLocation = outHit.Location;
 		CurPos = TeleportLocation;
 		bCanTeleportLocationValid = true;
+		FocusedGrabbableActor = nullptr;
+	}
+	else if (HitActor->Tags.Contains("Grabbable"))
+	{
+		TeleportCircleA->SetVisibility(false);
+		bCanTeleportLocationValid = false;
+		FocusedGrabbableActor = HitActor;
 	}
 	//5. 안부딫혔으면
 	else
@@ -212,18 +182,19 @@ bool AMH_VRPlayer::CheckHitTeleport(FVector LastPos, FVector& CurPos)
 		//-> TeleportCircle 안그려지게 하기
 		TeleportCircleA->SetVisibility(false);
 		bCanTeleportLocationValid = false;
+		FocusedGrabbableActor = nullptr;
 	}
-	return bHit;
+	return true;
 }
 
 void AMH_VRPlayer::DrawTeleportStraight()
 {
+	Lines.Empty();
 	//Line Trace
 	//1.Line 만들기
 	FVector StartPoint = R_Hand->GetComponentLocation();
 	FVector EndPoint = StartPoint + R_Hand->GetForwardVector() * 1000;
 	
-	Lines.Empty();
 	Lines.Add(StartPoint);
 	Lines.Add(EndPoint);
 }
@@ -233,14 +204,12 @@ void AMH_VRPlayer::DrawTeleportCurve()
 	Lines.Empty();
 
 	//선이 진행될 힘(방향)
-	FVector velocity = R_Hand->GetForwardVector() * CurveForce;
+	FVector velocity = R_Hand->GetForwardVector() * (CurveForce * TeleportDistanceFactor);
 
 	//P0 - 시작점
 	FVector pos = R_Hand->GetComponentLocation();
 	Lines.Add(pos);
-
-	//FMath::GetReflectionVector()입사각 반사각 계산
-
+	
 	//이 과정을 LineSmooth를 구성하는 (점의 개수 -1)만큼 진행하겠다.
 	for (int i = 0; i < LineSmooth; i++)
 	{
@@ -261,25 +230,35 @@ void AMH_VRPlayer::DrawTeleportCurve()
 			break;
 		}
 	}
-
-	//Line을 그려준다
-	//int LineCount = Lines.Num();
-	//for (int i = 0; i < LineCount - 1; i++)
-	//{
-	//	DrawDebugLine(GetWorld(), Lines[i], Lines[i + 1], FColor::Red, false, -1, 0, 1);
-	//}
 }
 
-void AMH_VRPlayer::TestTurn(const FInputActionValue& Value)
+void AMH_VRPlayer::AdjustTeleportDirection(const FInputActionValue& Value)
 {
-	if (!bUseMouse)
-	{
-		return;
-	}
-	float AxisValue = Value.Get<float>();
-	AddControllerYawInput(AxisValue);
+	float InputY = Value.Get<FVector2D>().Y;
+	TeleportDistanceFactor = FMath::Clamp(TeleportDistanceFactor + InputY * TeleportDistanceAdjustSpeed * GetWorld()->GetDeltaSeconds(), 0.1f, 1.5f);
 }
 
+void AMH_VRPlayer::HandleThumbstickInput(const FInputActionValue& Value)
+{
+	FVector2D Input = Value.Get<FVector2D>();
+
+	if (bIsGrabbing && grabbedObject)
+	{
+		// 물체 회전
+		RotateHeldObject(Value); 
+	}
+	else if (bTeleporting)
+	{
+		// 텔레포트 라인 조절
+		AdjustTeleportDirection(Value);
+	}
+}
+
+void AMH_VRPlayer::F_TeleportStart(const struct FInputActionValue& Value)
+{
+	TeleportUIComponent->SetVisibility(true);
+	bTeleporting = true;
+}
 void AMH_VRPlayer::F_TeleportEnd(const struct FInputActionValue& Value)
 {
 	if (!ResetTeleport())
@@ -295,15 +274,66 @@ void AMH_VRPlayer::ActiveDebugDraw()
 	bIsDebugDraw = !bIsDebugDraw;
 }
 
-void AMH_VRPlayer::F_TeleportStart(const struct FInputActionValue& Value)
+void AMH_VRPlayer::RotateHeldObject(const struct FInputActionValue& Value)
 {
-	TeleportUIComponent->SetVisibility(true);
-	bTeleporting = true;
+	if (!bIsGrabbing || !grabbedObject) return;
+
+
+	FVector2D Input = Value.Get<FVector2D>();
+	if (Input.IsNearlyZero()) return;
+
+	// 회전 각도 계산
+	FRotator DeltaRot = FRotator::ZeroRotator;
+	DeltaRot.Yaw += Input.X * HeldObjectRotateSpeed * GetWorld()->GetDeltaSeconds();
+	DeltaRot.Pitch += Input.Y * HeldObjectRotateSpeed * GetWorld()->GetDeltaSeconds();
+
+	// 월드 기준으로 회전
+	grabbedObject->AddWorldRotation(DeltaRot);
 }
 
 void AMH_VRPlayer::TestInteract()
 {
 	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green,TEXT("Interact"));
+}
+
+void AMH_VRPlayer::TryGrab(const struct FInputActionValue& Value)
+{
+	if (!FocusedGrabbableActor) return;
+
+	UPrimitiveComponent* HitComp = Cast<UPrimitiveComponent>(
+		FocusedGrabbableActor->GetComponentByClass(UPrimitiveComponent::StaticClass()));
+	if (!HitComp || !HitComp->IsSimulatingPhysics()) return;
+
+	//물리 끄고 기억.
+	HitComp->SetSimulatePhysics(false);
+	HitComp->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	//HitComp->AttachToComponent(R_Hand, FAttachmentTransformRules::KeepWorldTransform);
+	PendingGrabComponent = HitComp;
+	bIsPullingObject = true;
+}
+
+void AMH_VRPlayer::TryUnGrab(const struct FInputActionValue& Value)
+{
+	if (!bIsGrabbing || grabbedObject == nullptr) return;
+	
+	grabbedObject->DetachFromComponent(FDetachmentTransformRules::KeepWorldTransform);
+	grabbedObject->SetSimulatePhysics(true);
+	grabbedObject->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+	grabbedObject = nullptr;
+	bIsGrabbing = false;
+	FocusedGrabbableActor = nullptr;
+	
+	UE_LOG(LogTemp, Warning, TEXT("[VR] Grab 해제됨"));
+}
+
+void AMH_VRPlayer::TestTurn(const FInputActionValue& Value)
+{
+	if (!bUseMouse)
+	{
+		return;
+	}
+	float AxisValue = Value.Get<float>();
+	AddControllerYawInput(AxisValue);
 }
 
 void AMH_VRPlayer::TestLookUp(const FInputActionValue& Value)
