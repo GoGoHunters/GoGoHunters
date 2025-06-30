@@ -4,7 +4,13 @@
 
 #include "CoreMinimal.h"
 #include "UObject/NoExportTypes.h"
+
 #include "IWebSocket.h"
+
+#include "HttpModule.h"
+#include "Interfaces/IHttpRequest.h"
+#include "Interfaces/IHttpResponse.h"
+
 #include "U_WebSocketManager.generated.h"
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnWebSocketMessageReceived, const FString&, Message);
@@ -21,12 +27,15 @@ class GOGOHUNTERS_API UU_WebSocketManager : public UObject
 private:
 
     TSharedPtr<IWebSocket> WebSocket;
+    FString Server_URL;
 
     // 웹소켓 이벤트 핸들러
     void OnWebSocketConnected();
     void OnWebSocketConnectionError(const FString& Error);
     void OnWebSocketClosed(int32 StatusCode, const FString& Reason, bool bWasClean);
     void OnWebSocketMessage(const FString& Message);
+
+    void OnFileUploadResponse(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bWasSuccessful);
 
 public:
     UU_WebSocketManager();
@@ -40,7 +49,7 @@ public:
     UFUNCTION(BlueprintCallable, Category = "WebSocket")
     void WebSocketSendMessage(const FString& Message);
 
-    UFUNCTION(BlueprintPure, Category = "Networking|WebSocket")
+    UFUNCTION(BlueprintPure, Category = "WebSocket")
     bool IsConnected() const;
 
     UPROPERTY(BlueprintAssignable, Category = "WebSocket")
@@ -48,5 +57,9 @@ public:
 
     UPROPERTY(BlueprintAssignable, Category = "WebSocket")
     FOnWebSocketConnectionStatusChanged OnConnectionStatusChanged;
+
+    // Sending File 
+    UFUNCTION(BlueprintCallable, Category = "WebSocket")
+    void WebSocketSendFile(const FString& SaveFilePath, const FString& URL);
 
 };
