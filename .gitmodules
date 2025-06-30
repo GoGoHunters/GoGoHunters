@@ -1,0 +1,3 @@
+[submodule "server/GoGoHunters_Server"]
+	path = server/GoGoHunters_Server
+	url = https://github.com/GoGoHunters/GoGoHunters_Sever
