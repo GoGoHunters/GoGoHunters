@@ -7,6 +7,11 @@
 #include "InputAction.h"
 #include "MH_VRPlayer.generated.h"
 
+/*
+ * 텔레포트 조건 = Teleportable 액터 태그
+ * 그랩 조건 = Grabbable 액터 태그
+ */
+
 
 UENUM(BlueprintType)
 enum class EPlayerVRState : uint8
@@ -17,7 +22,7 @@ enum class EPlayerVRState : uint8
 	GrabbingObject	UMETA(DisplayName = "Grabbing Object"),	// 유물(또는 도구 등)을 손에 잡은 상태
 	Inspecting		UMETA(DisplayName = "Inspecting"),		// 손에 든 유물/오브젝트를 관찰(회전/확대) 중
 	PlacingObject	UMETA(DisplayName = "Placing Object"),	// 나만의 박물관에서 오브젝트를 배치 중
-	Teleporting		UMETA(DisplayName = "Teleporting"),	
+	Teleporting		UMETA(DisplayName = "Teleporting"),		// 틸레포트 이동중
 	Disabled		UMETA(DisplayName = "Disabled")			// 입력 및 조작이 비활성화된 상태 (UI 열림 등)
 };
 

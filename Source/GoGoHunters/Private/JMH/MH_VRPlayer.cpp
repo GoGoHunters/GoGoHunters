@@ -61,10 +61,8 @@ void AMH_VRPlayer::BeginPlay()
 	GrabComponent->SetHandComponent(R_Hand);
 	TeleportComponent->SetHandComponent(R_Hand);
 	TeleportComponent->SetTeleportVisual(TeleportCircleA, TeleportUIComponent);
-
-	Lines.Empty();
-	UNiagaraDataInterfaceArrayFunctionLibrary::SetNiagaraArrayVector(
-		TeleportUIComponent, TEXT("User.PointArray"), Lines);
+	
+	TeleportUIComponent->SetVisibility(false);
 }
 
 // Called every frame
