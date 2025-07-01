@@ -10,6 +10,8 @@
 #include "Camera/CameraComponent.h"
 #include "NiagaraComponent.h"
 #include "NiagaraDataInterfaceArrayFunctionLibrary.h"
+#include "MotionControllerComponent.h"
+#include "Utilities/CHelpers.h"
 
 
 // Sets default values
@@ -27,11 +29,16 @@ AMH_VRPlayer::AMH_VRPlayer()
 	TeleportUIComponent = CreateDefaultSubobject<UNiagaraComponent>(TEXT("TeleportUIComponent"));
 	TeleportUIComponent->SetupAttachment(RootComponent);
 
+	CHelpers::CreateComponent<UMotionControllerComponent>(this, &RHandController, "RHandController", RootComponent);
+	RHandController->SetTrackingMotionSource(FName("Right"));
+	CHelpers::CreateComponent<UMotionControllerComponent>(this, &LHandController, "LHandController", RootComponent);
+	LHandController->SetTrackingMotionSource(FName("Left"));
+
 	//Attachement 나중에 RootComp로 바꿔야함 /수정
 	L_Hand = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("L_Hand"));
-	L_Hand->SetupAttachment(VRCamera);
+	L_Hand->SetupAttachment(LHandController);
 	R_Hand = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("R_Hand"));
-	R_Hand->SetupAttachment(VRCamera);
+	R_Hand->SetupAttachment(RHandController);
 }
 
 // Called when the game starts or when spawned
