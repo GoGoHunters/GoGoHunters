@@ -10,12 +10,15 @@
 #include "Camera/CameraComponent.h"
 #include "NiagaraComponent.h"
 #include "NiagaraDataInterfaceArrayFunctionLibrary.h"
+#include "Engine/OverlapResult.h"
+#include "JMH/MH_GrabComp.h"
+#include "JMH/MH_TeleportComp.h"
 
 
 // Sets default values
 AMH_VRPlayer::AMH_VRPlayer()
 {
- 	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
+	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
 
 	VRCamera = CreateDefaultSubobject<UCameraComponent>(TEXT("VRCamera"));
@@ -27,50 +30,48 @@ AMH_VRPlayer::AMH_VRPlayer()
 	TeleportUIComponent = CreateDefaultSubobject<UNiagaraComponent>(TEXT("TeleportUIComponent"));
 	TeleportUIComponent->SetupAttachment(RootComponent);
 
-	//Attachement 나중에 RootComp로 바꿔야함 /수정
+	//그랩 컴프
+	GrabComponent = CreateDefaultSubobject<UMH_GrabComp>(TEXT("GrabComponent"));
+
+	//Attachment 나중에 RootComp로 바꿔야함 /수정
 	L_Hand = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("L_Hand"));
 	L_Hand->SetupAttachment(VRCamera);
 	R_Hand = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("R_Hand"));
 	R_Hand->SetupAttachment(VRCamera);
+
+	//텔레포트 컴프
+	TeleportComponent = CreateDefaultSubobject<UMH_TeleportComp>(TEXT("TeleportComponent"));
+	
 }
 
 // Called when the game starts or when spawned
 void AMH_VRPlayer::BeginPlay()
 {
 	Super::BeginPlay();
-//텔레포트 초기화
-	ResetTeleport();
-
+	
 	if (APlayerController* PC = Cast<APlayerController>(GetController()))
 	{
-		if (UEnhancedInputLocalPlayerSubsystem* Subsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(PC->GetLocalPlayer()))
+		if (UEnhancedInputLocalPlayerSubsystem* Subsystem = ULocalPlayer::GetSubsystem<
+			UEnhancedInputLocalPlayerSubsystem>(PC->GetLocalPlayer()))
 		{
 			Subsystem->AddMappingContext(InputMappingContext, 0);
 		}
 	}
+
+	GrabComponent->SetHandComponent(R_Hand);
+	TeleportComponent->SetHandComponent(R_Hand);
+	TeleportComponent->SetTeleportVisual(TeleportCircleA, TeleportUIComponent);
+	
+	TeleportUIComponent->SetVisibility(false);
 }
 
 // Called every frame
 void AMH_VRPlayer::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-
-	//텔레포트 활성화 시
-	if (bTeleporting)
-	{
-		//텔레포트 그리기 곡선방식
-		if (bTeleportCurve)
-		{
-			DrawTeleportCurve();
-		}
-		else
-		{
-			DrawTeleportStraight();
-		}
-
-		UNiagaraDataInterfaceArrayFunctionLibrary::SetNiagaraArrayVector(TeleportUIComponent,TEXT("User.PointArray"),Lines);
-	}
-
+	
+	UpdateInteractionLine(); 
+	
 }
 
 // Called to bind functionality to input
@@ -79,122 +80,228 @@ void AMH_VRPlayer::SetupPlayerInputComponent(UInputComponent* PlayerInputCompone
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
 
 	UEnhancedInputComponent* EnhancedInput = Cast<UEnhancedInputComponent>(PlayerInputComponent);
+
+	EnhancedInput->BindAction(IA_MHTurn, ETriggerEvent::Triggered, this, &AMH_VRPlayer::TestTurn);
+	EnhancedInput->BindAction(IA_MHLookUp, ETriggerEvent::Triggered, this, &AMH_VRPlayer::TestLookUp);
+	EnhancedInput->BindAction(IA_MHInteract, ETriggerEvent::Triggered, this, &AMH_VRPlayer::TestInteract);
+	EnhancedInput->BindAction(IA_MHTeleportEnd, ETriggerEvent::Triggered, this, &AMH_VRPlayer::F_TeleportEnd);
+	EnhancedInput->BindAction(IA_MHTeleportStart, ETriggerEvent::Triggered, this, &AMH_VRPlayer::F_TeleportStart);
+
+	//Grab
+	EnhancedInput->BindAction(IA_MHGrab, ETriggerEvent::Started, this, &AMH_VRPlayer::TryGrab);
+	EnhancedInput->BindAction(IA_MHGrab, ETriggerEvent::Completed, this, &AMH_VRPlayer::TryUnGrab);
+	EnhancedInput->BindAction(IA_AdjustTeleportDirection, ETriggerEvent::Triggered, this, &AMH_VRPlayer::HandleThumbstickInput);
+	EnhancedInput->BindAction(IA_RotateHeldObject, ETriggerEvent::Triggered, this, &AMH_VRPlayer::HandleThumbstickInput);
+}
+
+void AMH_VRPlayer::SetPlayerState(EPlayerVRState NewState)
+{
+	if (CurrentState == NewState) return;
 	
-	EnhancedInput->BindAction(IA_MHTurn,ETriggerEvent::Triggered,this,&AMH_VRPlayer::TestTurn);
-	EnhancedInput->BindAction(IA_MHLookUp,ETriggerEvent::Triggered,this,&AMH_VRPlayer::TestLookUp);
-	EnhancedInput->BindAction(IA_MHInteract,ETriggerEvent::Triggered,this,&AMH_VRPlayer::TestInteract);
-	EnhancedInput->BindAction(IA_MHTeleportEnd,ETriggerEvent::Triggered,this,&AMH_VRPlayer::F_TeleportEnd);
-	EnhancedInput->BindAction(IA_MHTeleportStart,ETriggerEvent::Triggered,this,&AMH_VRPlayer::F_TeleportStart);
+	// 상태 전환 로그
+	UE_LOG(LogTemp, Log, TEXT("[VR] 상태 전환: %s → %s"),
+		*UEnum::GetValueAsString(CurrentState),
+		*UEnum::GetValueAsString(NewState));
 
-}
+	// 이전 상태 정리 (예: 도구 해제, 입력 정지 등 필요 시 여기에)
 
-bool AMH_VRPlayer::ResetTeleport()
-{
-	//현재 텔레포트 서클이 보여지고 있으면 이동가능
-	//그렇지 않으면 이동 불가능
-	bool bCanTeleport = TeleportCircleA->GetVisibleFlag();
-	//텔레포트 종료
-	bTeleporting = false;
-	TeleportCircleA->SetVisibleFlag(false);
-	TeleportUIComponent->SetVisibility(false);
-	//텔레포트 가능여부 결과로 넘겨줌
-	return bCanTeleport;
-}
+	// 상태 적용
+	CurrentState = NewState;
 
-bool AMH_VRPlayer::CheckHitTeleport(FVector LastPos, FVector& CurPos)
-{
-	FHitResult outHit;
-	FCollisionQueryParams query;
-	query.AddIgnoredActor(this);
-	bool bHit = GetWorld()->LineTraceSingleByChannel(outHit,LastPos,CurPos,ECC_Visibility,query);
-	//3.Line과 부딪혔다면
-	AActor* HitActor = outHit.GetActor();
-	//4.그리고 부딫힌 액터이름이 Floor라면
-	if (bHit && HitActor && HitActor->GetActorNameOrLabel().Contains("Floor"))
+	// 새 상태 진입 처리 (예: UI 안내, 모션 트리거 등 필요 시 여기에)
+	switch (CurrentState)
 	{
-		//텔레포트 UI활성화
-		TeleportCircleA->SetVisibility(true);
-		//->TeleportCircle 위치시키기
-		TeleportCircleA->SetWorldLocation(outHit.Location);
-
-		//텔레포트 위치 지정
-		TeleportLocation = outHit.Location;
-		CurPos = TeleportLocation;
-		bCanTeleportLocationValid = true;
+	case EPlayerVRState::Inspecting:
+		// 예: UI에 "회전해서 살펴보세요!" 표시
+		break;
+	case EPlayerVRState::Excavating:
+		// 예: 발굴 애니메이션 시작
+		break;
+	case EPlayerVRState::Disabled:
+		DisableInput(nullptr);
+		break;
+	case EPlayerVRState::Idle:
+		EnableInput(Cast<APlayerController>(GetController()));
+		break;
+	default:
+		break;
 	}
-	//5. 안부딫혔으면
-	else
+
+}
+
+EPlayerVRState AMH_VRPlayer::GetPlayerState() const
+{
+	return CurrentState;
+}
+
+void AMH_VRPlayer::HandleThumbstickInput(const FInputActionValue& Value)
+{
+	FVector2D Input = Value.Get<FVector2D>();
+
+	if (GrabComponent && GrabComponent->IsGrabbing())
 	{
-		//-> TeleportCircle 안그려지게 하기
-		TeleportCircleA->SetVisibility(false);
-		bCanTeleportLocationValid = false;
+		// 물체 회전
+		RotateHeldObject(Value); 
 	}
-	return bHit;
+	else if (TeleportComponent && TeleportComponent->IsTeleporting())
+	{
+		AdjustTeleportDirection(Value);
+	}
 }
 
-void AMH_VRPlayer::DrawTeleportStraight()
+void AMH_VRPlayer::AdjustTeleportDirection(const FInputActionValue& Value)
 {
-	//Line Trace
-	//1.Line 만들기
-	FVector StartPoint = R_Hand->GetComponentLocation();
-	FVector EndPoint = StartPoint + R_Hand->GetForwardVector() * 1000;
-
-	bool bHit = CheckHitTeleport(StartPoint,EndPoint);
-
-	Lines.Empty();
-	Lines.Add(StartPoint);
-	Lines.Add(EndPoint);
-
-	/*
-	if (bIsDebugDraw)
-	{
-		//선그리기
-		DrawDebugLine(GetWorld(),StartPoint,EndPoint,FColor::Red,false,-1,0,1);
-	}*/
+	FVector2D Input = Value.Get<FVector2D>();
+	
+	TeleportDistanceFactor = FMath::Clamp(
+				TeleportDistanceFactor + Input.Y * TeleportAdjustSpeed * GetWorld()->GetDeltaSeconds(),
+				0.1f, 1.5f
+			);
 }
 
-void AMH_VRPlayer::DrawTeleportCurve()
+void AMH_VRPlayer::F_TeleportStart(const struct FInputActionValue& Value)
 {
-	Lines.Empty();
-
-	//선이 진행될 힘(방향)
-	FVector velocity = R_Hand->GetForwardVector() * CurveForce;
-
-	//P0 - 시작점
-	FVector pos = R_Hand->GetComponentLocation();
-	Lines.Add(pos);
-
-	//FMath::GetReflectionVector()입사각 반사각 계산
-
-	//이 과정을 LineSmooth를 구성하는 (점의 개수 -1)만큼 진행하겠다.
-	for (int i = 0; i < LineSmooth; i++)
+	if (TeleportComponent)
 	{
-		FVector LastPos = pos;
-
-		//v = v0 + at
-		velocity += FVector::UpVector * Gravity * SimulateTime;
-
-		//P= P0+vt
-		pos += velocity * SimulateTime;
-
-		bool bHit = CheckHitTeleport(LastPos,pos);
-		Lines.Add(pos);
-
-		//부딪혔을 때 반복중단
-		if (bHit)
+		TeleportComponent->EnableTeleport();
+		SetPlayerState(EPlayerVRState::Teleporting);
+	}
+}
+void AMH_VRPlayer::F_TeleportEnd(const struct FInputActionValue& Value)
+{
+	if (TeleportComponent)
+	{
+		FVector OutLocation;
+		if (TeleportComponent->CompleteTeleport(OutLocation))
 		{
+			SetActorLocation(OutLocation);
+			TeleportDistanceFactor = 1.0f;
+		}
+		SetPlayerState(EPlayerVRState::Idle);
+	}
+}
+
+void AMH_VRPlayer::ActiveDebugDraw()
+{
+	bIsDebugDraw = !bIsDebugDraw;
+}
+
+void AMH_VRPlayer::RotateHeldObject(const struct FInputActionValue& Value)
+{
+	if (GrabComponent)
+	{
+		GrabComponent->RotateGrabbedObject(Value.Get<FVector2D>());
+	}
+}
+
+void AMH_VRPlayer::TestInteract()
+{
+	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green,TEXT("Interact"));
+}
+
+void AMH_VRPlayer::UpdateInteractionLine()
+{
+	if (CurrentState != EPlayerVRState::Idle && CurrentState != EPlayerVRState::Teleporting)
+		return;
+
+	FocusedGrabbableActor = nullptr;
+	Lines.Empty();
+
+	FVector Start = R_Hand->GetComponentLocation();
+	FVector Velocity = R_Hand->GetForwardVector() * 1000.f * TeleportDistanceFactor; // 강도는 상황에 맞게 조절
+	FVector Pos = Start;
+
+	Lines.Add(Pos);
+
+	const float SimulateTime = 0.05f;
+	const int LineSmooth = 30;
+	const float GravityZ = -980.f;
+
+	FVector LastPos = Pos;
+	FVector FinalTeleportLocation = FVector::ZeroVector;
+	bool bFoundTeleport = false;
+
+	for (int32 i = 0; i < LineSmooth; ++i)
+	{
+		LastPos = Pos;
+		Velocity += FVector(0.f, 0.f, GravityZ) * SimulateTime;
+		Pos += Velocity * SimulateTime;
+
+		FHitResult Hit;
+		FCollisionQueryParams Params;
+		Params.AddIgnoredActor(this);
+		
+		if (GetWorld()->LineTraceSingleByChannel(Hit, LastPos, Pos, ECC_Visibility, Params))
+		{
+			AActor* HitActor = Hit.GetActor();
+			if (!HitActor) continue;
+
+			// Grab 처리
+			if (!FocusedGrabbableActor && HitActor->ActorHasTag("Grabbable"))
+			{
+				FocusedGrabbableActor = HitActor;
+			}
+
+			// Teleport 처리 (마지막 것만 저장)
+			if (CurrentState == EPlayerVRState::Teleporting && HitActor->ActorHasTag("Teleportable"))
+			{
+				FinalTeleportLocation = Hit.Location;
+				bFoundTeleport = true;
+			}
+
+			Pos = Hit.Location; // 라인을 히트 지점까지만 그리기
+			Lines.Add(Pos);
 			break;
 		}
-		
+
+		Lines.Add(Pos);
 	}
 
-	//Line을 그려준다
-	int LineCount = Lines.Num();
-	for (int i = 0; i < LineCount-1; i++)
+	if (TeleportUIComponent)
 	{
-		DrawDebugLine(GetWorld(),Lines[i],Lines[i + 1],FColor::Red,false,-1,0,1);
+		UNiagaraDataInterfaceArrayFunctionLibrary::SetNiagaraArrayVector(
+			TeleportUIComponent, TEXT("User.PointArray"), Lines);
+	}
+
+	if (TeleportComponent)
+	{
+		if (bFoundTeleport)
+		{
+			TeleportComponent->UpdateTargetLocation(FinalTeleportLocation);
+		}
+		else if (CurrentState == EPlayerVRState::Teleporting)
+		{
+			TeleportComponent->SetInvalidTeleport();
+		}
+	}
+}
+
+void AMH_VRPlayer::TryGrab(const struct FInputActionValue& Value)
+{
+	if (!FocusedGrabbableActor) return;
+
+	UPrimitiveComponent* HitComp = Cast<UPrimitiveComponent>(
+		FocusedGrabbableActor->GetComponentByClass(UPrimitiveComponent::StaticClass()));
+	if (!HitComp || !HitComp->IsSimulatingPhysics()) return;
+
+	if (GrabComponent)
+	{
+		// 그랩 시도 → 성공하면 상태 전환
+		if (GrabComponent->TryGrab(HitComp))
+		{
+			SetPlayerState(EPlayerVRState::GrabbingObject);
+		}
 	}
 	
+}
+
+void AMH_VRPlayer::TryUnGrab(const struct FInputActionValue& Value)
+{
+	if (GrabComponent)
+	{
+		GrabComponent->TryUnGrab();
+		SetPlayerState(EPlayerVRState::Idle);
+	}
 }
 
 void AMH_VRPlayer::TestTurn(const FInputActionValue& Value)
@@ -207,37 +314,10 @@ void AMH_VRPlayer::TestTurn(const FInputActionValue& Value)
 	AddControllerYawInput(AxisValue);
 }
 
-void AMH_VRPlayer::F_TeleportEnd(const struct FInputActionValue& Value)
-{
-	if (!ResetTeleport())
-	{
-		return;
-	}
-	SetActorLocation(TeleportLocation);
-	bTeleporting = false;
-}
-
-void AMH_VRPlayer::ActiveDebugDraw()
-{
-	bIsDebugDraw = !bIsDebugDraw;
-}
-
-void AMH_VRPlayer::F_TeleportStart(const struct FInputActionValue& Value)
-{
-	TeleportUIComponent->SetVisibility(true);
-	bTeleporting = true;
-}
-
-void AMH_VRPlayer::TestInteract()
-{
-	GEngine->AddOnScreenDebugMessage(-1,5.f,FColor::Green,TEXT("Interact"));
-}
-
 void AMH_VRPlayer::TestLookUp(const FInputActionValue& Value)
 {
 	float AxisValue = Value.Get<float>();
 	//AddControllerPitchInput(AxisValue);
-
 	
 	// VR 테스트 모드일 때만 적용 (예: HMD 미착용)
 	if (!GEngine->XRSystem.IsValid() || !GEngine->XRSystem->IsHeadTrackingAllowed())
@@ -248,5 +328,3 @@ void AMH_VRPlayer::TestLookUp(const FInputActionValue& Value)
 		VRCamera->SetRelativeRotation(NewRot);
 	}
 }
-
-

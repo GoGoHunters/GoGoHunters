@@ -7,6 +7,25 @@
 #include "InputAction.h"
 #include "MH_VRPlayer.generated.h"
 
+/*
+ * 텔레포트 조건 = Teleportable 액터 태그
+ * 그랩 조건 = Grabbable 액터 태그
+ */
+
+
+UENUM(BlueprintType)
+enum class EPlayerVRState : uint8
+{
+	Idle			UMETA(DisplayName = "Idle"),			// 아무것도 하지 않는 기본 상태
+	UsingTool		UMETA(DisplayName = "Using Tool"),		// 도구를 손에 든 상태 (아직 사용은 안함)
+	Excavating		UMETA(DisplayName = "Excavating"),		// 도구를 실제로 사용하여 발굴 중
+	GrabbingObject	UMETA(DisplayName = "Grabbing Object"),	// 유물(또는 도구 등)을 손에 잡은 상태
+	Inspecting		UMETA(DisplayName = "Inspecting"),		// 손에 든 유물/오브젝트를 관찰(회전/확대) 중
+	PlacingObject	UMETA(DisplayName = "Placing Object"),	// 나만의 박물관에서 오브젝트를 배치 중
+	Teleporting		UMETA(DisplayName = "Teleporting"),		// 틸레포트 이동중
+	Disabled		UMETA(DisplayName = "Disabled")			// 입력 및 조작이 비활성화된 상태 (UI 열림 등)
+};
+
 UCLASS()
 class GOGOHUNTERS_API AMH_VRPlayer : public ACharacter
 {
@@ -20,7 +39,7 @@ protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
-public:	
+public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
@@ -29,85 +48,32 @@ public:
 
 	UPROPERTY(VisibleAnywhere)
 	class UCameraComponent* VRCamera;
-
 	//손일단 VR 카메라에 Root 붙여 놓음 이동해야함 (수정)
 	UPROPERTY(VisibleAnywhere)
 	class USceneComponent* L_Hand;
 	UPROPERTY(VisibleAnywhere)
 	class USceneComponent* R_Hand;
 
-	//마우스 회전방지
-	bool bUseMouse = true;
+	// 현재 플레이어의 상태
+	UPROPERTY(BlueprintReadWrite, Category = "State")
+	EPlayerVRState CurrentState = EPlayerVRState::Idle;
+	
+	UFUNCTION(BlueprintCallable, Category = "State")
+	void SetPlayerState(EPlayerVRState NewState);
 
-	//텔레포트
+	UFUNCTION(BlueprintPure, Category = "State")
+	EPlayerVRState GetPlayerState() const;
+
+	UPROPERTY()
+	AActor* FocusedGrabbableActor;
+
+public:
+	
+	//IA////////////////////////////////////////////////////////
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Input")
 	class UInputMappingContext* InputMappingContext;
-	
-	//텔레포트 구역 원
-	UPROPERTY(VisibleAnywhere)
-	class UNiagaraComponent* TeleportCircleA;
-
-	//텔레포트 나이아가라
-	UPROPERTY(VisibleAnywhere)
-	class UNiagaraComponent* TeleportUIComponent;
-	
-	//텔레포트 진행여부
-	bool bTeleporting = false;
-	bool bIsDebugDraw = true;
-
-	bool bCanTeleportLocationValid = false;
-	
-	UFUNCTION(exec)
-	void ActiveDebugDraw();
-
-	//키 이벤트 바인딩 함수
-	void F_TeleportStart(const struct FInputActionValue& Value);
-	void F_TeleportEnd(const struct FInputActionValue& Value);
-
-	//텔레포트 초기화 함수
-	UFUNCTION()
-	bool ResetTeleport();
-	UFUNCTION()
-	bool CheckHitTeleport(FVector LastPos, FVector& CurPos);
-	//텔레포트 곡선 방식
-	//곡선을 이루는 점의 개수(곡선의 부드러운 정도)
-	UPROPERTY(EditAnywhere,Category="Teleport")
-	int32 LineSmooth = 40;
-
-	//Curve 를 그리며 날아가는 힘의 세기
-	UPROPERTY(EditAnywhere,Category="Teleport")
-	float CurveForce = 2000;
-
-	//중력가속도
-	UPROPERTY(EditAnywhere,Category="Teleport")
-	float Gravity = -5000;
-
-	//Delta time
-	UPROPERTY(EditAnywhere,Category="Teleport")
-	float SimulateTime = 0.02f;
-
-	//텔레포트 위치
-	FVector TeleportLocation;
-	
-	//기억할 점 리스트
-	TArray<FVector> Lines;
-
-	//텔레포트 모드 전환 (Curve로 할지 직선으로 할지)
-	UPROPERTY(EditAnywhere,Category="Teleport")
-	bool bTeleportCurve = true;
-
-	//직선 텔레포트 그리기
-	void DrawTeleportStraight();
-	//곡선 텔레포트 그리기
-	void DrawTeleportCurve();
-
-	//test Key
-	UFUNCTION()
-	void TestTurn(const FInputActionValue& Value);
-	void TestLookUp(const FInputActionValue& Value);
-	UFUNCTION()
-	void TestInteract();
-	
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Input")
+	UInputAction* IA_MHGrab;
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Input")
 	UInputAction* IA_MHInteract;
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Input")
@@ -118,7 +84,71 @@ public:
 	UInputAction* IA_MHTurn;
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Input")
 	UInputAction* IA_MHLookUp;
-	
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
+	class UInputAction* IA_AdjustTeleportDirection;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
+	class UInputAction* IA_RotateHeldObject;
 
+	//마우스 회전방지
+	bool bUseMouse = true;
+
+	//Line Trace
+	void UpdateInteractionLine();
+
+	//Grab////////////////////////////////////////////////////////////////////
+
+	UPROPERTY()
+	class UMH_GrabComp* GrabComponent;
 	
+	// 잡기 함수들
+	void TryGrab(const struct FInputActionValue& Value);
+	void TryUnGrab(const struct FInputActionValue& Value);
+	
+	// 썸스틱 입력 저장
+	FVector2D HeldObjectStickInput = FVector2D::ZeroVector;
+
+	//test Key
+	void TestTurn(const FInputActionValue& Value);
+	void TestLookUp(const FInputActionValue& Value);
+	UFUNCTION()
+	void TestInteract();
+	
+	UFUNCTION(exec)
+	void ActiveDebugDraw();
+
+	// 회전 입력 처리 함수
+	void RotateHeldObject(const struct FInputActionValue& Value);
+
+	//텔레포트//////////////////////////////////////////////////////////////
+
+	UPROPERTY()
+	class UMH_TeleportComp* TeleportComponent;
+
+	TArray<FVector> Lines;
+	
+	//텔레포트 곡선 방식
+	//텔레포트 구역 원
+	UPROPERTY(VisibleAnywhere)
+	class UNiagaraComponent* TeleportCircleA;
+
+	//텔레포트 나이아가라
+	UPROPERTY(VisibleAnywhere)
+	class UNiagaraComponent* TeleportUIComponent;
+
+	//텔레포트 진행여부
+	bool bTeleporting = false;
+	bool bIsDebugDraw = true;
+
+	//키 이벤트 바인딩 함수
+	void F_TeleportStart(const struct FInputActionValue& Value);
+	void F_TeleportEnd(const struct FInputActionValue& Value);
+
+	//텔레포트 or Grab
+	void HandleThumbstickInput(const FInputActionValue& Value);
+
+	//텔레포트 길이조절
+	void AdjustTeleportDirection(const FInputActionValue& Value);
+
+	float TeleportDistanceFactor = 1.0f;
+	float TeleportAdjustSpeed = 1.0f;
 };
