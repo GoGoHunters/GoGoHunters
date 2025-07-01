@@ -44,13 +44,6 @@
 				"Linux",
 				"Android"
 			]
-		},
-		{
-			"Name": "VisualStudioTools",
-			"Enabled": true,
-			"SupportedTargetPlatforms": [
-				"Win64"
-			]
 		}
 	]
 }

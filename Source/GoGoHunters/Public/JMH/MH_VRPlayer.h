@@ -48,6 +48,12 @@ public:
 
 	UPROPERTY(VisibleAnywhere)
 	class UCameraComponent* VRCamera;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+	class UMotionControllerComponent* RHandController;
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+	class UMotionControllerComponent* LHandController;
+
 	//손일단 VR 카메라에 Root 붙여 놓음 이동해야함 (수정)
 	UPROPERTY(VisibleAnywhere)
 	class USceneComponent* L_Hand;
