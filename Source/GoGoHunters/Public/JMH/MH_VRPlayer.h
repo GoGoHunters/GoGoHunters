@@ -60,6 +60,12 @@ public:
 	UPROPERTY(VisibleAnywhere)
 	class USceneComponent* R_Hand;
 
+	//스켈레탈 메쉬 컴프
+	UPROPERTY(VisibleAnywhere)
+	class USkeletalMeshComponent* LHandSKM;
+	UPROPERTY(VisibleAnywhere)
+	class USkeletalMeshComponent* RHandSKM;
+
 	// 현재 플레이어의 상태
 	UPROPERTY(BlueprintReadWrite, Category = "State")
 	EPlayerVRState CurrentState = EPlayerVRState::Idle;
@@ -102,6 +108,10 @@ public:
 
 	//마우스 회전방지
 	bool bUseMouse = true;
+	
+	//VR 모드 사용
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
+	bool bUseVR = true;
 
 	//Line Trace
 	void UpdateInteractionLine();
