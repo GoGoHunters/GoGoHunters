@@ -88,10 +88,13 @@ void AMH_VRPlayer::SetupPlayerInputComponent(UInputComponent* PlayerInputCompone
 	UEnhancedInputComponent* EnhancedInput = Cast<UEnhancedInputComponent>(PlayerInputComponent);
 
 	EnhancedInput->BindAction(IA_MHTurn, ETriggerEvent::Triggered, this, &AMH_VRPlayer::TestTurn);
+	EnhancedInput->BindAction(IA_MHVRTurn, ETriggerEvent::Triggered, this, &AMH_VRPlayer::VRTurn);
 	EnhancedInput->BindAction(IA_MHLookUp, ETriggerEvent::Triggered, this, &AMH_VRPlayer::TestLookUp);
 	EnhancedInput->BindAction(IA_MHInteract, ETriggerEvent::Triggered, this, &AMH_VRPlayer::TestInteract);
-	EnhancedInput->BindAction(IA_MHTeleportEnd, ETriggerEvent::Triggered, this, &AMH_VRPlayer::F_TeleportEnd);
-	EnhancedInput->BindAction(IA_MHTeleportStart, ETriggerEvent::Triggered, this, &AMH_VRPlayer::F_TeleportStart);
+	EnhancedInput->BindAction(IA_MHTestTeleportStart, ETriggerEvent::Started, this, &AMH_VRPlayer::F_TeleportStart);
+	EnhancedInput->BindAction(IA_MHTestTeleportEnd, ETriggerEvent::Completed, this, &AMH_VRPlayer::F_TeleportEnd);
+	EnhancedInput->BindAction(IA_MHVRTeleport, ETriggerEvent::Started, this, &AMH_VRPlayer::F_TeleportStart);
+	EnhancedInput->BindAction(IA_MHVRTeleport, ETriggerEvent::Completed, this, &AMH_VRPlayer::F_TeleportEnd);
 
 	//Grab
 	EnhancedInput->BindAction(IA_MHGrab, ETriggerEvent::Started, this, &AMH_VRPlayer::TryGrab);
@@ -163,6 +166,20 @@ void AMH_VRPlayer::AdjustTeleportDirection(const FInputActionValue& Value)
 				TeleportDistanceFactor + Input.Y * TeleportAdjustSpeed * GetWorld()->GetDeltaSeconds(),
 				0.1f, 1.5f
 			);
+}
+
+void AMH_VRPlayer::VRTurn(const FInputActionValue& Value)
+{
+	float AxisValue = Value.Get<float>();
+
+	if (AxisValue > 0.5f)
+	{
+		AddControllerYawInput(SnapTurnAngle);
+	}
+	else if (AxisValue < -0.5f)
+	{
+		AddControllerYawInput(-SnapTurnAngle);
+	}
 }
 
 void AMH_VRPlayer::F_TeleportStart(const struct FInputActionValue& Value)

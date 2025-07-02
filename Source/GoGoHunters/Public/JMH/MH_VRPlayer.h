@@ -73,6 +73,7 @@ public:
 	UPROPERTY()
 	AActor* FocusedGrabbableActor;
 
+
 public:
 	
 	//IA////////////////////////////////////////////////////////
@@ -83,11 +84,15 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Input")
 	UInputAction* IA_MHInteract;
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Input")
-	UInputAction* IA_MHTeleportEnd;
+	UInputAction* IA_MHTestTeleportStart;
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Input")
-	UInputAction* IA_MHTeleportStart;
+	UInputAction* IA_MHTestTeleportEnd;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Input")
+	UInputAction* IA_MHVRTeleport;
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Input")
 	UInputAction* IA_MHTurn;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Input")
+	UInputAction* IA_MHVRTurn;
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Input")
 	UInputAction* IA_MHLookUp;
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
@@ -157,4 +162,10 @@ public:
 
 	float TeleportDistanceFactor = 1.0f;
 	float TeleportAdjustSpeed = 1.0f;
+	
+	//VR SnapTurn 
+	void VRTurn(const FInputActionValue& Value);
+
+	UPROPERTY(EditAnywhere, Category="VR Movement")
+	float SnapTurnAngle = 15.f;
 };
