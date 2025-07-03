@@ -15,8 +15,12 @@
 #include "Engine/OverlapResult.h"
 #include "JMH/MH_GrabComp.h"
 #include "JMH/MH_TeleportComp.h"
+<<<<<<< Updated upstream
 #include "LHM/Excavation/DetectorTool.h"
+=======
 #include "LHJ/CWorldMap.h"
+>>>>>>> Stashed changes
+
 
 // Sets default values
 AMH_VRPlayer::AMH_VRPlayer()
@@ -45,7 +49,7 @@ AMH_VRPlayer::AMH_VRPlayer()
 	L_Hand->SetupAttachment(VRCamera);
 	R_Hand = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("R_Hand"));
 	R_Hand->SetupAttachment(VRCamera);;
-
+	
 	LHandSKM = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("LHandSKM"));
 	LHandSKM->SetupAttachment(LHandController);
 	LHandSKM->SetRelativeRotation(FRotator(-90.f, -90.f, 0.f));
@@ -65,7 +69,7 @@ AMH_VRPlayer::AMH_VRPlayer()
 	{
 		RHandSKM->SetSkeletalMesh(RHandMeshAsset.Object);
 	}
-
+	
 	//텔레포트 컴프
 	TeleportComponent = CreateDefaultSubobject<UMH_TeleportComp>(TEXT("TeleportComponent"));
 }
@@ -95,7 +99,7 @@ void AMH_VRPlayer::BeginPlay()
 		//Test 카메라 바라보는 방향으로 손 같이 움직이도록 손 VR 카메라에 Attach
 		GrabComponent->SetHandComponent(R_Hand);
 		TeleportComponent->SetHandComponent(R_Hand);
-
+		
 		RHandSKM->DetachFromComponent(FDetachmentTransformRules::KeepWorldTransform);
 		RHandSKM->UnregisterComponent();
 		RHandSKM->SetupAttachment(R_Hand);
@@ -154,7 +158,7 @@ void AMH_VRPlayer::SetupPlayerInputComponent(UInputComponent* PlayerInputCompone
 	                          &AMH_VRPlayer::HandleThumbstickInput);
 	EnhancedInput->BindAction(IA_RotateHeldObject, ETriggerEvent::Triggered, this,
 	                          &AMH_VRPlayer::HandleThumbstickInput);
-
+	
 	// Excavation Tool Actions
 	EnhancedInput->BindAction(IA_ExcavationTool1, ETriggerEvent::Triggered, this, &AMH_VRPlayer::ExcavationTool1);
 	EnhancedInput->BindAction(IA_ExcavationTool2, ETriggerEvent::Triggered, this, &AMH_VRPlayer::ExcavationTool2);
@@ -345,7 +349,7 @@ void AMH_VRPlayer::UpdateInteractionLine()
 		Start = R_Hand->GetComponentLocation();
 		Velocity = R_Hand->GetForwardVector() * 1000.f * TeleportDistanceFactor; // 강도는 상황에 맞게 조절
 	}
-
+	
 	FVector Pos = Start;
 	Lines.Add(Pos);
 

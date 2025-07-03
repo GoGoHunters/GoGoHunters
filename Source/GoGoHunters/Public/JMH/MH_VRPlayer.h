@@ -150,7 +150,7 @@ public:
 	void TestTurn(const FInputActionValue& Value);
 	void TestLookUp(const FInputActionValue& Value);
 	UFUNCTION()
-	void TestInteract();
+	void TriggerInteract();
 	
 	UFUNCTION(exec)
 	void ActiveDebugDraw();
