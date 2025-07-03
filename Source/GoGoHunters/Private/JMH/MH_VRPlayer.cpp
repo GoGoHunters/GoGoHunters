@@ -16,7 +16,8 @@
 #include "JMH/MH_GrabComp.h"
 #include "JMH/MH_TeleportComp.h"
 #include "LHM/Excavation/DetectorTool.h"
-
+#include "LHJ/CWorldMap.h"
+#include "EngineUtils.h"
 
 // Sets default values
 AMH_VRPlayer::AMH_VRPlayer()
@@ -45,7 +46,7 @@ AMH_VRPlayer::AMH_VRPlayer()
 	L_Hand->SetupAttachment(VRCamera);
 	R_Hand = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("R_Hand"));
 	R_Hand->SetupAttachment(VRCamera);;
-	
+
 	LHandSKM = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("LHandSKM"));
 	LHandSKM->SetupAttachment(LHandController);
 	LHandSKM->SetRelativeRotation(FRotator(-90.f, -90.f, 0.f));
@@ -65,7 +66,7 @@ AMH_VRPlayer::AMH_VRPlayer()
 	{
 		RHandSKM->SetSkeletalMesh(RHandMeshAsset.Object);
 	}
-	
+
 	//텔레포트 컴프
 	TeleportComponent = CreateDefaultSubobject<UMH_TeleportComp>(TEXT("TeleportComponent"));
 }
@@ -95,7 +96,7 @@ void AMH_VRPlayer::BeginPlay()
 		//Test 카메라 바라보는 방향으로 손 같이 움직이도록 손 VR 카메라에 Attach
 		GrabComponent->SetHandComponent(R_Hand);
 		TeleportComponent->SetHandComponent(R_Hand);
-		
+
 		RHandSKM->DetachFromComponent(FDetachmentTransformRules::KeepWorldTransform);
 		RHandSKM->UnregisterComponent();
 		RHandSKM->SetupAttachment(R_Hand);
@@ -113,6 +114,13 @@ void AMH_VRPlayer::BeginPlay()
 
 	TeleportUIComponent->SetVisibility(false);
 	TeleportCircleA->SetVisibility(false);
+
+	// 월드에 존재하는 ACWorldMap을 찾아 저장
+	for (TActorIterator<ACWorldMap> It(GetWorld()); It; ++It)
+	{
+		CachedWorldMap = *It;
+		break;
+	}
 }
 
 // Called every frame
@@ -141,7 +149,10 @@ void AMH_VRPlayer::SetupPlayerInputComponent(UInputComponent* PlayerInputCompone
 	EnhancedInput->BindAction(IA_MHTurn, ETriggerEvent::Triggered, this, &AMH_VRPlayer::TestTurn);
 	EnhancedInput->BindAction(IA_MHVRTurn, ETriggerEvent::Triggered, this, &AMH_VRPlayer::VRTurn);
 	EnhancedInput->BindAction(IA_MHLookUp, ETriggerEvent::Triggered, this, &AMH_VRPlayer::TestLookUp);
-	EnhancedInput->BindAction(IA_MHInteract, ETriggerEvent::Triggered, this, &AMH_VRPlayer::TestInteract);
+	EnhancedInput->BindAction(IA_MHInteract, ETriggerEvent::Triggered, this, &AMH_VRPlayer::TriggerInteract);
+	EnhancedInput->BindAction(IA_MHInteract, ETriggerEvent::Completed, this, &AMH_VRPlayer::TriggerInteractCompleted);
+	EnhancedInput->BindAction(IA_MHInteract_L, ETriggerEvent::Triggered, this, &AMH_VRPlayer::TriggerInteract);
+	EnhancedInput->BindAction(IA_MHInteract_L, ETriggerEvent::Completed, this, &AMH_VRPlayer::TriggerInteractCompleted);
 	EnhancedInput->BindAction(IA_MHTestTeleportStart, ETriggerEvent::Started, this, &AMH_VRPlayer::F_TeleportStart);
 	EnhancedInput->BindAction(IA_MHTestTeleportEnd, ETriggerEvent::Completed, this, &AMH_VRPlayer::F_TeleportEnd);
 	EnhancedInput->BindAction(IA_MHVRTeleport, ETriggerEvent::Started, this, &AMH_VRPlayer::F_TeleportStart);
@@ -154,7 +165,7 @@ void AMH_VRPlayer::SetupPlayerInputComponent(UInputComponent* PlayerInputCompone
 	                          &AMH_VRPlayer::HandleThumbstickInput);
 	EnhancedInput->BindAction(IA_RotateHeldObject, ETriggerEvent::Triggered, this,
 	                          &AMH_VRPlayer::HandleThumbstickInput);
-	
+
 	// Excavation Tool Actions
 	EnhancedInput->BindAction(IA_ExcavationTool1, ETriggerEvent::Triggered, this, &AMH_VRPlayer::ExcavationTool1);
 	EnhancedInput->BindAction(IA_ExcavationTool2, ETriggerEvent::Triggered, this, &AMH_VRPlayer::ExcavationTool2);
@@ -275,9 +286,14 @@ void AMH_VRPlayer::RotateHeldObject(const struct FInputActionValue& Value)
 	}
 }
 
-void AMH_VRPlayer::TestInteract()
+void AMH_VRPlayer::TriggerInteract(const FInputActionInstance& IA_Instance)
 {
-	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green,TEXT("Interact"));
+	TryWorldMapInteraction(IA_Instance);
+}
+
+void AMH_VRPlayer::TriggerInteractCompleted()
+{
+	ResetWorldMapInteraction();
 }
 
 void AMH_VRPlayer::ExcavationTool1()
@@ -333,7 +349,7 @@ void AMH_VRPlayer::UpdateInteractionLine()
 		Start = R_Hand->GetComponentLocation();
 		Velocity = R_Hand->GetForwardVector() * 1000.f * TeleportDistanceFactor; // 강도는 상황에 맞게 조절
 	}
-	
+
 	FVector Pos = Start;
 	Lines.Add(Pos);
 
@@ -450,5 +466,41 @@ void AMH_VRPlayer::TestLookUp(const FInputActionValue& Value)
 		FRotator NewRot = VRCamera->GetRelativeRotation();
 		NewRot.Pitch = FMath::Clamp(NewRot.Pitch + AxisValue, -80.f, 80.f);
 		VRCamera->SetRelativeRotation(NewRot);
+	}
+}
+
+void AMH_VRPlayer::TryWorldMapInteraction(const FInputActionInstance& IA_Instance)
+{
+	UMotionControllerComponent* MotionController = nullptr;
+	if (IA_Instance.GetSourceAction() == IA_MHInteract) MotionController = RHandController;
+	else if (IA_Instance.GetSourceAction() == IA_MHInteract_L) MotionController = LHandController;
+
+	if (!MotionController) return;
+	
+	FVector Start = MotionController->GetComponentLocation();
+	FVector End = Start + (MotionController->GetForwardVector() * 2000.f);
+
+	FHitResult HitResult;
+	FCollisionQueryParams Params;
+	Params.AddIgnoredActor(this);
+
+	DrawDebugLine(GetWorld(), Start, End, FColor::Red, false, 0.f, 0, 1);
+	if (GetWorld()->LineTraceSingleByChannel(HitResult, Start, End, ECC_GameTraceChannel3, Params))
+	{
+		if (!HitResult.GetActor()->IsA(ACWorldMap::StaticClass())) return;
+		UStaticMeshComponent* HitMesh = Cast<UStaticMeshComponent>(HitResult.GetComponent());
+		if (HitMesh) Cast<ACWorldMap>(HitResult.GetActor())->EnableCompOutline(HitMesh);
+	}
+	else
+	{
+		ResetWorldMapInteraction();
+	}
+}
+
+void AMH_VRPlayer::ResetWorldMapInteraction()
+{
+	if (CachedWorldMap)
+	{
+		CachedWorldMap->ResetPrevOutline();
 	}
 }

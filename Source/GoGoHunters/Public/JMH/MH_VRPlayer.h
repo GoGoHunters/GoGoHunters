@@ -7,6 +7,8 @@
 #include "InputAction.h"
 #include "MH_VRPlayer.generated.h"
 
+class ACWorldMap;
+
 /*
  * 텔레포트 조건 = Teleportable 액터 태그
  * 그랩 조건 = Grabbable 액터 태그
@@ -90,6 +92,8 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Input")
 	UInputAction* IA_MHInteract;
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Input")
+	UInputAction* IA_MHInteract_L;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Input")
 	UInputAction* IA_MHTestTeleportStart;
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Input")
 	UInputAction* IA_MHTestTeleportEnd;
@@ -150,7 +154,9 @@ public:
 	void TestTurn(const FInputActionValue& Value);
 	void TestLookUp(const FInputActionValue& Value);
 	UFUNCTION()
-	void TestInteract();
+	void TriggerInteract(const FInputActionInstance& IA_Instance);
+	UFUNCTION()
+	void TriggerInteractCompleted();
 	
 	UFUNCTION(exec)
 	void ActiveDebugDraw();
@@ -196,4 +202,11 @@ public:
 
 	UPROPERTY(EditAnywhere, Category="VR Movement")
 	float SnapTurnAngle = 15.f;
+
+private:
+	UPROPERTY()
+	TObjectPtr<ACWorldMap> CachedWorldMap = nullptr;
+
+	void TryWorldMapInteraction(const FInputActionInstance& IA_Instance);
+	void ResetWorldMapInteraction();
 };
