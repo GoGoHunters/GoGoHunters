@@ -7,6 +7,9 @@
 #include "LHM/Excavation/DetectionUI.h"
 #include "LHM/Excavation/AI_Docent.h"
 #include "LHM/Excavation/ExcavationMarker.h"
+#include "Components/WidgetComponent.h"
+#include "Components/SceneComponent.h"
+#include "EngineUtils.h"
 
 // Sets default values
 ADetectorTool::ADetectorTool()
@@ -14,12 +17,18 @@ ADetectorTool::ADetectorTool()
  	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
 
+	RootComponent = CreateDefaultSubobject<USceneComponent>(TEXT("RootScene"));
 	DetectionComp = CreateDefaultSubobject<UDetectionComponent>(TEXT("DetectionComponent"));
+
+	DetectionWidgetComp = CreateDefaultSubobject<UWidgetComponent>(TEXT("DetectionWidgetComp"));
+	DetectionWidgetComp->SetupAttachment(RootComponent);
+	DetectionWidgetComp->SetWidgetSpace(EWidgetSpace::World); // 월드 공간
+	DetectionWidgetComp->SetDrawSize(FVector2D(400, 100));    // 원하는 UI 사이즈
 
 	static ConstructorHelpers::FClassFinder<UUserWidget> WidgetClassFinder(TEXT("/Game/LHM/UI/WBP_DetectionUI"));
 	if (WidgetClassFinder.Succeeded())
 	{
-		DetectionUIClass = WidgetClassFinder.Class;
+		DetectionWidgetComp->SetWidgetClass(WidgetClassFinder.Class);
 	}
 
 	static ConstructorHelpers::FClassFinder<AAI_Docent> DocentClassFinder(TEXT("/Game/LHM/BP/Excavation/BP_AI_Docent"));
@@ -35,14 +44,8 @@ void ADetectorTool::BeginPlay()
 	Super::BeginPlay();
 	
 	// UI 가시화 테스트용
-	if (DetectionUIClass)
-	{
-		DetectionUI = CreateWidget<UDetectionUI>(GetWorld()->GetFirstPlayerController(), DetectionUIClass);
-		if (DetectionUI)
-		{
-			DetectionUI->AddToViewport();
-		}
-	}
+	// WidgetComponent에 연결된 실제 UDetectionUI 객체 받아오기
+	DetectionUI = Cast<UDetectionUI>(DetectionWidgetComp->GetUserWidgetObject());
 
 	// Decent 가시화 테스트용
 	if (DocentClass)
@@ -62,58 +65,144 @@ void ADetectorTool::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
-	if (bIsDetecting && TargetArtifact)
+	if (bIsDetecting)
 	{
 		UpdateDetection(DeltaTime);
 	}
 }
 
-void ADetectorTool::StartDetection(ARelicsBase* InTarget)
+void ADetectorTool::StartDetection()
 {
-	TargetArtifact = InTarget;
 	bIsDetecting = true;
-	DetectionProgress = 0.0f;
-	DetectionComp->OnStartFeedback();
+	
+	//// 1. 월드 내에서 가장 가까운 RelicsBase를 탐색
+	//ARelicsBase* ClosestRelics = nullptr;
+	//float ClosestDist = TNumericLimits<float>::Max();
+	//
+	//for (TActorIterator<ARelicsBase> It(GetWorld()); It; ++It)
+	//{
+	//	// 1. 마커 존재 확인 (nullptr 체크)
+	//	if (!It->Marker) continue;
+	//
+	//	// 2. 마커가 이미 활성화(=표시 중)면 스킵
+	//	if (!It->Marker->IsHidden()) continue;
+	//
+	//	// 3. 거리를 계산하여 가장 가까운 RelicsBase 찾기
+	//	float Dist = FVector::Dist(It->GetActorLocation(), GetActorLocation());
+	//	if (Dist < ClosestDist)
+	//	{
+	//		ClosestDist = Dist;
+	//		ClosestRelics = *It;
+	//	}
+	//}
+	//
+	//if (ClosestRelics)
+	//{
+	//	TargetArtifact = ClosestRelics;
+	//	bIsDetecting = true;
+	//	DetectionProgress = 0.0f;
+	//	if (DetectionComp) DetectionComp->OnStartFeedback();
+	//}
+	//else
+	//{
+	//	UE_LOG(LogTemp, Warning, TEXT("[DetectorTool] 탐지 가능한 RelicsBase를 찾을 수 없습니다!"));
+	//	// 혹시 UI/사운드로 "탐지 불가" 안내도 가능
+	//}
 }
 
-void ADetectorTool::StopDetection(class ARelicsBase* InTarget)
+void ADetectorTool::StopDetection()
 {
+	bIsDetecting = false;
 
+	// 피드백/이펙트 중지
+	if (DetectionComp)
+		DetectionComp->StopFeedback();
+
+	// 도슨트 해설 실행
+	if (AI_Docent)
+		AI_Docent->PlayDetectionComment();
+
+	// 마커 표시
+	if (TargetArtifact && TargetArtifact->Marker)
+		TargetArtifact->Marker->ActivateMarker();
+
+	// ProgressBar 및 내부 진행도 리셋
+	DetectionProgress = 0.f;
+	if (DetectionUI)
+		DetectionUI->UpdateUI(DetectionProgress);
+
+	UE_LOG(LogTemp, Log, TEXT("[DetectorTool] 탐지 완료 및 UI & 탐지 상태 초기화"));
+
+	// 탐지 상태 초기화
+	bIsDetecting = true;
+	TargetArtifact = nullptr;
 }
 
 void ADetectorTool::UpdateDetection(float DeltaTime)
 {
+// 1. 가장 가까운 탐지 가능한 Relics 찾기
+	ARelicsBase* ClosestRelics = nullptr;
+	float ClosestDist = TNumericLimits<float>::Max();
+
+	for (TActorIterator<ARelicsBase> It(GetWorld()); It; ++It)
+	{
+		if (!It->Marker) continue;
+		if (!It->Marker->IsHidden()) // 이미 탐지 완료된 유물은 건너뜀
+			continue;
+
+		float Dist = FVector::Dist(It->GetActorLocation(), GetActorLocation());
+		if (Dist < ClosestDist)
+		{
+			ClosestDist = Dist;
+			ClosestRelics = *It;
+		}
+	}
+
+	// 2. 탐지 가능한 Relics가 없으면 UI 리셋, 진행도 0
+	if (!ClosestRelics)
+	{
+		DetectionProgress = 0.f;
+		if (DetectionUI)
+			DetectionUI->UpdateUI(DetectionProgress);
+		return;
+	}
+
+	TargetArtifact = ClosestRelics;
+
+	// 3. 진행도 로직
 	float Distance = FVector::Dist(GetActorLocation(), TargetArtifact->GetLocation());
+	const float MinDetectDistance = 100;
+	const float MaxDetectDistance = 800.f;
+	const float FillSpeed = 50.f;
 
-	// 거리가 가까울수록 DetectionSpeed가 커짐 (최소값 보장)
-	float DetectionSpeed = GetDetectionSpeed(Distance);
+	if (Distance > MinDetectDistance && Distance <= MaxDetectDistance)
+	{
+		// 70%까지는 거리 기반 즉시 반영
+		float Ratio = 1.f - (Distance - MinDetectDistance) / (MaxDetectDistance - MinDetectDistance);
+		float TargetProgress = FMath::Clamp(Ratio * 70.f, 0.f, 70.f);
+		DetectionProgress = TargetProgress;
+	}
+	else if (Distance <= MinDetectDistance)
+	{
+		// 30cm 이내로 들어왔으면 진행률이 서서히 차오름 (70~100%)
+		DetectionProgress += FillSpeed * DeltaTime;
+		DetectionProgress = FMath::Clamp(DetectionProgress, 70.f, 100.f);
+	}
+	else
+	{
+		// 한계 바깥(>8m)은 0%
+		DetectionProgress = 0.f;
+	}
 
-	DetectionProgress += DetectionSpeed * DeltaTime;
-	DetectionProgress = FMath::Clamp(DetectionProgress, 0.f, 100.f);
+	if (DetectionComp && DetectionUI)
+	{
+		DetectionComp->UpdateFeedback(DetectionProgress);
+		DetectionUI->UpdateUI(DetectionProgress);
+	}
 
-	// 피드백/UI 갱신
-	DetectionComp->UpdateFeedback(DetectionProgress);
-	DetectionUI->UpdateUI(DetectionProgress);
-	
 	if (DetectionProgress >= 100.f)
 	{
-		bIsDetecting = false;
-		DetectionComp->StopFeedback();
-
-		// 탐지 완료 처리
-		if(AI_Docent) AI_Docent->PlayDetectionComment();
-		if(TargetArtifact->Marker) TargetArtifact->Marker->ActivateMarker();
+		StopDetection();
 	}
-}
-
-float ADetectorTool::GetDetectionSpeed(float Distance) const
-{
-	// 가까울수록 빠름, 멀면 느림 (튜닝값 예시)
-	const float MinSpeed = 2.0f;
-	const float MaxSpeed = 20.0f;
-	const float MaxDetectionDistance = 300.0f; // 3m
-
-	float Alpha = FMath::Clamp(1.0f - (Distance / MaxDetectionDistance), 0.f, 1.f);
-	return MinSpeed + (MaxSpeed - MinSpeed) * Alpha;
 }
 

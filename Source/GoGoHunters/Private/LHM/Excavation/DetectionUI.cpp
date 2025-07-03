@@ -21,7 +21,7 @@ void UDetectionUI::UpdateStatusText(float Progress)
 	else if (Progress < 100.f)
 		Status = TEXT("발굴 위치 식별 중...");
 	else
-		Status = TEXT("탐지");
+		Status = TEXT("탐지 완료!");
 
     StatusText->SetText(FText::FromString(Status));
 }

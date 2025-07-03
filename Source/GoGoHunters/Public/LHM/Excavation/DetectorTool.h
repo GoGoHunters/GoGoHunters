@@ -24,15 +24,16 @@ public:
 	virtual void Tick(float DeltaTime) override;
 
 public:
-	void StartDetection(class ARelicsBase* InTarget);
-	void StopDetection(class ARelicsBase* InTarget);
+	void StartDetection();
+	void StopDetection();
 
-private:
 	UPROPERTY()
 	class ARelicsBase* TargetArtifact;
 	UPROPERTY()
 	class UDetectionComponent* DetectionComp;
 
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	class UWidgetComponent* DetectionWidgetComp;
 	UPROPERTY()
 	TSubclassOf<class UDetectionUI> DetectionUIClass;
 	UPROPERTY()
@@ -47,7 +48,4 @@ private:
 	bool bIsDetecting = false;
 
 	void UpdateDetection(float DeltaTime);
-
-	// 탐지 속도 계산 (가까울수록 빠름)
-	float GetDetectionSpeed(float Distance) const;
 };

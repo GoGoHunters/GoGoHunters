@@ -15,6 +15,7 @@
 #include "Engine/OverlapResult.h"
 #include "JMH/MH_GrabComp.h"
 #include "JMH/MH_TeleportComp.h"
+#include "LHM/Excavation/DetectorTool.h"
 
 
 // Sets default values
@@ -153,6 +154,11 @@ void AMH_VRPlayer::SetupPlayerInputComponent(UInputComponent* PlayerInputCompone
 	                          &AMH_VRPlayer::HandleThumbstickInput);
 	EnhancedInput->BindAction(IA_RotateHeldObject, ETriggerEvent::Triggered, this,
 	                          &AMH_VRPlayer::HandleThumbstickInput);
+	
+	// Excavation Tool Actions
+	EnhancedInput->BindAction(IA_ExcavationTool1, ETriggerEvent::Triggered, this, &AMH_VRPlayer::ExcavationTool1);
+	EnhancedInput->BindAction(IA_ExcavationTool2, ETriggerEvent::Triggered, this, &AMH_VRPlayer::ExcavationTool2);
+	EnhancedInput->BindAction(IA_ExcavationTool3, ETriggerEvent::Triggered, this, &AMH_VRPlayer::ExcavationTool3);
 }
 
 void AMH_VRPlayer::SetPlayerState(EPlayerVRState NewState)
@@ -272,6 +278,39 @@ void AMH_VRPlayer::RotateHeldObject(const struct FInputActionValue& Value)
 void AMH_VRPlayer::TestInteract()
 {
 	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green,TEXT("Interact"));
+}
+
+void AMH_VRPlayer::ExcavationTool1()
+{
+	if (!DetectionTool)
+	{
+		FActorSpawnParameters SpawnParams;
+		SpawnParams.Owner = this;
+
+		if (DetectionToolClass = LoadClass<ADetectorTool>(nullptr, TEXT("/Game/LHM/BP/Excavation/BP_DetectorTool.BP_DetectorTool_C")))
+		{
+			DetectionTool = GetWorld()->SpawnActor<ADetectorTool>(DetectionToolClass, FVector::ZeroVector, FRotator::ZeroRotator, SpawnParams);
+			if (DetectionTool)
+			{
+				USceneComponent* HandSocket = RHandController;
+				DetectionTool->AttachToComponent(HandSocket, FAttachmentTransformRules::SnapToTargetNotIncludingScale, NAME_None);
+
+				DetectionTool->StartDetection();
+
+				//SetPlayerState(EPlayerVRState::Excavating);
+			}
+		}
+	}
+}
+
+void AMH_VRPlayer::ExcavationTool2()
+{
+
+}
+
+void AMH_VRPlayer::ExcavationTool3()
+{
+
 }
 
 void AMH_VRPlayer::UpdateInteractionLine()

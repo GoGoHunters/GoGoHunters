@@ -7,7 +7,7 @@
 #include "DetectionComponent.generated.h"
 
 
-UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
+UCLASS(/* ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) */)
 class GOGOHUNTERS_API UDetectionComponent : public UActorComponent
 {
 	GENERATED_BODY()
