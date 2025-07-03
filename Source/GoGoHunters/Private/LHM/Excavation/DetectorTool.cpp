@@ -10,6 +10,7 @@
 #include "Components/WidgetComponent.h"
 #include "Components/SceneComponent.h"
 #include "EngineUtils.h"
+#include "Components/StaticMeshComponent.h"
 
 // Sets default values
 ADetectorTool::ADetectorTool()
@@ -18,12 +19,23 @@ ADetectorTool::ADetectorTool()
 	PrimaryActorTick.bCanEverTick = true;
 
 	RootComponent = CreateDefaultSubobject<USceneComponent>(TEXT("RootScene"));
-	DetectionComp = CreateDefaultSubobject<UDetectionComponent>(TEXT("DetectionComponent"));
+	DetectorMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("DetectorMesh"));
+	static ConstructorHelpers::FObjectFinder<UStaticMesh> MeshAsset(TEXT("/Game/LHM/Meshes/SM_DetectionTool.SM_DetectionTool"));
+	if (MeshAsset.Succeeded())
+	{
+		DetectorMesh->SetStaticMesh(MeshAsset.Object);
+		DetectorMesh->SetupAttachment(RootComponent);
+	}
 
 	DetectionWidgetComp = CreateDefaultSubobject<UWidgetComponent>(TEXT("DetectionWidgetComp"));
-	DetectionWidgetComp->SetupAttachment(RootComponent);
+	DetectionWidgetComp->SetupAttachment(DetectorMesh);
 	DetectionWidgetComp->SetWidgetSpace(EWidgetSpace::World); // 월드 공간
-	DetectionWidgetComp->SetDrawSize(FVector2D(400, 100));    // 원하는 UI 사이즈
+	DetectionWidgetComp->SetRelativeLocation(FVector(3, 0, 2.01)); // (X=3.000000,Y=0.000000,Z=2.010000)
+	DetectionWidgetComp->SetRelativeRotation(FRotator(FRotator(90, 180, 0))); // (Pitch=90.000000,Yaw=180.000000,Roll=0.000000)
+	DetectionWidgetComp->SetRelativeScale3D(FVector(0.2));
+	DetectionWidgetComp->SetDrawSize(FVector2D(130, 50));
+
+	DetectionComp = CreateDefaultSubobject<UDetectionComponent>(TEXT("DetectionComponent"));
 
 	static ConstructorHelpers::FClassFinder<UUserWidget> WidgetClassFinder(TEXT("/Game/LHM/UI/WBP_DetectionUI"));
 	if (WidgetClassFinder.Succeeded())

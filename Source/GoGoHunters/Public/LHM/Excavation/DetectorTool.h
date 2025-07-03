@@ -27,6 +27,10 @@ public:
 	void StartDetection();
 	void StopDetection();
 
+public:
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	class UStaticMeshComponent* DetectorMesh;
+
 	UPROPERTY()
 	class ARelicsBase* TargetArtifact;
 	UPROPERTY()
