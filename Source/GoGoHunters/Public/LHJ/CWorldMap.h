@@ -10,7 +10,8 @@ class GOGOHUNTERS_API ACWorldMap : public AActor
 	GENERATED_BODY()
 	
 public:
-	void EnableCompOutline(UStaticMeshComponent* Comp, bool bEnable);
+	void EnableCompOutline(UStaticMeshComponent* Comp);
+	void ResetPrevOutline();
 	
 private:
 	UPROPERTY(EditDefaultsOnly)
@@ -29,10 +30,13 @@ private:
 	UStaticMeshComponent* Europe;
 	UPROPERTY(EditDefaultsOnly)
 	UStaticMeshComponent* Africa;
+
+	UPROPERTY()
+	TObjectPtr<UStaticMeshComponent> PrevOutlinedComp = nullptr;
 	
 	ACWorldMap();
 	virtual void BeginPlay() override;
 	virtual void Tick(float DeltaTime) override;
 
-	void SetComonentInit(UStaticMeshComponent* Comp);
+	void SetComponentInit(UStaticMeshComponent* Comp);
 };

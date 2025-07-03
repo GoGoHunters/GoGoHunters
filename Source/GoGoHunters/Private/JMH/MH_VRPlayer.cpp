@@ -17,6 +17,7 @@
 #include "JMH/MH_TeleportComp.h"
 #include "LHM/Excavation/DetectorTool.h"
 #include "LHJ/CWorldMap.h"
+#include "EngineUtils.h"
 
 // Sets default values
 AMH_VRPlayer::AMH_VRPlayer()
@@ -113,6 +114,13 @@ void AMH_VRPlayer::BeginPlay()
 
 	TeleportUIComponent->SetVisibility(false);
 	TeleportCircleA->SetVisibility(false);
+
+	// 월드에 존재하는 ACWorldMap을 찾아 저장
+	for (TActorIterator<ACWorldMap> It(GetWorld()); It; ++It)
+	{
+		CachedWorldMap = *It;
+		break;
+	}
 }
 
 // Called every frame
@@ -142,6 +150,7 @@ void AMH_VRPlayer::SetupPlayerInputComponent(UInputComponent* PlayerInputCompone
 	EnhancedInput->BindAction(IA_MHVRTurn, ETriggerEvent::Triggered, this, &AMH_VRPlayer::VRTurn);
 	EnhancedInput->BindAction(IA_MHLookUp, ETriggerEvent::Triggered, this, &AMH_VRPlayer::TestLookUp);
 	EnhancedInput->BindAction(IA_MHInteract, ETriggerEvent::Triggered, this, &AMH_VRPlayer::TriggerInteract);
+	EnhancedInput->BindAction(IA_MHInteract, ETriggerEvent::Completed, this, &AMH_VRPlayer::TriggerInteractCompleted);
 	EnhancedInput->BindAction(IA_MHTestTeleportStart, ETriggerEvent::Started, this, &AMH_VRPlayer::F_TeleportStart);
 	EnhancedInput->BindAction(IA_MHTestTeleportEnd, ETriggerEvent::Completed, this, &AMH_VRPlayer::F_TeleportEnd);
 	EnhancedInput->BindAction(IA_MHVRTeleport, ETriggerEvent::Started, this, &AMH_VRPlayer::F_TeleportStart);
@@ -284,11 +293,27 @@ void AMH_VRPlayer::TriggerInteract()
 	FCollisionQueryParams Params;
 	Params.AddIgnoredActor(this);
 
+	DrawDebugLine(GetWorld(), Start, End, FColor::Red, false, 0.f, 0, 1);
 	if (GetWorld()->LineTraceSingleByChannel(HitResult, Start, End, ECC_GameTraceChannel3, Params))
 	{
 		if (!HitResult.GetActor()->IsA(ACWorldMap::StaticClass())) return;
 		UStaticMeshComponent* HitMesh = Cast<UStaticMeshComponent>(HitResult.GetComponent());
-		if (HitMesh) Cast<ACWorldMap>(HitResult.GetActor())->EnableCompOutline(HitMesh, true);
+		if (HitMesh) Cast<ACWorldMap>(HitResult.GetActor())->EnableCompOutline(HitMesh);
+	}
+	else
+	{
+		if (CachedWorldMap)
+		{
+			CachedWorldMap->ResetPrevOutline();
+		}
+	}
+}
+
+void AMH_VRPlayer::TriggerInteractCompleted()
+{
+	if (CachedWorldMap)
+	{
+		CachedWorldMap->ResetPrevOutline();
 	}
 }
 

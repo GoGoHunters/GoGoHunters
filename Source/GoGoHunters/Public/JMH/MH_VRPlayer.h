@@ -7,6 +7,8 @@
 #include "InputAction.h"
 #include "MH_VRPlayer.generated.h"
 
+class ACWorldMap;
+
 /*
  * 텔레포트 조건 = Teleportable 액터 태그
  * 그랩 조건 = Grabbable 액터 태그
@@ -151,6 +153,8 @@ public:
 	void TestLookUp(const FInputActionValue& Value);
 	UFUNCTION()
 	void TriggerInteract();
+	UFUNCTION()
+	void TriggerInteractCompleted();
 	
 	UFUNCTION(exec)
 	void ActiveDebugDraw();
@@ -196,4 +200,8 @@ public:
 
 	UPROPERTY(EditAnywhere, Category="VR Movement")
 	float SnapTurnAngle = 15.f;
+
+private:
+	UPROPERTY()
+	TObjectPtr<ACWorldMap> CachedWorldMap = nullptr;
 };
