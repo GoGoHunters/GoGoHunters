@@ -92,6 +92,8 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Input")
 	UInputAction* IA_MHInteract;
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Input")
+	UInputAction* IA_MHInteract_L;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Input")
 	UInputAction* IA_MHTestTeleportStart;
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Input")
 	UInputAction* IA_MHTestTeleportEnd;
@@ -152,7 +154,7 @@ public:
 	void TestTurn(const FInputActionValue& Value);
 	void TestLookUp(const FInputActionValue& Value);
 	UFUNCTION()
-	void TriggerInteract();
+	void TriggerInteract(const FInputActionInstance& IA_Instance);
 	UFUNCTION()
 	void TriggerInteractCompleted();
 	
@@ -204,4 +206,7 @@ public:
 private:
 	UPROPERTY()
 	TObjectPtr<ACWorldMap> CachedWorldMap = nullptr;
+
+	void TryWorldMapInteraction(const FInputActionInstance& IA_Instance);
+	void ResetWorldMapInteraction();
 };

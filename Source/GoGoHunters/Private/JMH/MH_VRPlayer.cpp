@@ -151,6 +151,8 @@ void AMH_VRPlayer::SetupPlayerInputComponent(UInputComponent* PlayerInputCompone
 	EnhancedInput->BindAction(IA_MHLookUp, ETriggerEvent::Triggered, this, &AMH_VRPlayer::TestLookUp);
 	EnhancedInput->BindAction(IA_MHInteract, ETriggerEvent::Triggered, this, &AMH_VRPlayer::TriggerInteract);
 	EnhancedInput->BindAction(IA_MHInteract, ETriggerEvent::Completed, this, &AMH_VRPlayer::TriggerInteractCompleted);
+	EnhancedInput->BindAction(IA_MHInteract_L, ETriggerEvent::Triggered, this, &AMH_VRPlayer::TriggerInteract);
+	EnhancedInput->BindAction(IA_MHInteract_L, ETriggerEvent::Completed, this, &AMH_VRPlayer::TriggerInteractCompleted);
 	EnhancedInput->BindAction(IA_MHTestTeleportStart, ETriggerEvent::Started, this, &AMH_VRPlayer::F_TeleportStart);
 	EnhancedInput->BindAction(IA_MHTestTeleportEnd, ETriggerEvent::Completed, this, &AMH_VRPlayer::F_TeleportEnd);
 	EnhancedInput->BindAction(IA_MHVRTeleport, ETriggerEvent::Started, this, &AMH_VRPlayer::F_TeleportStart);
@@ -284,37 +286,14 @@ void AMH_VRPlayer::RotateHeldObject(const struct FInputActionValue& Value)
 	}
 }
 
-void AMH_VRPlayer::TriggerInteract()
+void AMH_VRPlayer::TriggerInteract(const FInputActionInstance& IA_Instance)
 {
-	FVector Start = RHandController->GetComponentLocation();
-	FVector End = Start + (RHandController->GetForwardVector() * 2000.f);
-
-	FHitResult HitResult;
-	FCollisionQueryParams Params;
-	Params.AddIgnoredActor(this);
-
-	DrawDebugLine(GetWorld(), Start, End, FColor::Red, false, 0.f, 0, 1);
-	if (GetWorld()->LineTraceSingleByChannel(HitResult, Start, End, ECC_GameTraceChannel3, Params))
-	{
-		if (!HitResult.GetActor()->IsA(ACWorldMap::StaticClass())) return;
-		UStaticMeshComponent* HitMesh = Cast<UStaticMeshComponent>(HitResult.GetComponent());
-		if (HitMesh) Cast<ACWorldMap>(HitResult.GetActor())->EnableCompOutline(HitMesh);
-	}
-	else
-	{
-		if (CachedWorldMap)
-		{
-			CachedWorldMap->ResetPrevOutline();
-		}
-	}
+	TryWorldMapInteraction(IA_Instance);
 }
 
 void AMH_VRPlayer::TriggerInteractCompleted()
 {
-	if (CachedWorldMap)
-	{
-		CachedWorldMap->ResetPrevOutline();
-	}
+	ResetWorldMapInteraction();
 }
 
 void AMH_VRPlayer::ExcavationTool1()
@@ -487,5 +466,41 @@ void AMH_VRPlayer::TestLookUp(const FInputActionValue& Value)
 		FRotator NewRot = VRCamera->GetRelativeRotation();
 		NewRot.Pitch = FMath::Clamp(NewRot.Pitch + AxisValue, -80.f, 80.f);
 		VRCamera->SetRelativeRotation(NewRot);
+	}
+}
+
+void AMH_VRPlayer::TryWorldMapInteraction(const FInputActionInstance& IA_Instance)
+{
+	UMotionControllerComponent* MotionController = nullptr;
+	if (IA_Instance.GetSourceAction() == IA_MHInteract) MotionController = RHandController;
+	else if (IA_Instance.GetSourceAction() == IA_MHInteract_L) MotionController = LHandController;
+
+	if (!MotionController) return;
+	
+	FVector Start = MotionController->GetComponentLocation();
+	FVector End = Start + (MotionController->GetForwardVector() * 2000.f);
+
+	FHitResult HitResult;
+	FCollisionQueryParams Params;
+	Params.AddIgnoredActor(this);
+
+	DrawDebugLine(GetWorld(), Start, End, FColor::Red, false, 0.f, 0, 1);
+	if (GetWorld()->LineTraceSingleByChannel(HitResult, Start, End, ECC_GameTraceChannel3, Params))
+	{
+		if (!HitResult.GetActor()->IsA(ACWorldMap::StaticClass())) return;
+		UStaticMeshComponent* HitMesh = Cast<UStaticMeshComponent>(HitResult.GetComponent());
+		if (HitMesh) Cast<ACWorldMap>(HitResult.GetActor())->EnableCompOutline(HitMesh);
+	}
+	else
+	{
+		ResetWorldMapInteraction();
+	}
+}
+
+void AMH_VRPlayer::ResetWorldMapInteraction()
+{
+	if (CachedWorldMap)
+	{
+		CachedWorldMap->ResetPrevOutline();
 	}
 }
