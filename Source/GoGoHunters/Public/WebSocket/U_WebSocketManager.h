@@ -16,6 +16,7 @@
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnWebSocketMessageReceived, const FString&, Message);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnWebSocketConnectionStatusChanged, bool, bIsConnected);
 
+
 /**
  * 
  */
@@ -36,6 +37,16 @@ private:
     void OnWebSocketMessage(const FString& Message);
 
     void OnFileUploadResponse(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bWasSuccessful);
+
+    void OnFileDownloadComplete(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bWasSuccessful, FString DownloadedFilePath);
+
+
+    bool EnsureDirectoryForFile(const FString& FilePath);
+
+    bool WaitForFileToBeReadable(const FString& FilePath, int32 MaxAttempts = 10, float DelayPerAttempt = 0.1f);
+
+    
+     FString CleanWebSocketURL(const FString& InURL);
 
 public:
     UU_WebSocketManager();
@@ -60,6 +71,27 @@ public:
 
     // Sending File 
     UFUNCTION(BlueprintCallable, Category = "WebSocket")
-    void WebSocketSendFile(const FString& SaveFilePath, const FString& URL);
+    void WebSocketSendFile(const FString& FilePath, const FString& URLPath);
 
+    UFUNCTION(BlueprintCallable, Category = "WebSocket|FileDownload")
+    void WebSocketDownloadFile(const FString& URL, const FString& SaveAsFileName);
+
+};
+
+USTRUCT(BlueprintType)
+struct FAIAnalysisResult
+{
+    GENERATED_BODY()
+
+    UPROPERTY(BlueprintReadWrite, Category = "AIAnalysis")
+    int32 Type; // JSON의 "type": 1 에 해당
+
+    UPROPERTY(BlueprintReadWrite, Category = "AIAnalysis")
+    FString Filename;
+
+    UPROPERTY(BlueprintReadWrite, Category = "AIAnalysis")
+    FString DownloadURL;
+
+    UPROPERTY(BlueprintReadWrite, Category = "AIAnalysis")
+    FString Timestamp;
 };
