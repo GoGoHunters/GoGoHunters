@@ -16,6 +16,8 @@
 #include "Interfaces/IHttpRequest.h"
 #include "Interfaces/IHttpResponse.h"
 
+// For JSON
+#include "JsonObjectConverter.h"
 
 UU_WebSocketManager::UU_WebSocketManager()
 {
@@ -103,8 +105,37 @@ void UU_WebSocketManager::OnWebSocketClosed(int32 StatusCode, const FString& Rea
 void UU_WebSocketManager::OnWebSocketMessage(const FString& Message)
 {
     UE_LOG(LogTemp, Log, TEXT("Received WebSocket message: %s"), *Message);
-    // json 만들기 필요
+    
     OnMessageReceived.Broadcast(Message);
+
+    TSharedPtr<FJsonObject> JsonObject;
+    TSharedRef<TJsonReader<>> Reader = TJsonReaderFactory<>::Create(Message);
+
+
+    if (FJsonSerializer::Deserialize(Reader, JsonObject) && JsonObject.IsValid())
+    {
+        UE_LOG(LogTemp, Log, TEXT("Successfully parsed WebSocket message as JSON."));
+        
+        if (JsonObject->HasField(TEXT("type")))
+        {
+            double MessageTypeNumber;
+
+            if (JsonObject->TryGetNumberField(TEXT("type"), MessageTypeNumber))
+            {
+                if (FMath::IsNearlyEqual(MessageTypeNumber, 1.0))
+                {
+                    FAIAnalysisResult ParsedResult;
+                    UE_LOG(LogTemp, Log, TEXT("Broadcasting AI analysis result (Type: 1)."));
+                    if (FJsonObjectConverter::JsonObjectToUStruct(JsonObject.ToSharedRef(), &ParsedResult, 0, 0))
+                    {
+                        WebSocketDownloadFile(ParsedResult.DownloadURL, ParsedResult.Filename);
+                    }
+                }
+            }
+        }
+
+    }
+
 }
 
 
@@ -181,6 +212,36 @@ void UU_WebSocketManager::OnFileUploadResponse(FHttpRequestPtr Request, FHttpRes
     if (bWasSuccessful && Response.IsValid())
     {
         UE_LOG(LogTemp, Log, TEXT("File upload successful! Response: %s"), *Response->GetContentAsString());
+        FString Message = Response->GetContentAsString();
+        OnMessageReceived.Broadcast(Message);
+
+        TSharedPtr<FJsonObject> JsonObject;
+        TSharedRef<TJsonReader<>> Reader = TJsonReaderFactory<>::Create(Message);
+
+
+        if (FJsonSerializer::Deserialize(Reader, JsonObject) && JsonObject.IsValid())
+        {
+            UE_LOG(LogTemp, Log, TEXT("Successfully parsed WebSocket message as JSON."));
+
+            if (JsonObject->HasField(TEXT("type")))
+            {
+                double MessageTypeNumber;
+
+                if (JsonObject->TryGetNumberField(TEXT("type"), MessageTypeNumber))
+                {
+                    if (FMath::IsNearlyEqual(MessageTypeNumber, 1.0))
+                    {
+                        FAIAnalysisResult ParsedResult;
+                        UE_LOG(LogTemp, Log, TEXT("Broadcasting AI analysis result (Type: 1)."));
+                        if (FJsonObjectConverter::JsonObjectToUStruct(JsonObject.ToSharedRef(), &ParsedResult, 0, 0))
+                        {
+                            WebSocketDownloadFile(ParsedResult.DownloadURL, ParsedResult.Filename);
+                        }
+                    }
+                }
+            }
+
+        }
     }
     else
     {
@@ -201,7 +262,7 @@ void UU_WebSocketManager::WebSocketDownloadFile(const FString& URL, const FStrin
     Request->SetURL(URL);
     Request->SetVerb(TEXT("GET"));
 
-    FString FullSavePath = FPaths::ProjectSavedDir() / SaveAsFileName;
+    FString FullSavePath = FPaths::ProjectSavedDir() / "Answer" / SaveAsFileName;
     
     if (!EnsureDirectoryForFile(FullSavePath))
         return;

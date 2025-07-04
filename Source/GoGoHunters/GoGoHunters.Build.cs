@@ -19,7 +19,9 @@ public class GoGoHunters : ModuleRules
 			"HTTP", 
 			"WebSockets",
             "AudioMixer",
-            "AudioCapture"
+            "AudioCapture",
+            "Json",
+            "JsonUtilities"
         });
 	}
 }
