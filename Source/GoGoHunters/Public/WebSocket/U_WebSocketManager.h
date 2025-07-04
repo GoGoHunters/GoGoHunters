@@ -37,6 +37,16 @@ private:
 
     void OnFileUploadResponse(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bWasSuccessful);
 
+    void OnFileDownloadComplete(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bWasSuccessful, FString DownloadedFilePath);
+
+
+    bool EnsureDirectoryForFile(const FString& FilePath);
+
+    bool WaitForFileToBeReadable(const FString& FilePath, int32 MaxAttempts = 10, float DelayPerAttempt = 0.1f);
+
+    
+     FString CleanWebSocketURL(const FString& InURL);
+
 public:
     UU_WebSocketManager();
 
@@ -60,6 +70,9 @@ public:
 
     // Sending File 
     UFUNCTION(BlueprintCallable, Category = "WebSocket")
-    void WebSocketSendFile(const FString& SaveFilePath, const FString& URL);
+    void WebSocketSendFile(const FString& FilePath, const FString& URLPath);
+
+    UFUNCTION(BlueprintCallable, Category = "WebSocket|FileDownload")
+    void WebSocketDownloadFile(const FString& URL, const FString& SaveAsFileName);
 
 };
