@@ -4,6 +4,10 @@
 #include "GameFramework/Actor.h"
 #include "CWorldMap.generated.h"
 
+class ACContinentWidgetActor;
+class UDataTable;
+struct FCContinentData;
+
 UCLASS()
 class GOGOHUNTERS_API ACWorldMap : public AActor
 {
@@ -30,7 +34,15 @@ private:
 	UStaticMeshComponent* Europe;
 	UPROPERTY(EditDefaultsOnly)
 	UStaticMeshComponent* Africa;
+	UPROPERTY(EditDefaultsOnly)
+	UChildActorComponent* ContinentWidget;
 
+	UPROPERTY(EditDefaultsOnly)
+	TObjectPtr<UDataTable> ContinentDataTable;
+	TArray<FCContinentData> ContinentDataArray;
+	
+	UPROPERTY()
+	TObjectPtr<ACContinentWidgetActor> ContinentWidgetActor = nullptr;
 	UPROPERTY()
 	TObjectPtr<UStaticMeshComponent> PrevOutlinedComp = nullptr;
 	
@@ -39,4 +51,5 @@ private:
 	virtual void Tick(float DeltaTime) override;
 
 	void SetComponentInit(UStaticMeshComponent* Comp);
+	const FCContinentData GetContinentData(const FString& ContinentName);
 };
