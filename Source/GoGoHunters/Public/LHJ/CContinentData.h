@@ -10,6 +10,8 @@ struct FCContinentData : public FTableRowBase
 	GENERATED_BODY()
 
 	UPROPERTY(EditAnywhere)
+	FString Key;
+	UPROPERTY(EditAnywhere)
 	FString ContinentName;	// 대륙 이름
 	UPROPERTY(EditAnywhere)
 	FString ContinentDesc;	// 대륙 설명

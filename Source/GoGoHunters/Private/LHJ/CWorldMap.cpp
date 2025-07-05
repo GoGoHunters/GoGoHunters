@@ -1,4 +1,6 @@
 #include "LHJ/CWorldMap.h"
+#include "LHJ/CContinentData.h"
+#include "LHJ/CContinentWidgetActor.h"
 #include "Utilities/CHelpers.h"
 
 ACWorldMap::ACWorldMap()
@@ -13,6 +15,7 @@ ACWorldMap::ACWorldMap()
 	CHelpers::CreateComponent<UStaticMeshComponent>(this, &Oceania, "Oceania", RootComponent);
 	CHelpers::CreateComponent<UStaticMeshComponent>(this, &Europe, "Europe", RootComponent);
 	CHelpers::CreateComponent<UStaticMeshComponent>(this, &Africa, "Africa", RootComponent);
+	CHelpers::CreateComponent<UChildActorComponent>(this, &ContinentWidget, "ContinentWidget", RootComponent);
 
 	SetComponentInit(Korea);
 	SetComponentInit(NorthAmerica);
@@ -21,11 +24,25 @@ ACWorldMap::ACWorldMap()
 	SetComponentInit(Oceania);
 	SetComponentInit(Europe);
 	SetComponentInit(Africa);
+
+	ContinentWidget->SetVisibility(false);
 }
 
 void ACWorldMap::BeginPlay()
 {
 	Super::BeginPlay();
+	if (ContinentWidget && ContinentWidget->GetChildActor())
+		ContinentWidgetActor = Cast<ACContinentWidgetActor>(ContinentWidget->GetChildActor());
+
+	if (ContinentDataTable)
+	{
+		TArray<FCContinentData*> AllItems;
+		ContinentDataTable->GetAllRows<FCContinentData>(TEXT("None Data"), AllItems);
+		for (FCContinentData* Item : AllItems)
+		{
+			ContinentDataArray.Add(*Item);
+		}
+	}
 }
 
 void ACWorldMap::Tick(float DeltaTime)
@@ -68,10 +85,14 @@ void ACWorldMap::EnableCompOutline(UStaticMeshComponent* Comp)
 	{
 		DynMat->SetVectorParameterValue("BC", FLinearColor(1.0f, 0.65f, 0.0f));
 		PrevOutlinedComp = Comp;
-
-		// DynMat->SetVectorParameterValue("BC", FLinearColor(0.15f, 0.25f, 1.0f));
-		// if (PrevOutlinedComp == Comp)
-		// 	PrevOutlinedComp = nullptr;		
+	}
+	
+	if (ContinentWidgetActor)
+	{
+		FCContinentData ContinentData = GetContinentData(Comp->GetName());
+		if (ContinentData.ContinentName.IsEmpty()) return;
+		if (!ContinentWidget->IsVisible()) ContinentWidget->SetVisibility(true);
+		ContinentWidgetActor->SetContinentData(ContinentData);
 	}
 }
 
@@ -86,4 +107,15 @@ void ACWorldMap::ResetPrevOutline()
 			DynMat->SetVectorParameterValue("BC", FLinearColor(0.15f, 0.25f, 1.0f));
 		PrevOutlinedComp = nullptr;
 	}
+}
+
+const FCContinentData ACWorldMap::GetContinentData(const FString& ContinentName)
+{
+	for (FCContinentData& Data : ContinentDataArray)
+	{
+		if (Data.Key == ContinentName)
+			return Data;
+	}
+
+	return FCContinentData();
 }
