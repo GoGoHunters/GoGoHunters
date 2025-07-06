@@ -8,6 +8,9 @@
 #include "MH_VRPlayer.generated.h"
 
 class ACWorldMap;
+class UMotionControllerComponent;
+class UWidgetInteractionComponent;
+class UWidgetComponent;
 
 /*
  * 텔레포트 조건 = Teleportable 액터 태그
@@ -52,9 +55,17 @@ public:
 	class UCameraComponent* VRCamera;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
-	class UMotionControllerComponent* RHandController;
+	UMotionControllerComponent* RHandController;
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
-	class UMotionControllerComponent* LHandController;
+	UMotionControllerComponent* LHandController;
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+	UMotionControllerComponent* LAimMotionController;
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+	UMotionControllerComponent* RAimMotionController;
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+	UWidgetInteractionComponent* LWidgetInteractionComponent;
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+	UWidgetInteractionComponent* RWidgetInteractionComponent;
 
 	//손일단 VR 카메라에 Root 붙여 놓음 이동해야함 (수정)
 	UPROPERTY(VisibleAnywhere)
@@ -209,4 +220,25 @@ private:
 
 	void TryWorldMapInteraction(const FInputActionInstance& IA_Instance);
 	void ResetWorldMapInteraction();
+
+	// UI 상호작용 관련 변수들
+	UPROPERTY()
+	TObjectPtr<UWidgetComponent> CurrentFocusedUI = nullptr;
+	
+	UPROPERTY()
+	TObjectPtr<UWidgetInteractionComponent> ActiveWidgetInteraction = nullptr;
+	
+	bool bIsUIInteractionActive = false;
+	
+	// UI 상호작용 함수들
+	void HandleUIInteraction(const FInputActionInstance& IA_Instance);
+	void TryUIInteraction(const FInputActionInstance& IA_Instance);
+	void EndUIInteraction(const FInputActionInstance& IA_Instance);
+	
+	// UI 감지 함수
+	bool IsPointingAtUI(UMotionControllerComponent* MotionController, UWidgetComponent*& OutWidgetComponent);
+	
+	// WidgetInteraction 활성화/비활성화
+	void EnableWidgetInteraction(UMotionControllerComponent* MotionController);
+	void DisableWidgetInteraction();
 };

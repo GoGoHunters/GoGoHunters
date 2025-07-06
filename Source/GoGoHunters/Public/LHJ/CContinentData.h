@@ -19,4 +19,6 @@ struct FCContinentData : public FTableRowBase
 	TArray<FString> RelicsArray; // 등장 유물 종류
 	UPROPERTY(EditAnywhere)
 	bool UseJoin; // 참가 버튼 사용 유무
+	UPROPERTY(EditAnywhere)
+	FString TargetLevelName; // 이동할 레벨 이름
 };

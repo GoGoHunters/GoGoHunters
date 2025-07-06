@@ -2,12 +2,12 @@
 
 #include "CoreMinimal.h"
 #include "Blueprint/UserWidget.h"
+#include "LHJ/CContinentData.h"
 #include "CContinentWidget.generated.h"
 
 class USizeBox;
 class UTextBlock;
 class UButton;
-struct FCContinentData;
 
 /**
  * 
@@ -19,7 +19,7 @@ class GOGOHUNTERS_API UCContinentWidget : public UUserWidget
 
 public:
 	void SetContinentData(const FCContinentData& ContinentData);
-
+	
 private:
 	UPROPERTY(EditDefaultsOnly, meta=(BindWidget))
 	TObjectPtr<UTextBlock> Txt_Title;
@@ -35,4 +35,10 @@ private:
 	TObjectPtr<USizeBox> SB_Exit;
 	UPROPERTY(EditDefaultsOnly, meta=(BindWidget))
 	TObjectPtr<USizeBox> SB_Exit_NotUseJoin;
+
+	FCContinentData CurrentContinentData; // 현재 대륙 데이터 저장
+
+	virtual void NativeConstruct() override;
+	UFUNCTION()
+	void OnJoinButtonClicked();
 };
