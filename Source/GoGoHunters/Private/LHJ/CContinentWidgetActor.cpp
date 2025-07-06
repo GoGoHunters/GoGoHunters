@@ -9,6 +9,7 @@ ACContinentWidgetActor::ACContinentWidgetActor()
 	PrimaryActorTick.bCanEverTick = true;
 	CHelpers::CreateComponent<USceneComponent>(this, &RootScene, "RootScene");
 	CHelpers::CreateComponent<UWidgetComponent>(this, &WidgetComponent, "WidgetComponent", RootComponent);
+	WidgetComponent->SetCollisionProfileName(FName("VRUI"));
 }
 
 void ACContinentWidgetActor::BeginPlay()
