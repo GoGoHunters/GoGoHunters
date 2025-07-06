@@ -16,6 +16,8 @@
 #include "Interfaces/IHttpRequest.h"
 #include "Interfaces/IHttpResponse.h"
 
+// For JSON
+#include "JsonObjectConverter.h"
 
 UU_WebSocketManager::UU_WebSocketManager()
 {
@@ -33,7 +35,10 @@ void UU_WebSocketManager::WebSocketConnect(const FString& URL)
         WebSocketDisconnect();
     }
 
-    WebSocket = FWebSocketsModule::Get().CreateWebSocket(URL);
+    Server_URL = CleanWebSocketURL(URL);
+    FString WebSocketURL = TEXT("ws://") + Server_URL + TEXT("/ws");
+
+    WebSocket = FWebSocketsModule::Get().CreateWebSocket(WebSocketURL);
 
     WebSocket->OnConnected().AddUObject(this, &UU_WebSocketManager::OnWebSocketConnected);
     WebSocket->OnConnectionError().AddUObject(this, &UU_WebSocketManager::OnWebSocketConnectionError);
@@ -41,7 +46,7 @@ void UU_WebSocketManager::WebSocketConnect(const FString& URL)
     WebSocket->OnMessage().AddUObject(this, &UU_WebSocketManager::OnWebSocketMessage);
 
     WebSocket->Connect();
-    UE_LOG(LogTemp, Log, TEXT("connect to WebSocket: %s"), *URL);
+    UE_LOG(LogTemp, Log, TEXT("connect to WebSocket: %s"), *WebSocketURL);
 }
 
 void UU_WebSocketManager::WebSocketDisconnect()
@@ -86,6 +91,7 @@ void UU_WebSocketManager::OnWebSocketConnected()
 void UU_WebSocketManager::OnWebSocketConnectionError(const FString& Error)
 {
     UE_LOG(LogTemp, Error, TEXT("WebSocket Connection Error: %s"), *Error);
+    // 추가적으로 재시도 함수 만들기 필요
     OnConnectionStatusChanged.Broadcast(false);
 }
 
@@ -99,39 +105,76 @@ void UU_WebSocketManager::OnWebSocketClosed(int32 StatusCode, const FString& Rea
 void UU_WebSocketManager::OnWebSocketMessage(const FString& Message)
 {
     UE_LOG(LogTemp, Log, TEXT("Received WebSocket message: %s"), *Message);
+    
     OnMessageReceived.Broadcast(Message);
+
+    TSharedPtr<FJsonObject> JsonObject;
+    TSharedRef<TJsonReader<>> Reader = TJsonReaderFactory<>::Create(Message);
+
+
+    if (FJsonSerializer::Deserialize(Reader, JsonObject) && JsonObject.IsValid())
+    {
+        UE_LOG(LogTemp, Log, TEXT("Successfully parsed WebSocket message as JSON."));
+        
+        if (JsonObject->HasField(TEXT("type")))
+        {
+            double MessageTypeNumber;
+
+            if (JsonObject->TryGetNumberField(TEXT("type"), MessageTypeNumber))
+            {
+                if (FMath::IsNearlyEqual(MessageTypeNumber, 1.0))
+                {
+                    FAIAnalysisResult ParsedResult;
+                    UE_LOG(LogTemp, Log, TEXT("Broadcasting AI analysis result (Type: 1)."));
+                    if (FJsonObjectConverter::JsonObjectToUStruct(JsonObject.ToSharedRef(), &ParsedResult, 0, 0))
+                    {
+                        WebSocketDownloadFile(ParsedResult.DownloadURL, ParsedResult.Filename);
+                    }
+                }
+            }
+        }
+
+    }
+
 }
 
 
-void UU_WebSocketManager::WebSocketSendFile(const FString& SaveFilePath, const FString& URL)
+void UU_WebSocketManager::WebSocketSendFile(const FString& FilePath, const FString& URLPath)
 {
-    FString FilePath = FPaths::ProjectSavedDir() / SaveFilePath;
+    FString FullFilePath = FilePath;
+    FString FileName = FPaths::GetCleanFilename(FullFilePath);
+
+    FString WebSendURL = TEXT("http://") + Server_URL / URLPath / "";
 
     TArray<uint8> FileData;
-    // 파일이 존재하는지, 읽을 수 있는지 확인
 
-    if (!FFileHelper::LoadFileToArray(FileData, *FilePath))
+    if (!WaitForFileToBeReadable(FullFilePath))
     {
-        UE_LOG(LogTemp, Error, TEXT("Failed to load file: %s"), *FilePath);
+        UE_LOG(LogTemp, Error, TEXT("WebSocketSendFile: File '%s' is not readable after multiple attempts. Aborting upload."), *FullFilePath);
         return;
     }
 
-    // 파일 이름 추출
-    FString FileName = FPaths::GetCleanFilename(FilePath);
+    if (!FFileHelper::LoadFileToArray(FileData, *FullFilePath))
+    {
+        UE_LOG(LogTemp, Error, TEXT("Failed to load file: %s"), *FullFilePath);
+        return;
+    }
+
     if (FileName.IsEmpty())
     {
-        UE_LOG(LogTemp, Error, TEXT("Invalid file name from path: %s"), *FilePath);
+        UE_LOG(LogTemp, Error, TEXT("Invalid file name from path: %s"), *FullFilePath);
         return;
     }
-
+    
     // HTTP 요청 생성
     TSharedRef<IHttpRequest, ESPMode::ThreadSafe> Request = FHttpModule::Get().CreateRequest();
-    Request->SetURL(URL);
+    Request->SetURL(WebSendURL);
     Request->SetVerb(TEXT("POST"));
     // Content-Type을 multipart/form-data로 설정
     Request->SetHeader(TEXT("Content-Type"), TEXT("multipart/form-data; boundary=----------WebKitFormBoundaryABC123DEF456")); // 고유한 boundary 필요
 
     // 요청 바디 생성 (멀티파트 폼 데이터)
+    // FString Boundary = FString::Printf(TEXT("----------Boundary%s"), *FGuid::NewGuid().ToString().Replace(TEXT("-"), TEXT(""))); 생성식  boundary 추후 수정
     FString Boundary = TEXT("----------WebKitFormBoundaryABC123DEF456");
     FString LineBreak = TEXT("\r\n");
 
@@ -160,7 +203,7 @@ void UU_WebSocketManager::WebSocketSendFile(const FString& SaveFilePath, const F
     // 요청 전송
     Request->ProcessRequest();
 
-    UE_LOG(LogTemp, Log, TEXT("Sending file '%s' to %s"), *FileName, *URL);
+    UE_LOG(LogTemp, Log, TEXT("Sending file '%s' to %s"), *FileName, *WebSendURL);
 
 }
 
@@ -169,9 +212,165 @@ void UU_WebSocketManager::OnFileUploadResponse(FHttpRequestPtr Request, FHttpRes
     if (bWasSuccessful && Response.IsValid())
     {
         UE_LOG(LogTemp, Log, TEXT("File upload successful! Response: %s"), *Response->GetContentAsString());
+        FString Message = Response->GetContentAsString();
+        OnMessageReceived.Broadcast(Message);
+
+        TSharedPtr<FJsonObject> JsonObject;
+        TSharedRef<TJsonReader<>> Reader = TJsonReaderFactory<>::Create(Message);
+
+
+        if (FJsonSerializer::Deserialize(Reader, JsonObject) && JsonObject.IsValid())
+        {
+            UE_LOG(LogTemp, Log, TEXT("Successfully parsed WebSocket message as JSON."));
+
+            if (JsonObject->HasField(TEXT("type")))
+            {
+                double MessageTypeNumber;
+
+                if (JsonObject->TryGetNumberField(TEXT("type"), MessageTypeNumber))
+                {
+                    if (FMath::IsNearlyEqual(MessageTypeNumber, 1.0))
+                    {
+                        FAIAnalysisResult ParsedResult;
+                        UE_LOG(LogTemp, Log, TEXT("Broadcasting AI analysis result (Type: 1)."));
+                        if (FJsonObjectConverter::JsonObjectToUStruct(JsonObject.ToSharedRef(), &ParsedResult, 0, 0))
+                        {
+                            WebSocketDownloadFile(ParsedResult.DownloadURL, ParsedResult.Filename);
+                        }
+                    }
+                }
+            }
+
+        }
     }
     else
     {
         UE_LOG(LogTemp, Error, TEXT("File upload failed. Status Code: %d, Error"), Response.IsValid() ? Response->GetResponseCode() : -1);
     }
 }
+
+
+void UU_WebSocketManager::WebSocketDownloadFile(const FString& URL, const FString& SaveAsFileName)
+{
+    if (URL.IsEmpty() || SaveAsFileName.IsEmpty())
+    {
+        UE_LOG(LogTemp, Error, TEXT("Download Param Error empty param."));
+        return;
+    }
+
+    TSharedRef<IHttpRequest, ESPMode::ThreadSafe> Request = FHttpModule::Get().CreateRequest();
+    Request->SetURL(URL);
+    Request->SetVerb(TEXT("GET"));
+
+    FString FullSavePath = FPaths::ProjectSavedDir() / "Answer" / SaveAsFileName;
+    
+    if (!EnsureDirectoryForFile(FullSavePath))
+        return;
+
+    Request->OnProcessRequestComplete().BindUObject(this, &UU_WebSocketManager::OnFileDownloadComplete, FullSavePath);
+
+    Request->ProcessRequest();
+    UE_LOG(LogTemp, Log, TEXT("file download from '%s' to '%s'"), *URL, *FullSavePath);
+}
+
+void UU_WebSocketManager::OnFileDownloadComplete(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bWasSuccessful, FString DownloadedFilePath)
+{
+    if (bWasSuccessful && Response.IsValid())
+    {
+        const TArray<uint8>& FileData = Response->GetContent();
+
+            if (FFileHelper::SaveArrayToFile(FileData, *DownloadedFilePath))
+            {
+                UE_LOG(LogTemp, Log, TEXT("File downloaded successfully to: %s"), *DownloadedFilePath);
+            }
+            else
+            {
+                UE_LOG(LogTemp, Error, TEXT("Failed to save downloaded file to: %s"), *DownloadedFilePath);
+            }
+    }
+    else
+    {
+        int32 StatusCode = Response.IsValid() ? Response->GetResponseCode() : -1;
+
+        UE_LOG(LogTemp, Error, TEXT("File download failed from URL: %s. Status Code: %d"),
+            *Request->GetURL(), StatusCode);
+    }
+}
+
+bool UU_WebSocketManager::EnsureDirectoryForFile(const FString& FilePath)
+{
+    FString SaveDirectory = FPaths::GetPath(FilePath);
+
+    if (!IFileManager::Get().DirectoryExists(*SaveDirectory))
+    {
+        if (!IFileManager::Get().MakeDirectory(*SaveDirectory, true))
+        {
+            UE_LOG(LogTemp, Error, TEXT("EnsureDirectoryForFile: Failed to create directory: %s"), *SaveDirectory);
+            return false;
+        }
+        else
+        {
+            UE_LOG(LogTemp, Log, TEXT("EnsureDirectoryForFile: Created directory: %s"), *SaveDirectory);
+        }
+    }
+    return true; 
+}
+
+bool UU_WebSocketManager::WaitForFileToBeReadable(const FString& FilePath, int32 MaxAttempts, float DelayPerAttempt)
+{
+    IPlatformFile& PlatformFile = FPlatformFileManager::Get().GetPlatformFile();
+
+    for (int32 Attempt = 0; Attempt < MaxAttempts; ++Attempt)
+    {
+        if (!PlatformFile.FileExists(*FilePath))
+        {
+            UE_LOG(LogTemp, Warning, TEXT("WaitForFileToBeReadable: File '%s' does not exist yet. Attempt %d/%d."), *FilePath, Attempt + 1, MaxAttempts);
+            FPlatformProcess::Sleep(DelayPerAttempt);
+            continue;
+        }
+        IFileHandle* FileHandle = PlatformFile.OpenRead(*FilePath);
+        if (FileHandle)
+        {
+            delete FileHandle;
+            UE_LOG(LogTemp, Log, TEXT("WaitForFileToBeReadable: File '%s' is now readable after %d attempts."), *FilePath, Attempt + 1);
+            return true;
+        }
+        else
+        {
+            UE_LOG(LogTemp, Warning, TEXT("WaitForFileToBeReadable: File '%s' is not readable. Attempt %d/%d. Retrying in %.2f seconds."), *FilePath, Attempt + 1, MaxAttempts, DelayPerAttempt);
+            FPlatformProcess::Sleep(DelayPerAttempt);
+        }
+    }
+
+    UE_LOG(LogTemp, Error, TEXT("WaitForFileToBeReadable: File '%s' failed to become readable after %d attempts."), *FilePath, MaxAttempts);
+    return false;
+}
+
+FString UU_WebSocketManager::CleanWebSocketURL(const FString& InURL)
+{
+
+    FString CleanedURL = InURL;
+
+    CleanedURL.TrimStartAndEndInline();
+
+    if (CleanedURL.StartsWith(TEXT("ws://")))
+        CleanedURL = CleanedURL.Right(CleanedURL.Len() - 5);
+    else if (CleanedURL.StartsWith(TEXT("wss://")))
+        CleanedURL = CleanedURL.Right(CleanedURL.Len() - 6);
+    else if (CleanedURL.StartsWith(TEXT("http://")))
+        CleanedURL = CleanedURL.Right(CleanedURL.Len() - 7); 
+    else if (CleanedURL.StartsWith(TEXT("https://")))
+        CleanedURL = CleanedURL.Right(CleanedURL.Len() - 8);
+
+    int32 FirstSlashIndex;
+    if (CleanedURL.FindChar(TEXT('/'), FirstSlashIndex))
+        CleanedURL = CleanedURL.Left(FirstSlashIndex);
+    int32 FirstQuestionMarkIndex;
+    if (CleanedURL.FindChar(TEXT('?'), FirstQuestionMarkIndex))
+        CleanedURL = CleanedURL.Left(FirstQuestionMarkIndex);
+
+    return CleanedURL;
+}
+
+
+

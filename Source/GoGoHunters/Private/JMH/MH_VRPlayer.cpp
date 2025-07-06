@@ -1,6 +1,3 @@
-// Fill out your copyright notice in the Description page of Project Settings.
-
-
 #include "JMH/MH_VRPlayer.h"
 
 #include "EnhancedInputComponent.h"
@@ -16,12 +13,13 @@
 #include "JMH/MH_GrabComp.h"
 #include "JMH/MH_TeleportComp.h"
 #include "LHM/Excavation/DetectorTool.h"
+#include "LHJ/CWorldMap.h"
+#include "EngineUtils.h"
+#include "Components/WidgetInteractionComponent.h"
+#include "Components/WidgetComponent.h"
 
-
-// Sets default values
 AMH_VRPlayer::AMH_VRPlayer()
 {
-	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
 
 	VRCamera = CreateDefaultSubobject<UCameraComponent>(TEXT("VRCamera"));
@@ -37,6 +35,13 @@ AMH_VRPlayer::AMH_VRPlayer()
 	RHandController->SetTrackingMotionSource(FName("Right"));
 	CHelpers::CreateComponent<UMotionControllerComponent>(this, &LHandController, "LHandController", RootComponent);
 	LHandController->SetTrackingMotionSource(FName("Left"));
+	CHelpers::CreateComponent<UMotionControllerComponent>(this, &RAimMotionController, "RAimMotionController", RootComponent);
+	RAimMotionController->SetTrackingMotionSource(FName("RightAim"));
+	CHelpers::CreateComponent<UMotionControllerComponent>(this, &LAimMotionController, "LAimMotionController", RootComponent);
+	LAimMotionController->SetTrackingMotionSource(FName("LeftAim"));
+	CHelpers::CreateComponent<UWidgetInteractionComponent>(this, &RWidgetInteractionComponent, "RWidgetInteractionComponent", RAimMotionController);
+	CHelpers::CreateComponent<UWidgetInteractionComponent>(this, &LWidgetInteractionComponent, "LWidgetInteractionComponent", LAimMotionController);
+	
 	//그랩 컴프
 	GrabComponent = CreateDefaultSubobject<UMH_GrabComp>(TEXT("GrabComponent"));
 
@@ -45,7 +50,7 @@ AMH_VRPlayer::AMH_VRPlayer()
 	L_Hand->SetupAttachment(VRCamera);
 	R_Hand = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("R_Hand"));
 	R_Hand->SetupAttachment(VRCamera);;
-	
+
 	LHandSKM = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("LHandSKM"));
 	LHandSKM->SetupAttachment(LHandController);
 	LHandSKM->SetRelativeRotation(FRotator(-90.f, -90.f, 0.f));
@@ -65,9 +70,26 @@ AMH_VRPlayer::AMH_VRPlayer()
 	{
 		RHandSKM->SetSkeletalMesh(RHandMeshAsset.Object);
 	}
-	
+
 	//텔레포트 컴프
 	TeleportComponent = CreateDefaultSubobject<UMH_TeleportComp>(TEXT("TeleportComponent"));
+
+	{
+		// WidgetInteraction 설정 - UI 상호작용을 위해 활성화
+		RWidgetInteractionComponent->InteractionDistance = 800.f; // UI 상호작용 거리 증가
+		RWidgetInteractionComponent->bEnableHitTesting = false; // UI 상호작용을 위해 활성화
+		RWidgetInteractionComponent->bShowDebug = false;
+		RWidgetInteractionComponent->InteractionSource = EWidgetInteractionSource::World;
+		RWidgetInteractionComponent->TraceChannel = ECC_Visibility;
+		RWidgetInteractionComponent->PointerIndex = 0;
+		
+		LWidgetInteractionComponent->InteractionDistance = 800.f; // UI 상호작용 거리 증가
+		LWidgetInteractionComponent->bEnableHitTesting = false; // UI 상호작용을 위해 활성화
+		LWidgetInteractionComponent->bShowDebug = false;
+		LWidgetInteractionComponent->InteractionSource = EWidgetInteractionSource::World;
+		LWidgetInteractionComponent->TraceChannel = ECC_Visibility;
+		LWidgetInteractionComponent->PointerIndex = 1;
+	}
 }
 
 // Called when the game starts or when spawned
@@ -95,7 +117,7 @@ void AMH_VRPlayer::BeginPlay()
 		//Test 카메라 바라보는 방향으로 손 같이 움직이도록 손 VR 카메라에 Attach
 		GrabComponent->SetHandComponent(R_Hand);
 		TeleportComponent->SetHandComponent(R_Hand);
-		
+
 		RHandSKM->DetachFromComponent(FDetachmentTransformRules::KeepWorldTransform);
 		RHandSKM->UnregisterComponent();
 		RHandSKM->SetupAttachment(R_Hand);
@@ -113,6 +135,13 @@ void AMH_VRPlayer::BeginPlay()
 
 	TeleportUIComponent->SetVisibility(false);
 	TeleportCircleA->SetVisibility(false);
+
+	// 월드에 존재하는 ACWorldMap을 찾아 저장
+	for (TActorIterator<ACWorldMap> It(GetWorld()); It; ++It)
+	{
+		CachedWorldMap = *It;
+		break;
+	}
 }
 
 // Called every frame
@@ -129,6 +158,18 @@ void AMH_VRPlayer::Tick(float DeltaTime)
 		// 라인 안 보일 땐 그랩도 안 되게 Actor를 비워두기
 		FocusedGrabbableActor = nullptr;
 	}
+	
+	// UI 상호작용 상태 업데이트 (트리거를 누르지 않았을 때도 UI 감지)
+	if (CurrentState == EPlayerVRState::Idle && !bIsUIInteractionActive)
+	{
+		// 양손에서 UI 감지 (시각적 피드백용)
+		UWidgetComponent* TempWidget = nullptr;
+		if (IsPointingAtUI(RHandController, TempWidget) || IsPointingAtUI(LHandController, TempWidget))
+		{
+			// UI를 가리키고 있지만 아직 상호작용하지 않은 상태
+			// 여기서 UI 하이라이트 효과 등을 추가할 수 있음
+		}
+	}
 }
 
 // Called to bind functionality to input
@@ -141,7 +182,10 @@ void AMH_VRPlayer::SetupPlayerInputComponent(UInputComponent* PlayerInputCompone
 	EnhancedInput->BindAction(IA_MHTurn, ETriggerEvent::Triggered, this, &AMH_VRPlayer::TestTurn);
 	EnhancedInput->BindAction(IA_MHVRTurn, ETriggerEvent::Triggered, this, &AMH_VRPlayer::VRTurn);
 	EnhancedInput->BindAction(IA_MHLookUp, ETriggerEvent::Triggered, this, &AMH_VRPlayer::TestLookUp);
-	EnhancedInput->BindAction(IA_MHInteract, ETriggerEvent::Triggered, this, &AMH_VRPlayer::TestInteract);
+	EnhancedInput->BindAction(IA_MHInteract, ETriggerEvent::Triggered, this, &AMH_VRPlayer::TriggerInteract);
+	EnhancedInput->BindAction(IA_MHInteract, ETriggerEvent::Completed, this, &AMH_VRPlayer::TriggerInteractCompleted);
+	EnhancedInput->BindAction(IA_MHInteract_L, ETriggerEvent::Triggered, this, &AMH_VRPlayer::TriggerInteract);
+	EnhancedInput->BindAction(IA_MHInteract_L, ETriggerEvent::Completed, this, &AMH_VRPlayer::TriggerInteractCompleted);
 	EnhancedInput->BindAction(IA_MHTestTeleportStart, ETriggerEvent::Started, this, &AMH_VRPlayer::F_TeleportStart);
 	EnhancedInput->BindAction(IA_MHTestTeleportEnd, ETriggerEvent::Completed, this, &AMH_VRPlayer::F_TeleportEnd);
 	EnhancedInput->BindAction(IA_MHVRTeleport, ETriggerEvent::Started, this, &AMH_VRPlayer::F_TeleportStart);
@@ -154,7 +198,7 @@ void AMH_VRPlayer::SetupPlayerInputComponent(UInputComponent* PlayerInputCompone
 	                          &AMH_VRPlayer::HandleThumbstickInput);
 	EnhancedInput->BindAction(IA_RotateHeldObject, ETriggerEvent::Triggered, this,
 	                          &AMH_VRPlayer::HandleThumbstickInput);
-	
+
 	// Excavation Tool Actions
 	EnhancedInput->BindAction(IA_ExcavationTool1, ETriggerEvent::Triggered, this, &AMH_VRPlayer::ExcavationTool1);
 	EnhancedInput->BindAction(IA_ExcavationTool2, ETriggerEvent::Triggered, this, &AMH_VRPlayer::ExcavationTool2);
@@ -275,9 +319,30 @@ void AMH_VRPlayer::RotateHeldObject(const struct FInputActionValue& Value)
 	}
 }
 
-void AMH_VRPlayer::TestInteract()
+void AMH_VRPlayer::TriggerInteract(const FInputActionInstance& IA_Instance)
 {
-	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green,TEXT("Interact"));
+	// 먼저 월드맵 상호작용 시도
+	TryWorldMapInteraction(IA_Instance);
+	
+	// UI 감지 및 상호작용 처리
+	HandleUIInteraction(IA_Instance);
+}
+
+void AMH_VRPlayer::TriggerInteractCompleted()
+{
+	// UI 상호작용 종료 처리
+	if (bIsUIInteractionActive)
+	{
+		// 현재 활성화된 WidgetInteraction으로 마우스 버튼 해제
+		if (ActiveWidgetInteraction)
+		{
+			ActiveWidgetInteraction->ReleasePointerKey(EKeys::LeftMouseButton);
+		}
+		DisableWidgetInteraction();
+	}
+	
+	// 월드맵 상호작용 리셋
+	ResetWorldMapInteraction();
 }
 
 void AMH_VRPlayer::ExcavationTool1()
@@ -333,7 +398,7 @@ void AMH_VRPlayer::UpdateInteractionLine()
 		Start = R_Hand->GetComponentLocation();
 		Velocity = R_Hand->GetForwardVector() * 1000.f * TeleportDistanceFactor; // 강도는 상황에 맞게 조절
 	}
-	
+
 	FVector Pos = Start;
 	Lines.Add(Pos);
 
@@ -451,4 +516,175 @@ void AMH_VRPlayer::TestLookUp(const FInputActionValue& Value)
 		NewRot.Pitch = FMath::Clamp(NewRot.Pitch + AxisValue, -80.f, 80.f);
 		VRCamera->SetRelativeRotation(NewRot);
 	}
+}
+
+void AMH_VRPlayer::TryWorldMapInteraction(const FInputActionInstance& IA_Instance)
+{
+	UMotionControllerComponent* MotionController = nullptr;
+	if (IA_Instance.GetSourceAction() == IA_MHInteract) MotionController = RHandController;
+	else if (IA_Instance.GetSourceAction() == IA_MHInteract_L) MotionController = LHandController;
+
+	if (!MotionController) return;
+	
+	FVector Start = MotionController->GetComponentLocation();
+	FVector End = Start + (MotionController->GetForwardVector() * 800.f);
+
+	FHitResult HitResult;
+	FCollisionQueryParams Params;
+	Params.AddIgnoredActor(this);
+
+	DrawDebugLine(GetWorld(), Start, End, FColor::Red, false, 0.f, 0, 1);
+	if (GetWorld()->LineTraceSingleByChannel(HitResult, Start, End, ECC_GameTraceChannel3, Params))
+	{
+		if (!HitResult.GetActor()->IsA(ACWorldMap::StaticClass())) return;
+		UStaticMeshComponent* HitMesh = Cast<UStaticMeshComponent>(HitResult.GetComponent());
+		if (HitMesh) Cast<ACWorldMap>(HitResult.GetActor())->EnableCompOutline(HitMesh);
+	}
+	else
+	{
+		ResetWorldMapInteraction();
+	}
+}
+
+void AMH_VRPlayer::ResetWorldMapInteraction()
+{
+	if (CachedWorldMap)
+	{
+		CachedWorldMap->ResetPrevOutline();
+	}
+}
+
+// UI 상호작용 핵심 함수들
+void AMH_VRPlayer::HandleUIInteraction(const FInputActionInstance& IA_Instance)
+{
+	// 어떤 손에서 입력이 왔는지 확인
+	UMotionControllerComponent* MotionController = nullptr;
+	UWidgetInteractionComponent* WidgetInteraction = nullptr;
+	
+	if (IA_Instance.GetSourceAction() == IA_MHInteract)
+	{
+		MotionController = RHandController;
+		WidgetInteraction = RWidgetInteractionComponent;
+	}
+	else if (IA_Instance.GetSourceAction() == IA_MHInteract_L)
+	{
+		MotionController = LHandController;
+		WidgetInteraction = LWidgetInteractionComponent;
+	}
+	
+	if (!MotionController || !WidgetInteraction) return;
+	
+	// UI를 가리키고 있는지 확인
+	UWidgetComponent* HitWidgetComponent = nullptr;
+	if (IsPointingAtUI(MotionController, HitWidgetComponent))
+	{
+		// UI 상호작용 시작
+		if (!bIsUIInteractionActive)
+		{
+			EnableWidgetInteraction(MotionController);
+			CurrentFocusedUI = HitWidgetComponent;
+			bIsUIInteractionActive = true;
+		}
+		
+		// WidgetInteraction으로 클릭 이벤트 전송
+		WidgetInteraction->PressPointerKey(EKeys::LeftMouseButton);
+	}
+	else
+	{
+		// UI를 가리키지 않으면 UI 상호작용 종료
+		if (bIsUIInteractionActive)
+		{
+			DisableWidgetInteraction();
+		}
+	}
+}
+
+void AMH_VRPlayer::TryUIInteraction(const FInputActionInstance& IA_Instance)
+{
+	// UI 상호작용 시도 (트리거 누를 때)
+	HandleUIInteraction(IA_Instance);
+}
+
+void AMH_VRPlayer::EndUIInteraction(const FInputActionInstance& IA_Instance)
+{
+	// UI 상호작용 종료 (트리거 놓을 때)
+	if (bIsUIInteractionActive)
+	{
+		// WidgetInteraction으로 마우스 버튼 해제
+		if (ActiveWidgetInteraction)
+		{
+			ActiveWidgetInteraction->ReleasePointerKey(EKeys::LeftMouseButton);
+		}
+		
+		DisableWidgetInteraction();
+	}
+}
+
+bool AMH_VRPlayer::IsPointingAtUI(UMotionControllerComponent* MotionController, UWidgetComponent*& OutWidgetComponent)
+{
+	if (!MotionController) return false;
+	
+	FVector Start = MotionController->GetComponentLocation();
+	FVector End = Start + (MotionController->GetForwardVector() * 800.f);
+	
+	FCollisionQueryParams QueryParams;
+	QueryParams.AddIgnoredActor(this);
+	
+	// UI 전용 레이캐스트 (WidgetComponent 찾기)
+	TArray<FHitResult> HitResults;
+	if (GetWorld()->LineTraceMultiByChannel(HitResults, Start, End, ECC_Visibility, QueryParams))
+	{
+		for (const FHitResult& Hit : HitResults)
+		{
+			// WidgetComponent 확인
+			UWidgetComponent* WidgetComponent = Cast<UWidgetComponent>(Hit.GetComponent());
+			if (WidgetComponent && WidgetComponent->IsVisible())
+			{
+				OutWidgetComponent = WidgetComponent;
+				return true;
+			}
+		}
+	}
+	
+	OutWidgetComponent = nullptr;
+	return false;
+}
+
+void AMH_VRPlayer::EnableWidgetInteraction(UMotionControllerComponent* MotionController)
+{
+	if (!MotionController) return;
+	
+	// 해당 손의 WidgetInteraction 활성화
+	if (MotionController == RHandController)
+	{
+		ActiveWidgetInteraction = RWidgetInteractionComponent;
+	}
+	else if (MotionController == LHandController)
+	{
+		ActiveWidgetInteraction = LWidgetInteractionComponent;
+	}
+	
+	if (ActiveWidgetInteraction)
+	{
+		ActiveWidgetInteraction->SetActive(true);
+		ActiveWidgetInteraction->bEnableHitTesting = true;
+		
+		UE_LOG(LogTemp, Log, TEXT("[VR] WidgetInteraction 활성화 - %s"), 
+		       MotionController == RHandController ? TEXT("오른손") : TEXT("왼손"));
+	}
+}
+
+void AMH_VRPlayer::DisableWidgetInteraction()
+{
+	if (ActiveWidgetInteraction)
+	{
+		ActiveWidgetInteraction->SetActive(false);
+		ActiveWidgetInteraction->bEnableHitTesting = false;
+		ActiveWidgetInteraction = nullptr;
+	}
+	
+	CurrentFocusedUI = nullptr;
+	bIsUIInteractionActive = false;
+	
+	UE_LOG(LogTemp, Log, TEXT("[VR] WidgetInteraction 비활성화"));
 }
