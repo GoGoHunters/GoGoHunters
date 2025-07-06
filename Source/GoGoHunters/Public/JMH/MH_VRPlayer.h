@@ -137,6 +137,12 @@ public:
 	TSubclassOf<class ADetectorTool> DetectionToolClass;
 	UPROPERTY()
 	class ADetectorTool* DetectionTool;
+
+	UPROPERTY()
+	TSubclassOf<class AShovelTool> ShovelToolClass;
+	UPROPERTY()
+	class AShovelTool* ShovelTool;
+
 #pragma endregion 발굴 장비 IA
 
 	//마우스 회전방지

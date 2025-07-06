@@ -13,6 +13,7 @@
 #include "JMH/MH_GrabComp.h"
 #include "JMH/MH_TeleportComp.h"
 #include "LHM/Excavation/DetectorTool.h"
+#include "LHM/Excavation/ShovelTool.h"
 #include "LHJ/CWorldMap.h"
 #include "EngineUtils.h"
 #include "Components/WidgetInteractionComponent.h"
@@ -200,9 +201,9 @@ void AMH_VRPlayer::SetupPlayerInputComponent(UInputComponent* PlayerInputCompone
 	                          &AMH_VRPlayer::HandleThumbstickInput);
 
 	// Excavation Tool Actions
-	EnhancedInput->BindAction(IA_ExcavationTool1, ETriggerEvent::Triggered, this, &AMH_VRPlayer::ExcavationTool1);
-	EnhancedInput->BindAction(IA_ExcavationTool2, ETriggerEvent::Triggered, this, &AMH_VRPlayer::ExcavationTool2);
-	EnhancedInput->BindAction(IA_ExcavationTool3, ETriggerEvent::Triggered, this, &AMH_VRPlayer::ExcavationTool3);
+	EnhancedInput->BindAction(IA_ExcavationTool1, ETriggerEvent::Started, this, &AMH_VRPlayer::ExcavationTool1);
+	EnhancedInput->BindAction(IA_ExcavationTool2, ETriggerEvent::Started, this, &AMH_VRPlayer::ExcavationTool2);
+	EnhancedInput->BindAction(IA_ExcavationTool3, ETriggerEvent::Started, this, &AMH_VRPlayer::ExcavationTool3);
 }
 
 void AMH_VRPlayer::SetPlayerState(EPlayerVRState NewState)
@@ -349,6 +350,8 @@ void AMH_VRPlayer::ExcavationTool1()
 {
 	if (!DetectionTool)
 	{
+		if(ShovelTool) ShovelTool->Destroy();
+
 		FActorSpawnParameters SpawnParams;
 		SpawnParams.Owner = this;
 
@@ -366,11 +369,42 @@ void AMH_VRPlayer::ExcavationTool1()
 			}
 		}
 	}
+	else
+	{
+		DetectionTool->Destroy();
+		DetectionTool = nullptr;
+		//SetPlayerState(EPlayerVRState::Idle);
+	}
 }
 
 void AMH_VRPlayer::ExcavationTool2()
 {
+	if (!ShovelTool)
+	{
+		if (DetectionTool) DetectionTool->Destroy();
 
+		FActorSpawnParameters SpawnParams;
+		SpawnParams.Owner = this;
+
+		if (ShovelToolClass = LoadClass<AShovelTool>(nullptr, TEXT("/Game/LHM/BP/Excavation/BP_ShovelTool.BP_ShovelTool_C")))
+		{
+			ShovelTool = GetWorld()->SpawnActor<AShovelTool>(ShovelToolClass, FVector::ZeroVector, FRotator::ZeroRotator, SpawnParams);
+			if (ShovelTool)
+			{
+				USceneComponent* HandSocket = RHandController;
+				ShovelTool->AttachToComponent(HandSocket, FAttachmentTransformRules::SnapToTargetNotIncludingScale, NAME_None);
+				ShovelTool->SetActorLocation(HandSocket->GetComponentLocation()+FVector(-20,70,-20));
+
+				//SetPlayerState(EPlayerVRState::Excavating);
+			}
+		}
+	}
+	else
+	{
+		ShovelTool->Destroy();
+		ShovelTool = nullptr;
+		//SetPlayerState(EPlayerVRState::Idle);
+	}
 }
 
 void AMH_VRPlayer::ExcavationTool3()
