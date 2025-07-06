@@ -43,10 +43,10 @@ public:
 	UPROPERTY()
 	class UDetectionUI* DetectionUI;
 
-	UPROPERTY()
+	/*UPROPERTY()
 	TSubclassOf<class AAI_Docent> DocentClass;
 	UPROPERTY()
-	class AAI_Docent* AI_Docent;
+	class AAI_Docent* AI_Docent;*/
 
 	float DetectionProgress = 0.0f;
 	bool bIsDetecting = false;

@@ -5,6 +5,7 @@
 #include "Components/StaticMeshComponent.h"
 #include "Components/SceneComponent.h"
 #include "Components/BoxComponent.h"
+#include "Blueprint/UserWidget.h"
 
 // Sets default values
 AShovelTool::AShovelTool()
@@ -29,13 +30,14 @@ AShovelTool::AShovelTool()
 	//ShovelMesh->SetCollisionProfileName(TEXT("OverlapAllDynamic"));
 	//ShovelMesh->SetSimulatePhysics(true);
 	
+
 }
 
 // Called when the game starts or when spawned
 void AShovelTool::BeginPlay()
 {
 	Super::BeginPlay();
-	
+
 }
 
 // Called every frame

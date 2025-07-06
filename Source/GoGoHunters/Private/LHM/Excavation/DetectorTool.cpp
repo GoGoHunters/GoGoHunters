@@ -5,7 +5,6 @@
 #include "LHM/Excavation/RelicsBase.h"
 #include "LHM/Excavation/DetectionComponent.h"
 #include "LHM/Excavation/DetectionUI.h"
-#include "LHM/Excavation/AI_Docent.h"
 #include "LHM/Excavation/ExcavationMarker.h"
 #include "Components/WidgetComponent.h"
 #include "Components/SceneComponent.h"
@@ -43,11 +42,11 @@ ADetectorTool::ADetectorTool()
 		DetectionWidgetComp->SetWidgetClass(WidgetClassFinder.Class);
 	}
 
-	static ConstructorHelpers::FClassFinder<AAI_Docent> DocentClassFinder(TEXT("/Game/LHM/BP/Excavation/BP_AI_Docent"));
+	/*static ConstructorHelpers::FClassFinder<AAI_Docent> DocentClassFinder(TEXT("/Game/LHM/BP/Excavation/BP_AI_Docent"));
 	if (DocentClassFinder.Succeeded())
 	{
 		DocentClass = DocentClassFinder.Class;
-	}
+	}*/
 }
 
 // Called when the game starts or when spawned
@@ -56,20 +55,19 @@ void ADetectorTool::BeginPlay()
 	Super::BeginPlay();
 	
 	// UI 가시화 테스트용
-	// WidgetComponent에 연결된 실제 UDetectionUI 객체 받아오기
 	DetectionUI = Cast<UDetectionUI>(DetectionWidgetComp->GetUserWidgetObject());
 
 	// Decent 가시화 테스트용
-	if (DocentClass)
-	{
-		if (!AI_Docent)
-		{
-			FActorSpawnParameters SpawnParams;
-			SpawnParams.Owner = this;
-			FVector SpawnLoc = GetActorLocation() + FVector(0, 0, 100); // 임의 위치
-			AI_Docent = GetWorld()->SpawnActor<AAI_Docent>(DocentClass, SpawnLoc, FRotator::ZeroRotator, SpawnParams);
-		}
-	}
+	//if (DocentClass)
+	//{
+	//	if (!AI_Docent)
+	//	{
+	//		FActorSpawnParameters SpawnParams;
+	//		SpawnParams.Owner = this;
+	//		FVector SpawnLoc = GetActorLocation() + FVector(0, 0, 100); // 임의 위치
+	//		AI_Docent = GetWorld()->SpawnActor<AAI_Docent>(DocentClass, SpawnLoc, FRotator::ZeroRotator, SpawnParams);
+	//	}
+	//}
 }
 
 // Called every frame
@@ -131,8 +129,8 @@ void ADetectorTool::StopDetection()
 		DetectionComp->StopFeedback();
 
 	// 도슨트 해설 실행
-	if (AI_Docent)
-		AI_Docent->PlayDetectionComment();
+	//if (AI_Docent)
+	//	AI_Docent->PlayDetectionComment();
 
 	// 마커 표시
 	if (TargetArtifact && TargetArtifact->Marker)
