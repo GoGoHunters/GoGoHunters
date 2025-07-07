@@ -41,12 +41,6 @@ ADetectorTool::ADetectorTool()
 	{
 		DetectionWidgetComp->SetWidgetClass(WidgetClassFinder.Class);
 	}
-
-	/*static ConstructorHelpers::FClassFinder<AAI_Docent> DocentClassFinder(TEXT("/Game/LHM/BP/Excavation/BP_AI_Docent"));
-	if (DocentClassFinder.Succeeded())
-	{
-		DocentClass = DocentClassFinder.Class;
-	}*/
 }
 
 // Called when the game starts or when spawned
@@ -56,18 +50,6 @@ void ADetectorTool::BeginPlay()
 	
 	// UI 가시화 테스트용
 	DetectionUI = Cast<UDetectionUI>(DetectionWidgetComp->GetUserWidgetObject());
-
-	// Decent 가시화 테스트용
-	//if (DocentClass)
-	//{
-	//	if (!AI_Docent)
-	//	{
-	//		FActorSpawnParameters SpawnParams;
-	//		SpawnParams.Owner = this;
-	//		FVector SpawnLoc = GetActorLocation() + FVector(0, 0, 100); // 임의 위치
-	//		AI_Docent = GetWorld()->SpawnActor<AAI_Docent>(DocentClass, SpawnLoc, FRotator::ZeroRotator, SpawnParams);
-	//	}
-	//}
 }
 
 // Called every frame
@@ -81,43 +63,14 @@ void ADetectorTool::Tick(float DeltaTime)
 	}
 }
 
-void ADetectorTool::StartDetection()
+void ADetectorTool::SetIsDetecting(bool _bIsDetecting)
 {
-	bIsDetecting = true;
-	
-	//// 1. 월드 내에서 가장 가까운 RelicsBase를 탐색
-	//ARelicsBase* ClosestRelics = nullptr;
-	//float ClosestDist = TNumericLimits<float>::Max();
-	//
-	//for (TActorIterator<ARelicsBase> It(GetWorld()); It; ++It)
-	//{
-	//	// 1. 마커 존재 확인 (nullptr 체크)
-	//	if (!It->Marker) continue;
-	//
-	//	// 2. 마커가 이미 활성화(=표시 중)면 스킵
-	//	if (!It->Marker->IsHidden()) continue;
-	//
-	//	// 3. 거리를 계산하여 가장 가까운 RelicsBase 찾기
-	//	float Dist = FVector::Dist(It->GetActorLocation(), GetActorLocation());
-	//	if (Dist < ClosestDist)
-	//	{
-	//		ClosestDist = Dist;
-	//		ClosestRelics = *It;
-	//	}
-	//}
-	//
-	//if (ClosestRelics)
-	//{
-	//	TargetArtifact = ClosestRelics;
-	//	bIsDetecting = true;
-	//	DetectionProgress = 0.0f;
-	//	if (DetectionComp) DetectionComp->OnStartFeedback();
-	//}
-	//else
-	//{
-	//	UE_LOG(LogTemp, Warning, TEXT("[DetectorTool] 탐지 가능한 RelicsBase를 찾을 수 없습니다!"));
-	//	// 혹시 UI/사운드로 "탐지 불가" 안내도 가능
-	//}
+	bIsDetecting = _bIsDetecting;
+
+	if(!bIsDetecting)
+	{
+		StopDetection();
+	}
 }
 
 void ADetectorTool::StopDetection()
@@ -128,14 +81,6 @@ void ADetectorTool::StopDetection()
 	if (DetectionComp)
 		DetectionComp->StopFeedback();
 
-	// 도슨트 해설 실행
-	//if (AI_Docent)
-	//	AI_Docent->PlayDetectionComment();
-
-	// 마커 표시
-	if (TargetArtifact && TargetArtifact->Marker)
-		TargetArtifact->Marker->ActivateMarker();
-
 	// ProgressBar 및 내부 진행도 리셋
 	DetectionProgress = 0.f;
 	if (DetectionUI)
@@ -144,7 +89,7 @@ void ADetectorTool::StopDetection()
 	UE_LOG(LogTemp, Log, TEXT("[DetectorTool] 탐지 완료 및 UI & 탐지 상태 초기화"));
 
 	// 탐지 상태 초기화
-	bIsDetecting = true;
+	//bIsDetecting = true;
 	TargetArtifact = nullptr;
 }
 
@@ -212,6 +157,10 @@ void ADetectorTool::UpdateDetection(float DeltaTime)
 
 	if (DetectionProgress >= 100.f)
 	{
+		// 마커 표시
+		if (TargetArtifact && TargetArtifact->Marker)
+			TargetArtifact->Marker->ActivateMarker();
+
 		StopDetection();
 	}
 }

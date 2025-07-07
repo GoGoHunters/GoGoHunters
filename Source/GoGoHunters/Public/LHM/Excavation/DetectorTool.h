@@ -24,7 +24,10 @@ public:
 	virtual void Tick(float DeltaTime) override;
 
 public:
-	void StartDetection();
+	void SetIsDetecting(bool _bIsDetecting);
+	bool bIsDetecting = false;
+
+	void UpdateDetection(float DeltaTime);
 	void StopDetection();
 
 public:
@@ -43,13 +46,6 @@ public:
 	UPROPERTY()
 	class UDetectionUI* DetectionUI;
 
-	/*UPROPERTY()
-	TSubclassOf<class AAI_Docent> DocentClass;
-	UPROPERTY()
-	class AAI_Docent* AI_Docent;*/
-
 	float DetectionProgress = 0.0f;
-	bool bIsDetecting = false;
 
-	void UpdateDetection(float DeltaTime);
 };

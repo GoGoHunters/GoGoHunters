@@ -128,10 +128,18 @@ public:
 	UInputAction* IA_ExcavationTool2;
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Input")
 	UInputAction* IA_ExcavationTool3;
-	
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Input")
+	UInputAction* IA_ExcavationDetect;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Input")
+	UInputAction* IA_ExcavationDig;
+
 	void ExcavationTool1();
 	void ExcavationTool2();
 	void ExcavationTool3();
+	void ExcavationDetectStart();
+	void ExcavationDetectEnd();
+	void ExcavationDigStart();
+	void ExcavationDigEnd();
 	
 	UPROPERTY()
 	TSubclassOf<class ADetectorTool> DetectionToolClass;
@@ -142,6 +150,9 @@ public:
 	TSubclassOf<class AShovelTool> ShovelToolClass;
 	UPROPERTY()
 	class AShovelTool* ShovelTool;
+
+	UPROPERTY()
+	TArray<class ARelicsGround*> RelicsGroundRefs;
 
 #pragma endregion 발굴 장비 IA
 

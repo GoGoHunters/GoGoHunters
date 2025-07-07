@@ -1,11 +1,12 @@
-// Fill out your copyright notice in the Description page of Project Settings.
+﻿// Fill out your copyright notice in the Description page of Project Settings.
 
 
 #include "LHM/Excavation/ShovelTool.h"
 #include "Components/StaticMeshComponent.h"
 #include "Components/SceneComponent.h"
-#include "Components/BoxComponent.h"
 #include "Blueprint/UserWidget.h"
+#include "LHM/Excavation/RelicsGround.h"
+#include "Kismet/GameplayStatics.h"
 
 // Sets default values
 AShovelTool::AShovelTool()
@@ -22,15 +23,13 @@ AShovelTool::AShovelTool()
 		ShovelMesh->SetupAttachment(RootComponent);
 	}
 
-	BoxComp = CreateDefaultSubobject<UBoxComponent>(TEXT("BoxComp"));
-	BoxComp->SetupAttachment(ShovelMesh);
-	BoxComp->SetRelativeRotation(FRotator(10, 0, 0)); // (Pitch=10.000000,Yaw=0.000000,Roll=0.000000)
-	BoxComp->SetBoxExtent(FVector(17, 17, 3.5)); // (X=17.000000,Y=17.000000,Z=3.500000)
+	SplatPoint = CreateDefaultSubobject<USceneComponent>(TEXT("SplatPoint"));
+	SplatPoint->SetupAttachment(ShovelMesh);
+	SplatPoint->SetRelativeRotation(FRotator(18, 0, 3)); // (X=18.000000,Y=0.000000,Z=3.000000)
 
-	//ShovelMesh->SetCollisionProfileName(TEXT("OverlapAllDynamic"));
-	//ShovelMesh->SetSimulatePhysics(true);
-	
-
+	bIsDigging = false;
+	DiggingRate = 0.1f; // 0.1초마다 한 번씩 데미지 적용
+	TimeSinceLastDig = 0.0f;
 }
 
 // Called when the game starts or when spawned
@@ -38,6 +37,7 @@ void AShovelTool::BeginPlay()
 {
 	Super::BeginPlay();
 
+	GroundRef = Cast<ARelicsGround>(UGameplayStatics::GetActorOfClass(GetWorld(), ARelicsGround::StaticClass()));
 }
 
 // Called every frame
@@ -47,3 +47,14 @@ void AShovelTool::Tick(float DeltaTime)
 
 }
 
+void AShovelTool::StartDigging()
+{
+	bIsDigging = true;
+	UE_LOG(LogTemp, Warning, TEXT("Shovel: Digging Started!"));
+}
+
+void AShovelTool::StopDigging()
+{
+	bIsDigging = false;
+	UE_LOG(LogTemp, Warning, TEXT("Shovel: Digging Stopped!"));
+}

@@ -1,4 +1,4 @@
-// Fill out your copyright notice in the Description page of Project Settings.
+Ôªø// Fill out your copyright notice in the Description page of Project Settings.
 
 #pragma once
 
@@ -27,14 +27,26 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "ShovelTool")
 	class UStaticMeshComponent* ShovelMesh;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "ShovelTool")
-	class UBoxComponent* BoxComp;
-
-	//UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "ShovelTool")
-	//float DiggingSpeed; // πﬂ±º º”µµ
-	//UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "ShovelTool")
-	//float DiggingDepth; // πﬂ±º ±Ì¿Ã
-	//UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "ShovelTool")
-	//bool bIsDigging; // πﬂ±º ¡ﬂ¿Œ¡ˆ ø©∫Œ
+	class USceneComponent* SplatPoint;
 	
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Digging")
+    bool bIsDigging;
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Digging")
+    float DiggingRate; // Ï¥àÎãπ ÏÇΩÏßà Ï†ÅÏö© ÎπàÎèÑ (0.1Ï¥àÎßàÎã§ Ìïú Î≤à)
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Digging")
+    float TimeSinceLastDig; // ÎßàÏßÄÎßâÏúºÎ°ú ÏÇΩÏßà Îç∞ÎØ∏ÏßÄÎ•º Ï†ÅÏö©Ìïú Ïù¥ÌõÑ Í≤ΩÍ≥º ÏãúÍ∞Ñ
+
+protected:
+    UPROPERTY()
+    class ARelicsGround* GroundRef;
+
+public:
+    UFUNCTION(BlueprintCallable, Category = "Digging")
+    void StartDigging();
+
+    UFUNCTION(BlueprintCallable, Category = "Digging")
+    void StopDigging();
 
 };
