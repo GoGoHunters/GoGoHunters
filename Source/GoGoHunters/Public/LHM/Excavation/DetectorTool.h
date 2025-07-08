@@ -41,8 +41,8 @@ public:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	class UWidgetComponent* DetectionWidgetComp;
-	UPROPERTY()
-	TSubclassOf<class UDetectionUI> DetectionUIClass;
+	//UPROPERTY()
+	//TSubclassOf<class UDetectionUI> DetectionUIClass;
 	UPROPERTY()
 	class UDetectionUI* DetectionUI;
 

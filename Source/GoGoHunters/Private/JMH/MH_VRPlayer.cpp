@@ -19,6 +19,7 @@
 #include "Components/WidgetInteractionComponent.h"
 #include "Components/WidgetComponent.h"
 #include "LHM/Excavation/RelicsGround.h"
+#include "LHM/Excavation/ExcavationWidgetActor.h"
 
 AMH_VRPlayer::AMH_VRPlayer()
 {
@@ -145,11 +146,34 @@ void AMH_VRPlayer::BeginPlay()
 		break;
 	}
 
-	// 월드에 있는 모든 ARelicsGround를 찾아 저장
-	for (TActorIterator<ARelicsGround> It(GetWorld()); It; ++It)
+	// 발굴 레벨에서만 RelicsGroundRef & UIActor
+	FString CurrentLevel = GetWorld()->GetMapName();
+	CurrentLevel.RemoveFromStart(GetWorld()->StreamingLevelsPrefix); // 레벨 이름 앞에 접두사 _ 제거
+
+	UE_LOG(LogTemp, Log, TEXT("Current Level: %s"), *CurrentLevel);
+	if (CurrentLevel == "LV_Test") // 테스트용 레벨
 	{
-		RelicsGroundRefs.Add(*It);
+		// 월드에 있는 모든 ARelicsGround를 찾아 저장
+		for (TActorIterator<ARelicsGround> It(GetWorld()); It; ++It)
+		{
+			RelicsGroundRefs.Add(*It);
+		}
+		
+		FActorSpawnParameters SpawnParams;
+		SpawnParams.Owner = this;
+
+		// ExcavationUI 
+		if (ExcavationUIActorClass = LoadClass<AExcavationWidgetActor>(nullptr, TEXT("/Game/LHM/BP/Excavation/BP_ExcavationWidgetActor.BP_ExcavationWidgetActor_C")))
+		{
+			ExcavationUIActor = GetWorld()->SpawnActor<AExcavationWidgetActor>(ExcavationUIActorClass, FVector::ZeroVector, FRotator::ZeroRotator, SpawnParams);
+			if (ExcavationUIActor)
+			{
+				USceneComponent* HandSocket = LHandController;
+				ExcavationUIActor->AttachToComponent(HandSocket, FAttachmentTransformRules::SnapToTargetNotIncludingScale, NAME_None);
+			}
+		}
 	}
+
 }
 
 // Called every frame

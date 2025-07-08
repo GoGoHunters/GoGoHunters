@@ -154,6 +154,12 @@ public:
 	UPROPERTY()
 	TArray<class ARelicsGround*> RelicsGroundRefs;
 
+	UPROPERTY()
+	TSubclassOf<class AExcavationWidgetActor> ExcavationUIActorClass;
+
+	UPROPERTY()
+	class AExcavationWidgetActor* ExcavationUIActor;
+
 #pragma endregion 발굴 장비 IA
 
 	//마우스 회전방지

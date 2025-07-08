@@ -26,20 +26,19 @@ ADetectorTool::ADetectorTool()
 		DetectorMesh->SetupAttachment(RootComponent);
 	}
 
-	DetectionWidgetComp = CreateDefaultSubobject<UWidgetComponent>(TEXT("DetectionWidgetComp"));
-	DetectionWidgetComp->SetupAttachment(DetectorMesh);
-	DetectionWidgetComp->SetWidgetSpace(EWidgetSpace::World); // 월드 공간
-	DetectionWidgetComp->SetRelativeLocation(FVector(3, 0, 2.01)); // (X=3.000000,Y=0.000000,Z=2.010000)
-	DetectionWidgetComp->SetRelativeRotation(FRotator(FRotator(90, 180, 0))); // (Pitch=90.000000,Yaw=180.000000,Roll=0.000000)
-	DetectionWidgetComp->SetRelativeScale3D(FVector(0.2));
-	DetectionWidgetComp->SetDrawSize(FVector2D(130, 50));
-
 	DetectionComp = CreateDefaultSubobject<UDetectionComponent>(TEXT("DetectionComponent"));
 
 	static ConstructorHelpers::FClassFinder<UUserWidget> WidgetClassFinder(TEXT("/Game/LHM/UI/WBP_DetectionUI"));
 	if (WidgetClassFinder.Succeeded())
 	{
+		DetectionWidgetComp = CreateDefaultSubobject<UWidgetComponent>(TEXT("DetectionWidgetComp"));
 		DetectionWidgetComp->SetWidgetClass(WidgetClassFinder.Class);
+		DetectionWidgetComp->SetupAttachment(DetectorMesh);
+		DetectionWidgetComp->SetWidgetSpace(EWidgetSpace::World); // 월드 공간
+		DetectionWidgetComp->SetRelativeLocation(FVector(3, 0, 2.01)); // (X=3.000000,Y=0.000000,Z=2.010000)
+		DetectionWidgetComp->SetRelativeRotation(FRotator(FRotator(90, 180, 0))); // (Pitch=90.000000,Yaw=180.000000,Roll=0.000000)
+		DetectionWidgetComp->SetRelativeScale3D(FVector(0.1));
+		DetectionWidgetComp->SetDrawSize(FVector2D(300, 90));
 	} 
 }
 
