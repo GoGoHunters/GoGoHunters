@@ -4,12 +4,12 @@
 #include "LHM/Excavation/DetectorTool.h"
 #include "LHM/Excavation/RelicsBase.h"
 #include "LHM/Excavation/DetectionComponent.h"
-#include "LHM/Excavation/DetectionUI.h"
 #include "LHM/Excavation/ExcavationMarker.h"
+#include "LHM/UI/DetectionUI.h"
 #include "Components/WidgetComponent.h"
 #include "Components/SceneComponent.h"
-#include "EngineUtils.h"
 #include "Components/StaticMeshComponent.h"
+#include "EngineUtils.h"
 
 // Sets default values
 ADetectorTool::ADetectorTool()
