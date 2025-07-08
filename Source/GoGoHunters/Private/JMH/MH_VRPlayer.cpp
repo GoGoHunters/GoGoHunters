@@ -402,7 +402,6 @@ void AMH_VRPlayer::ExcavationTool2()
 			{
 				USceneComponent* HandSocket = RHandController;
 				ShovelTool->AttachToComponent(HandSocket, FAttachmentTransformRules::SnapToTargetNotIncludingScale, NAME_None);
-				ShovelTool->SetActorLocation(HandSocket->GetComponentLocation() + FVector(-20, 70, -20));
 
 				// RelicsGround의 Shovel 할당
 				for (auto RelicsGroundRef : RelicsGroundRefs)

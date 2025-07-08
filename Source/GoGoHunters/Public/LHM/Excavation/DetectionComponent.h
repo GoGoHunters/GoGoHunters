@@ -33,5 +33,8 @@ private:
 	void PlayVibration(float Intensity);
 	void UpdateVisualFeedback(float Progress);
 	void PlaySoundFeedback(float Progress);
+
+	UPROPERTY(EditAnywhere, Category = "Haptic")
+	UHapticFeedbackEffect_Base* HapticEffect;
 		
 };
