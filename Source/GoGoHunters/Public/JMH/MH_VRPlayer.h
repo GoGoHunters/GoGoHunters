@@ -7,6 +7,11 @@
 #include "InputAction.h"
 #include "MH_VRPlayer.generated.h"
 
+class ACWorldMap;
+class UMotionControllerComponent;
+class UWidgetInteractionComponent;
+class UWidgetComponent;
+
 /*
  * 텔레포트 조건 = Teleportable 액터 태그
  * 그랩 조건 = Grabbable 액터 태그
@@ -50,9 +55,17 @@ public:
 	class UCameraComponent* VRCamera;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
-	class UMotionControllerComponent* RHandController;
+	UMotionControllerComponent* RHandController;
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
-	class UMotionControllerComponent* LHandController;
+	UMotionControllerComponent* LHandController;
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+	UMotionControllerComponent* LAimMotionController;
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+	UMotionControllerComponent* RAimMotionController;
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+	UWidgetInteractionComponent* LWidgetInteractionComponent;
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+	UWidgetInteractionComponent* RWidgetInteractionComponent;
 
 	//손일단 VR 카메라에 Root 붙여 놓음 이동해야함 (수정)
 	UPROPERTY(VisibleAnywhere)
@@ -90,6 +103,8 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Input")
 	UInputAction* IA_MHInteract;
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Input")
+	UInputAction* IA_MHInteract_L;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Input")
 	UInputAction* IA_MHTestTeleportStart;
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Input")
 	UInputAction* IA_MHTestTeleportEnd;
@@ -105,6 +120,41 @@ public:
 	class UInputAction* IA_AdjustTeleportDirection;
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
 	class UInputAction* IA_RotateHeldObject;
+
+#pragma region Excavation Tool Input Action
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Input")
+	UInputAction* IA_ExcavationTool1;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Input")
+	UInputAction* IA_ExcavationTool2;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Input")
+	UInputAction* IA_ExcavationTool3;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Input")
+	UInputAction* IA_ExcavationDetect;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Input")
+	UInputAction* IA_ExcavationDig;
+
+	void ExcavationTool1();
+	void ExcavationTool2();
+	void ExcavationTool3();
+	void ExcavationDetectStart();
+	void ExcavationDetectEnd();
+	void ExcavationDigStart();
+	void ExcavationDigEnd();
+	
+	UPROPERTY()
+	TSubclassOf<class ADetectorTool> DetectionToolClass;
+	UPROPERTY()
+	class ADetectorTool* DetectionTool;
+
+	UPROPERTY()
+	TSubclassOf<class AShovelTool> ShovelToolClass;
+	UPROPERTY()
+	class AShovelTool* ShovelTool;
+
+	UPROPERTY()
+	TArray<class ARelicsGround*> RelicsGroundRefs;
+
+#pragma endregion 발굴 장비 IA
 
 	//마우스 회전방지
 	bool bUseMouse = true;
@@ -132,7 +182,9 @@ public:
 	void TestTurn(const FInputActionValue& Value);
 	void TestLookUp(const FInputActionValue& Value);
 	UFUNCTION()
-	void TestInteract();
+	void TriggerInteract(const FInputActionInstance& IA_Instance);
+	UFUNCTION()
+	void TriggerInteractCompleted();
 	
 	UFUNCTION(exec)
 	void ActiveDebugDraw();
@@ -178,4 +230,32 @@ public:
 
 	UPROPERTY(EditAnywhere, Category="VR Movement")
 	float SnapTurnAngle = 15.f;
+
+private:
+	UPROPERTY()
+	TObjectPtr<ACWorldMap> CachedWorldMap = nullptr;
+
+	void TryWorldMapInteraction(const FInputActionInstance& IA_Instance);
+	void ResetWorldMapInteraction();
+
+	// UI 상호작용 관련 변수들
+	UPROPERTY()
+	TObjectPtr<UWidgetComponent> CurrentFocusedUI = nullptr;
+	
+	UPROPERTY()
+	TObjectPtr<UWidgetInteractionComponent> ActiveWidgetInteraction = nullptr;
+	
+	bool bIsUIInteractionActive = false;
+	
+	// UI 상호작용 함수들
+	void HandleUIInteraction(const FInputActionInstance& IA_Instance);
+	void TryUIInteraction(const FInputActionInstance& IA_Instance);
+	void EndUIInteraction(const FInputActionInstance& IA_Instance);
+	
+	// UI 감지 함수
+	bool IsPointingAtUI(UMotionControllerComponent* MotionController, UWidgetComponent*& OutWidgetComponent);
+	
+	// WidgetInteraction 활성화/비활성화
+	void EnableWidgetInteraction(UMotionControllerComponent* MotionController);
+	void DisableWidgetInteraction();
 };
