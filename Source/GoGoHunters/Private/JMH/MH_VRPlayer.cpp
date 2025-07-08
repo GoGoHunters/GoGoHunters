@@ -311,7 +311,7 @@ void AMH_VRPlayer::F_TeleportEnd(const struct FInputActionValue& Value)
 		FVector OutLocation;
 		if (TeleportComponent->CompleteTeleport(OutLocation))
 		{
-			SetActorLocation(OutLocation);
+			SetActorLocation(OutLocation + FVector(0.f, 0.f, 100.f));
 			TeleportDistanceFactor = 1.0f;
 		}
 		SetPlayerState(EPlayerVRState::Idle);
@@ -511,7 +511,7 @@ void AMH_VRPlayer::UpdateInteractionLine()
 			if (!HitActor) continue;
 
 			// Grab 처리
-			if (!FocusedGrabbableActor && HitActor->ActorHasTag("Grabbable"))
+			if (!FocusedGrabbableActor && HitActor->ActorHasTag("Grabable"))
 			{
 				FocusedGrabbableActor = HitActor;
 			}
