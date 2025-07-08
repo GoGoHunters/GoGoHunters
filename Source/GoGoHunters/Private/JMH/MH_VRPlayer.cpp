@@ -323,7 +323,7 @@ void AMH_VRPlayer::UpdateInteractionLine()
 			if (!HitActor) continue;
 
 			// Grab 처리
-			if (!FocusedGrabbableActor && HitActor->ActorHasTag("Grabbable"))
+			if (!FocusedGrabbableActor && HitActor->ActorHasTag("Grabable"))
 			{
 				FocusedGrabbableActor = HitActor;
 			}
