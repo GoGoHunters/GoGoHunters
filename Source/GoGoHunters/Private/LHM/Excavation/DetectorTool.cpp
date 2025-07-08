@@ -40,7 +40,7 @@ ADetectorTool::ADetectorTool()
 	if (WidgetClassFinder.Succeeded())
 	{
 		DetectionWidgetComp->SetWidgetClass(WidgetClassFinder.Class);
-	}
+	} 
 }
 
 // Called when the game starts or when spawned

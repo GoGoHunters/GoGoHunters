@@ -6,6 +6,8 @@
 #include "GameFramework/Actor.h"
 #include "RelicsGround.generated.h"
 
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnGroundDugDelegate, FVector, ImpactLocation);
+
 UCLASS()
 class GOGOHUNTERS_API ARelicsGround : public AActor
 {
@@ -29,4 +31,10 @@ public:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "HeightMapPainter")
 	class AShovelTool* Shovel_Ref;
+
+	UFUNCTION(BlueprintCallable, Category = "Digging Events")
+	void TriggerOnGroundDug(FVector ImpactLocation);
+
+	UPROPERTY(BlueprintAssignable, Category = "Digging Events")
+    FOnGroundDugDelegate OnGroundDug;
 };

@@ -2,6 +2,7 @@
 
 
 #include "LHM/Excavation/DetectionComponent.h"
+#include "Haptics/HapticFeedbackEffect_Base.h"
 
 // Sets default values for this component's properties
 UDetectionComponent::UDetectionComponent()
@@ -10,7 +11,12 @@ UDetectionComponent::UDetectionComponent()
 	// off to improve performance if you don't need them.
 	PrimaryComponentTick.bCanEverTick = true;
 
-	// ...
+	// 햅틱 이펙트
+	static ConstructorHelpers::FObjectFinder<UHapticFeedbackEffect_Base> HapticAsset(TEXT("/Game/LHM/HapticFeedback/HFE_Detection.HFE_Detection"));
+	if (HapticAsset.Succeeded())
+	{
+		HapticEffect = HapticAsset.Object;
+	}
 }
 
 
@@ -48,21 +54,26 @@ void UDetectionComponent::UpdateFeedback(float Progress)
 
 void UDetectionComponent::StopFeedback()
 {
-
+	// 햅틱 중지
+	APlayerController* PC = GetWorld()->GetFirstPlayerController();
+	if (PC)
+	{
+		PC->StopHapticEffect(EControllerHand::Right);
+	}
 }
 
 void UDetectionComponent::PlayVibration(float Intensity)
 {
-	// VR 플랫폼별로 다름. 예시로 플레이어 컨트롤러에 햅틱 피드백 적용
-	// (실제 PlayerController와 연결 필요)
-	// 만약 오큘러스라면 Oculus Function Library 참고
 	APlayerController* PC = GetWorld()->GetFirstPlayerController();
 	if (PC)
 	{
-		// Left, Right 모두 진동. 강도(0.0 ~ 1.0)로 변환
 		float ClampedIntensity = FMath::Clamp(Intensity, 0.0f, 1.0f);
-		//PC->PlayHapticEffect(/* HapticEffectAsset */, EControllerHand::Left, ClampedIntensity);
-		//PC->PlayHapticEffect(/* HapticEffectAsset */, EControllerHand::Right, ClampedIntensity);
+
+		if (HapticEffect)
+		{
+			PC->PlayHapticEffect(HapticEffect, EControllerHand::Right, ClampedIntensity, false);
+			//PC->PlayHapticEffect(HapticEffect, EControllerHand::Left, ClampedIntensity, false);
+		}
 	}
 }
 

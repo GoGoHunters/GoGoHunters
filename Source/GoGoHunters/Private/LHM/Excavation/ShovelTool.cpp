@@ -7,6 +7,7 @@
 #include "Blueprint/UserWidget.h"
 #include "LHM/Excavation/RelicsGround.h"
 #include "Kismet/GameplayStatics.h"
+#include "EngineUtils.h"
 
 // Sets default values
 AShovelTool::AShovelTool()
@@ -21,11 +22,12 @@ AShovelTool::AShovelTool()
 	{
 		ShovelMesh->SetStaticMesh(ShovelMeshAsset.Object);
 		ShovelMesh->SetupAttachment(RootComponent);
+		ShovelMesh->SetRelativeLocation(FVector(80, 0, 0)); // (X=80.000000,Y=0.000000,Z=0.000000)
 	}
 
 	SplatPoint = CreateDefaultSubobject<USceneComponent>(TEXT("SplatPoint"));
 	SplatPoint->SetupAttachment(ShovelMesh);
-	SplatPoint->SetRelativeRotation(FRotator(18, 0, 3)); // (X=18.000000,Y=0.000000,Z=3.000000)
+	SplatPoint->SetRelativeLocation(FVector(18, 0, 3)); // (X=18.000000,Y=0.000000,Z=3.000000)
 
 	bIsDigging = false;
 	DiggingRate = 0.1f; // 0.1초마다 한 번씩 데미지 적용
@@ -37,7 +39,6 @@ void AShovelTool::BeginPlay()
 {
 	Super::BeginPlay();
 
-	GroundRef = Cast<ARelicsGround>(UGameplayStatics::GetActorOfClass(GetWorld(), ARelicsGround::StaticClass()));
 }
 
 // Called every frame
@@ -57,4 +58,16 @@ void AShovelTool::StopDigging()
 {
 	bIsDigging = false;
 	UE_LOG(LogTemp, Warning, TEXT("Shovel: Digging Stopped!"));
+}
+
+void AShovelTool::PlayFeedback(FVector ImpactLocation)
+{
+	if (!bIsDigging) return;
+
+	// 햅틱 피드백 재생
+	APlayerController* PC = UGameplayStatics::GetPlayerController(this, 0);
+	if (PC && DigHapticEffect)
+	{
+		PC->PlayHapticEffect(DigHapticEffect, EControllerHand::Right, 1.0f, false);
+	}
 }

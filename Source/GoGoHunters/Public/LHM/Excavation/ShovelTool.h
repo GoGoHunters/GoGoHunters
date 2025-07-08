@@ -39,8 +39,8 @@ public:
     float TimeSinceLastDig; // 마지막으로 삽질 데미지를 적용한 이후 경과 시간
 
 protected:
-    UPROPERTY()
-    class ARelicsGround* GroundRef;
+    //UPROPERTY()
+    //class ARelicsGround* GroundRef;
 
 public:
     UFUNCTION(BlueprintCallable, Category = "Digging")
@@ -49,4 +49,9 @@ public:
     UFUNCTION(BlueprintCallable, Category = "Digging")
     void StopDigging();
 
+	UFUNCTION()
+	void PlayFeedback(FVector ImpactLocation);
+	
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="Digging")
+	class UHapticFeedbackEffect_Base* DigHapticEffect;
 };
