@@ -12,7 +12,7 @@ UDetectionComponent::UDetectionComponent()
 	PrimaryComponentTick.bCanEverTick = true;
 
 	// 햅틱 이펙트
-	static ConstructorHelpers::FObjectFinder<UHapticFeedbackEffect_Base> HapticAsset(TEXT("/Game/LHM/HapticFeedback/HFE_Detection.HFE_Detection"));
+	static ConstructorHelpers::FObjectFinder<UHapticFeedbackEffect_Base> HapticAsset(TEXT("/Game/LHM/Effects/HapticFeedback/HFE_Detection.HFE_Detection"));
 	if (HapticAsset.Succeeded())
 	{
 		HapticEffect = HapticAsset.Object;
