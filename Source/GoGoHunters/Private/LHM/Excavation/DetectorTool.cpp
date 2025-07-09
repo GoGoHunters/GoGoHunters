@@ -112,7 +112,7 @@ void ADetectorTool::UpdateDetection(float DeltaTime)
 		}
 	}
 
-	// 2. 탐지 가능한 Relics가 없으면 UI 리셋, 진행도 0
+// 2. 탐지 가능한 Relics가 없으면 UI 리셋, 진행도 0
 	if (!ClosestRelics)
 	{
 		DetectionProgress = 0.f;
@@ -123,7 +123,7 @@ void ADetectorTool::UpdateDetection(float DeltaTime)
 
 	TargetArtifact = ClosestRelics;
 
-	// 3. 진행도 로직
+// 3. 진행도 로직
 	float Distance = FVector::Dist(GetActorLocation(), TargetArtifact->GetLocation());
 	const float MinDetectDistance = 100;
 	const float MaxDetectDistance = 800.f;
