@@ -13,12 +13,16 @@
 #include "JMH/MH_GrabComp.h"
 #include "JMH/MH_TeleportComp.h"
 #include "LHM/Excavation/DetectorTool.h"
+#include "LHM/Excavation/ShovelTool.h"
 #include "LHJ/CWorldMap.h"
 #include "EngineUtils.h"
 #include "Components/WidgetInteractionComponent.h"
 #include "Components/WidgetComponent.h"
 #include "GameFramework/SpringArmComponent.h"
 #include "JMH/CMuseumComponent.h"
+#include "LHM/Excavation/RelicsGround.h"
+#include "LHM/Excavation/ExcavationWidgetActor.h"
+#include "LHM/Excavation/BrushTool.h"
 
 AMH_VRPlayer::AMH_VRPlayer()
 {
@@ -43,7 +47,7 @@ AMH_VRPlayer::AMH_VRPlayer()
 	LAimMotionController->SetTrackingMotionSource(FName("LeftAim"));
 	CHelpers::CreateComponent<UWidgetInteractionComponent>(this, &RWidgetInteractionComponent, "RWidgetInteractionComponent", RAimMotionController);
 	CHelpers::CreateComponent<UWidgetInteractionComponent>(this, &LWidgetInteractionComponent, "LWidgetInteractionComponent", LAimMotionController);
-	
+
 	//그랩 컴프
 	GrabComponent = CreateDefaultSubobject<UMH_GrabComp>(TEXT("GrabComponent"));
 
@@ -153,6 +157,35 @@ void AMH_VRPlayer::BeginPlay()
 		CachedWorldMap = *It;
 		break;
 	}
+
+	// 발굴 레벨에서만 RelicsGroundRef & UIActor
+	FString CurrentLevel = GetWorld()->GetMapName();
+	CurrentLevel.RemoveFromStart(GetWorld()->StreamingLevelsPrefix); // 레벨 이름 앞에 접두사 _ 제거
+
+	UE_LOG(LogTemp, Log, TEXT("Current Level: %s"), *CurrentLevel);
+	if (CurrentLevel == "LV_Test") // 테스트용 레벨
+	{
+		// 월드에 있는 모든 ARelicsGround를 찾아 저장
+		for (TActorIterator<ARelicsGround> It(GetWorld()); It; ++It)
+		{
+			RelicsGroundRefs.Add(*It);
+		}
+		
+		FActorSpawnParameters SpawnParams;
+		SpawnParams.Owner = this;
+
+		// ExcavationUI 
+		if (ExcavationUIActorClass = LoadClass<AExcavationWidgetActor>(nullptr, TEXT("/Game/LHM/BP/Excavation/BP_ExcavationWidgetActor.BP_ExcavationWidgetActor_C")))
+		{
+			ExcavationUIActor = GetWorld()->SpawnActor<AExcavationWidgetActor>(ExcavationUIActorClass, FVector::ZeroVector, FRotator::ZeroRotator, SpawnParams);
+			if (ExcavationUIActor)
+			{
+				USceneComponent* HandSocket = LHandController;
+				ExcavationUIActor->AttachToComponent(HandSocket, FAttachmentTransformRules::SnapToTargetNotIncludingScale, NAME_None);
+			}
+		}
+	}
+
 }
 
 // Called every frame
@@ -211,9 +244,13 @@ void AMH_VRPlayer::SetupPlayerInputComponent(UInputComponent* PlayerInputCompone
 	                          &AMH_VRPlayer::HandleThumbstickInput);
 
 	// Excavation Tool Actions
-	EnhancedInput->BindAction(IA_ExcavationTool1, ETriggerEvent::Triggered, this, &AMH_VRPlayer::ExcavationTool1);
-	EnhancedInput->BindAction(IA_ExcavationTool2, ETriggerEvent::Triggered, this, &AMH_VRPlayer::ExcavationTool2);
-	EnhancedInput->BindAction(IA_ExcavationTool3, ETriggerEvent::Triggered, this, &AMH_VRPlayer::ExcavationTool3);
+	EnhancedInput->BindAction(IA_ExcavationTool1, ETriggerEvent::Started, this, &AMH_VRPlayer::ExcavationTool1);
+	EnhancedInput->BindAction(IA_ExcavationTool2, ETriggerEvent::Started, this, &AMH_VRPlayer::ExcavationTool2);
+	EnhancedInput->BindAction(IA_ExcavationTool3, ETriggerEvent::Started, this, &AMH_VRPlayer::ExcavationTool3);
+	EnhancedInput->BindAction(IA_ExcavationDetect, ETriggerEvent::Triggered, this, &AMH_VRPlayer::ExcavationDetectStart);
+	EnhancedInput->BindAction(IA_ExcavationDetect, ETriggerEvent::Completed, this, &AMH_VRPlayer::ExcavationDetectEnd);
+	EnhancedInput->BindAction(IA_ExcavationDig, ETriggerEvent::Started, this, &AMH_VRPlayer::ExcavationDigStart);
+	EnhancedInput->BindAction(IA_ExcavationDig, ETriggerEvent::Completed, this, &AMH_VRPlayer::ExcavationDigEnd);
 
 	if (MuseumComponent) MuseumComponent->SetupPlayerInputComponent(EnhancedInput);
 }
@@ -235,20 +272,20 @@ void AMH_VRPlayer::SetPlayerState(EPlayerVRState NewState)
 	// 새 상태 진입 처리 (예: UI 안내, 모션 트리거 등 필요 시 여기에)
 	switch (CurrentState)
 	{
-	case EPlayerVRState::Inspecting:
-		// 예: UI에 "회전해서 살펴보세요!" 표시
-		break;
-	case EPlayerVRState::Excavating:
-		// 예: 발굴 애니메이션 시작
-		break;
-	case EPlayerVRState::Disabled:
-		DisableInput(nullptr);
-		break;
-	case EPlayerVRState::Idle:
-		EnableInput(Cast<APlayerController>(GetController()));
-		break;
-	default:
-		break;
+		case EPlayerVRState::Inspecting:
+			// 예: UI에 "회전해서 살펴보세요!" 표시
+			break;
+		case EPlayerVRState::Excavating:
+			// 예: 발굴 애니메이션 시작
+			break;
+		case EPlayerVRState::Disabled:
+			DisableInput(nullptr);
+			break;
+		case EPlayerVRState::Idle:
+			EnableInput(Cast<APlayerController>(GetController()));
+			break;
+		default:
+			break;
 	}
 }
 
@@ -312,7 +349,7 @@ void AMH_VRPlayer::F_TeleportEnd(const struct FInputActionValue& Value)
 		FVector OutLocation;
 		if (TeleportComponent->CompleteTeleport(OutLocation))
 		{
-			SetActorLocation(OutLocation);
+			SetActorLocation(OutLocation + FVector(0.f, 0.f, 100.f));
 			TeleportDistanceFactor = 1.0f;
 		}
 		SetPlayerState(EPlayerVRState::Idle);
@@ -362,6 +399,9 @@ void AMH_VRPlayer::ExcavationTool1()
 {
 	if (!DetectionTool)
 	{
+		if (ShovelTool) ShovelTool->Destroy();
+		if (BrushTool) BrushTool->Destroy();
+
 		FActorSpawnParameters SpawnParams;
 		SpawnParams.Owner = this;
 
@@ -373,22 +413,118 @@ void AMH_VRPlayer::ExcavationTool1()
 				USceneComponent* HandSocket = RHandController;
 				DetectionTool->AttachToComponent(HandSocket, FAttachmentTransformRules::SnapToTargetNotIncludingScale, NAME_None);
 
-				DetectionTool->StartDetection();
-
-				//SetPlayerState(EPlayerVRState::Excavating);
+				SetPlayerState(EPlayerVRState::UsingTool);
 			}
 		}
+	}
+	else
+	{
+		DetectionTool->Destroy();
+		DetectionTool = nullptr;
+		SetPlayerState(EPlayerVRState::Idle);
 	}
 }
 
 void AMH_VRPlayer::ExcavationTool2()
 {
+	if (!ShovelTool)
+	{
+		if (DetectionTool) DetectionTool->Destroy();
+		if (BrushTool) BrushTool->Destroy();
 
+		FActorSpawnParameters SpawnParams;
+		SpawnParams.Owner = this;
+
+		if (ShovelToolClass = LoadClass<AShovelTool>(nullptr, TEXT("/Game/LHM/BP/Excavation/BP_ShovelTool.BP_ShovelTool_C")))
+		{
+			ShovelTool = GetWorld()->SpawnActor<AShovelTool>(ShovelToolClass, FVector::ZeroVector, FRotator::ZeroRotator, SpawnParams);
+			if (ShovelTool)
+			{
+				USceneComponent* HandSocket = RHandController;
+				ShovelTool->AttachToComponent(HandSocket, FAttachmentTransformRules::SnapToTargetNotIncludingScale, NAME_None);
+
+				// RelicsGround의 Shovel 할당
+				for (auto RelicsGroundRef : RelicsGroundRefs)
+				{
+					if (RelicsGroundRef) RelicsGroundRef->SetShovelReference(ShovelTool);
+				}
+
+				SetPlayerState(EPlayerVRState::UsingTool);
+			}
+		}
+	}
+	else
+	{
+		ShovelTool->Destroy();
+		ShovelTool = nullptr;
+		SetPlayerState(EPlayerVRState::Idle);
+	}
 }
 
 void AMH_VRPlayer::ExcavationTool3()
 {
+	if (!BrushTool)
+	{
+		if (DetectionTool) DetectionTool->Destroy();
+		if (ShovelTool) ShovelTool->Destroy();
 
+		FActorSpawnParameters SpawnParams;
+		SpawnParams.Owner = this;
+
+		if (BrushToolClass = LoadClass<ABrushTool>(nullptr, TEXT("/Game/LHM/BP/Excavation/BP_BrushTool.BP_BrushTool_C")))
+		{
+			BrushTool = GetWorld()->SpawnActor<ABrushTool>(BrushToolClass, FVector::ZeroVector, FRotator::ZeroRotator, SpawnParams);
+			if (BrushTool)
+			{
+				USceneComponent* HandSocket = RHandController;
+				BrushTool->AttachToComponent(HandSocket, FAttachmentTransformRules::SnapToTargetNotIncludingScale, NAME_None);
+
+				SetPlayerState(EPlayerVRState::UsingTool);
+			}
+		}
+	}
+	else
+	{
+		BrushTool->Destroy();
+		BrushTool = nullptr;
+		SetPlayerState(EPlayerVRState::Idle);
+	}
+}
+
+void AMH_VRPlayer::ExcavationDetectStart()
+{
+	if (DetectionTool)
+	{
+		DetectionTool->SetIsDetecting(true);
+		//SetPlayerState(EPlayerVRState::Excavating);
+	}
+}
+
+void AMH_VRPlayer::ExcavationDetectEnd()
+{
+	if (DetectionTool)
+	{
+		DetectionTool->SetIsDetecting(false);
+		//SetPlayerState(EPlayerVRState::UsingTool);
+	}
+}
+
+void AMH_VRPlayer::ExcavationDigStart()
+{
+	if (ShovelTool)
+	{
+		ShovelTool->StartDigging();
+		//SetPlayerState(EPlayerVRState::Excavating);
+	}
+}
+
+void AMH_VRPlayer::ExcavationDigEnd()
+{
+	if (ShovelTool)
+	{
+		ShovelTool->StopDigging();
+		//SetPlayerState(EPlayerVRState::UsingTool);
+	}
 }
 
 void AMH_VRPlayer::UpdateInteractionLine()
@@ -440,7 +576,7 @@ void AMH_VRPlayer::UpdateInteractionLine()
 			if (!HitActor) continue;
 
 			// Grab 처리
-			if (!FocusedGrabbableActor && HitActor->ActorHasTag("Grabbable"))
+			if (!FocusedGrabbableActor && HitActor->ActorHasTag("Grabable"))
 			{
 				FocusedGrabbableActor = HitActor;
 			}
@@ -538,7 +674,7 @@ void AMH_VRPlayer::TryWorldMapInteraction(const FInputActionInstance& IA_Instanc
 	else if (IA_Instance.GetSourceAction() == IA_MHInteract_L) MotionController = LHandController;
 
 	if (!MotionController) return;
-	
+
 	FVector Start = MotionController->GetComponentLocation();
 	FVector End = Start + (MotionController->GetForwardVector() * 800.f);
 
@@ -573,7 +709,7 @@ void AMH_VRPlayer::HandleUIInteraction(const FInputActionInstance& IA_Instance)
 	// 어떤 손에서 입력이 왔는지 확인
 	UMotionControllerComponent* MotionController = nullptr;
 	UWidgetInteractionComponent* WidgetInteraction = nullptr;
-	
+
 	if (IA_Instance.GetSourceAction() == IA_MHInteract)
 	{
 		MotionController = RHandController;
@@ -584,9 +720,9 @@ void AMH_VRPlayer::HandleUIInteraction(const FInputActionInstance& IA_Instance)
 		MotionController = LHandController;
 		WidgetInteraction = LWidgetInteractionComponent;
 	}
-	
+
 	if (!MotionController || !WidgetInteraction) return;
-	
+
 	// UI를 가리키고 있는지 확인
 	UWidgetComponent* HitWidgetComponent = nullptr;
 	if (IsPointingAtUI(MotionController, HitWidgetComponent))
@@ -598,7 +734,7 @@ void AMH_VRPlayer::HandleUIInteraction(const FInputActionInstance& IA_Instance)
 			CurrentFocusedUI = HitWidgetComponent;
 			bIsUIInteractionActive = true;
 		}
-		
+
 		// WidgetInteraction으로 클릭 이벤트 전송
 		WidgetInteraction->PressPointerKey(EKeys::LeftMouseButton);
 	}
@@ -628,7 +764,7 @@ void AMH_VRPlayer::EndUIInteraction(const FInputActionInstance& IA_Instance)
 		{
 			ActiveWidgetInteraction->ReleasePointerKey(EKeys::LeftMouseButton);
 		}
-		
+
 		DisableWidgetInteraction();
 	}
 }
@@ -636,13 +772,13 @@ void AMH_VRPlayer::EndUIInteraction(const FInputActionInstance& IA_Instance)
 bool AMH_VRPlayer::IsPointingAtUI(UMotionControllerComponent* MotionController, UWidgetComponent*& OutWidgetComponent)
 {
 	if (!MotionController) return false;
-	
+
 	FVector Start = MotionController->GetComponentLocation();
 	FVector End = Start + (MotionController->GetForwardVector() * 800.f);
-	
+
 	FCollisionQueryParams QueryParams;
 	QueryParams.AddIgnoredActor(this);
-	
+
 	// UI 전용 레이캐스트 (WidgetComponent 찾기)
 	TArray<FHitResult> HitResults;
 	if (GetWorld()->LineTraceMultiByChannel(HitResults, Start, End, ECC_Visibility, QueryParams))
@@ -658,7 +794,7 @@ bool AMH_VRPlayer::IsPointingAtUI(UMotionControllerComponent* MotionController, 
 			}
 		}
 	}
-	
+
 	OutWidgetComponent = nullptr;
 	return false;
 }
@@ -666,7 +802,7 @@ bool AMH_VRPlayer::IsPointingAtUI(UMotionControllerComponent* MotionController, 
 void AMH_VRPlayer::EnableWidgetInteraction(UMotionControllerComponent* MotionController)
 {
 	if (!MotionController) return;
-	
+
 	// 해당 손의 WidgetInteraction 활성화
 	if (MotionController == RHandController)
 	{
@@ -676,14 +812,14 @@ void AMH_VRPlayer::EnableWidgetInteraction(UMotionControllerComponent* MotionCon
 	{
 		ActiveWidgetInteraction = LWidgetInteractionComponent;
 	}
-	
+
 	if (ActiveWidgetInteraction)
 	{
 		ActiveWidgetInteraction->SetActive(true);
 		ActiveWidgetInteraction->bEnableHitTesting = true;
-		
-		UE_LOG(LogTemp, Log, TEXT("[VR] WidgetInteraction 활성화 - %s"), 
-		       MotionController == RHandController ? TEXT("오른손") : TEXT("왼손"));
+
+		UE_LOG(LogTemp, Log, TEXT("[VR] WidgetInteraction 활성화 - %s"),
+			   MotionController == RHandController ? TEXT("오른손") : TEXT("왼손"));
 	}
 }
 
@@ -695,9 +831,9 @@ void AMH_VRPlayer::DisableWidgetInteraction()
 		ActiveWidgetInteraction->bEnableHitTesting = false;
 		ActiveWidgetInteraction = nullptr;
 	}
-	
+
 	CurrentFocusedUI = nullptr;
 	bIsUIInteractionActive = false;
-	
+
 	UE_LOG(LogTemp, Log, TEXT("[VR] WidgetInteraction 비활성화"));
 }

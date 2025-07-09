@@ -4,11 +4,11 @@
 #include "LHM/Excavation/DetectorTool.h"
 #include "LHM/Excavation/RelicsBase.h"
 #include "LHM/Excavation/DetectionComponent.h"
-#include "LHM/Excavation/DetectionUI.h"
-#include "LHM/Excavation/AI_Docent.h"
 #include "LHM/Excavation/ExcavationMarker.h"
+#include "LHM/UI/DetectionUI.h"
 #include "Components/WidgetComponent.h"
 #include "Components/SceneComponent.h"
+#include "Components/StaticMeshComponent.h"
 #include "EngineUtils.h"
 
 // Sets default values
@@ -18,24 +18,28 @@ ADetectorTool::ADetectorTool()
 	PrimaryActorTick.bCanEverTick = true;
 
 	RootComponent = CreateDefaultSubobject<USceneComponent>(TEXT("RootScene"));
-	DetectionComp = CreateDefaultSubobject<UDetectionComponent>(TEXT("DetectionComponent"));
+	DetectorMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("DetectorMesh"));
+	static ConstructorHelpers::FObjectFinder<UStaticMesh> MeshAsset(TEXT("/Game/LHM/Meshes/SM_DetectionTool.SM_DetectionTool"));
+	if (MeshAsset.Succeeded())
+	{
+		DetectorMesh->SetStaticMesh(MeshAsset.Object);
+		DetectorMesh->SetupAttachment(RootComponent);
+	}
 
-	DetectionWidgetComp = CreateDefaultSubobject<UWidgetComponent>(TEXT("DetectionWidgetComp"));
-	DetectionWidgetComp->SetupAttachment(RootComponent);
-	DetectionWidgetComp->SetWidgetSpace(EWidgetSpace::World); // 월드 공간
-	DetectionWidgetComp->SetDrawSize(FVector2D(400, 100));    // 원하는 UI 사이즈
+	DetectionComp = CreateDefaultSubobject<UDetectionComponent>(TEXT("DetectionComponent"));
 
 	static ConstructorHelpers::FClassFinder<UUserWidget> WidgetClassFinder(TEXT("/Game/LHM/UI/WBP_DetectionUI"));
 	if (WidgetClassFinder.Succeeded())
 	{
+		DetectionWidgetComp = CreateDefaultSubobject<UWidgetComponent>(TEXT("DetectionWidgetComp"));
 		DetectionWidgetComp->SetWidgetClass(WidgetClassFinder.Class);
-	}
-
-	static ConstructorHelpers::FClassFinder<AAI_Docent> DocentClassFinder(TEXT("/Game/LHM/BP/Excavation/BP_AI_Docent"));
-	if (DocentClassFinder.Succeeded())
-	{
-		DocentClass = DocentClassFinder.Class;
-	}
+		DetectionWidgetComp->SetupAttachment(DetectorMesh);
+		DetectionWidgetComp->SetWidgetSpace(EWidgetSpace::World); // 월드 공간
+		DetectionWidgetComp->SetRelativeLocation(FVector(3, 0, 2.01)); // (X=3.000000,Y=0.000000,Z=2.010000)
+		DetectionWidgetComp->SetRelativeRotation(FRotator(FRotator(90, 180, 0))); // (Pitch=90.000000,Yaw=180.000000,Roll=0.000000)
+		DetectionWidgetComp->SetRelativeScale3D(FVector(0.1));
+		DetectionWidgetComp->SetDrawSize(FVector2D(300, 90));
+	} 
 }
 
 // Called when the game starts or when spawned
@@ -44,20 +48,7 @@ void ADetectorTool::BeginPlay()
 	Super::BeginPlay();
 	
 	// UI 가시화 테스트용
-	// WidgetComponent에 연결된 실제 UDetectionUI 객체 받아오기
 	DetectionUI = Cast<UDetectionUI>(DetectionWidgetComp->GetUserWidgetObject());
-
-	// Decent 가시화 테스트용
-	if (DocentClass)
-	{
-		if (!AI_Docent)
-		{
-			FActorSpawnParameters SpawnParams;
-			SpawnParams.Owner = this;
-			FVector SpawnLoc = GetActorLocation() + FVector(0, 0, 100); // 임의 위치
-			AI_Docent = GetWorld()->SpawnActor<AAI_Docent>(DocentClass, SpawnLoc, FRotator::ZeroRotator, SpawnParams);
-		}
-	}
 }
 
 // Called every frame
@@ -71,43 +62,14 @@ void ADetectorTool::Tick(float DeltaTime)
 	}
 }
 
-void ADetectorTool::StartDetection()
+void ADetectorTool::SetIsDetecting(bool _bIsDetecting)
 {
-	bIsDetecting = true;
-	
-	//// 1. 월드 내에서 가장 가까운 RelicsBase를 탐색
-	//ARelicsBase* ClosestRelics = nullptr;
-	//float ClosestDist = TNumericLimits<float>::Max();
-	//
-	//for (TActorIterator<ARelicsBase> It(GetWorld()); It; ++It)
-	//{
-	//	// 1. 마커 존재 확인 (nullptr 체크)
-	//	if (!It->Marker) continue;
-	//
-	//	// 2. 마커가 이미 활성화(=표시 중)면 스킵
-	//	if (!It->Marker->IsHidden()) continue;
-	//
-	//	// 3. 거리를 계산하여 가장 가까운 RelicsBase 찾기
-	//	float Dist = FVector::Dist(It->GetActorLocation(), GetActorLocation());
-	//	if (Dist < ClosestDist)
-	//	{
-	//		ClosestDist = Dist;
-	//		ClosestRelics = *It;
-	//	}
-	//}
-	//
-	//if (ClosestRelics)
-	//{
-	//	TargetArtifact = ClosestRelics;
-	//	bIsDetecting = true;
-	//	DetectionProgress = 0.0f;
-	//	if (DetectionComp) DetectionComp->OnStartFeedback();
-	//}
-	//else
-	//{
-	//	UE_LOG(LogTemp, Warning, TEXT("[DetectorTool] 탐지 가능한 RelicsBase를 찾을 수 없습니다!"));
-	//	// 혹시 UI/사운드로 "탐지 불가" 안내도 가능
-	//}
+	bIsDetecting = _bIsDetecting;
+
+	if(!bIsDetecting)
+	{
+		StopDetection();
+	}
 }
 
 void ADetectorTool::StopDetection()
@@ -118,14 +80,6 @@ void ADetectorTool::StopDetection()
 	if (DetectionComp)
 		DetectionComp->StopFeedback();
 
-	// 도슨트 해설 실행
-	if (AI_Docent)
-		AI_Docent->PlayDetectionComment();
-
-	// 마커 표시
-	if (TargetArtifact && TargetArtifact->Marker)
-		TargetArtifact->Marker->ActivateMarker();
-
 	// ProgressBar 및 내부 진행도 리셋
 	DetectionProgress = 0.f;
 	if (DetectionUI)
@@ -134,7 +88,7 @@ void ADetectorTool::StopDetection()
 	UE_LOG(LogTemp, Log, TEXT("[DetectorTool] 탐지 완료 및 UI & 탐지 상태 초기화"));
 
 	// 탐지 상태 초기화
-	bIsDetecting = true;
+	//bIsDetecting = true;
 	TargetArtifact = nullptr;
 }
 
@@ -158,7 +112,7 @@ void ADetectorTool::UpdateDetection(float DeltaTime)
 		}
 	}
 
-	// 2. 탐지 가능한 Relics가 없으면 UI 리셋, 진행도 0
+// 2. 탐지 가능한 Relics가 없으면 UI 리셋, 진행도 0
 	if (!ClosestRelics)
 	{
 		DetectionProgress = 0.f;
@@ -169,7 +123,7 @@ void ADetectorTool::UpdateDetection(float DeltaTime)
 
 	TargetArtifact = ClosestRelics;
 
-	// 3. 진행도 로직
+// 3. 진행도 로직
 	float Distance = FVector::Dist(GetActorLocation(), TargetArtifact->GetLocation());
 	const float MinDetectDistance = 100;
 	const float MaxDetectDistance = 800.f;
@@ -202,6 +156,10 @@ void ADetectorTool::UpdateDetection(float DeltaTime)
 
 	if (DetectionProgress >= 100.f)
 	{
+		// 마커 표시
+		if (TargetArtifact && TargetArtifact->Marker)
+			TargetArtifact->Marker->ActivateMarker();
+
 		StopDetection();
 	}
 }

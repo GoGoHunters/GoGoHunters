@@ -24,8 +24,15 @@ public:
 	virtual void Tick(float DeltaTime) override;
 
 public:
-	void StartDetection();
+	void SetIsDetecting(bool _bIsDetecting);
+	bool bIsDetecting = false;
+
+	void UpdateDetection(float DeltaTime);
 	void StopDetection();
+
+public:
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	class UStaticMeshComponent* DetectorMesh;
 
 	UPROPERTY()
 	class ARelicsBase* TargetArtifact;
@@ -34,18 +41,11 @@ public:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	class UWidgetComponent* DetectionWidgetComp;
-	UPROPERTY()
-	TSubclassOf<class UDetectionUI> DetectionUIClass;
+	//UPROPERTY()
+	//TSubclassOf<class UDetectionUI> DetectionUIClass;
 	UPROPERTY()
 	class UDetectionUI* DetectionUI;
 
-	UPROPERTY()
-	TSubclassOf<class AAI_Docent> DocentClass;
-	UPROPERTY()
-	class AAI_Docent* AI_Docent;
-
 	float DetectionProgress = 0.0f;
-	bool bIsDetecting = false;
 
-	void UpdateDetection(float DeltaTime);
 };

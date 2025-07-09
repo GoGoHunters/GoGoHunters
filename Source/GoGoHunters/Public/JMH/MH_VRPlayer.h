@@ -130,15 +130,43 @@ public:
 	UInputAction* IA_ExcavationTool2;
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Input")
 	UInputAction* IA_ExcavationTool3;
-	
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Input")
+	UInputAction* IA_ExcavationDetect;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Input")
+	UInputAction* IA_ExcavationDig;
+
 	void ExcavationTool1();
 	void ExcavationTool2();
 	void ExcavationTool3();
+	void ExcavationDetectStart();
+	void ExcavationDetectEnd();
+	void ExcavationDigStart();
+	void ExcavationDigEnd();
 	
 	UPROPERTY()
 	TSubclassOf<class ADetectorTool> DetectionToolClass;
 	UPROPERTY()
 	class ADetectorTool* DetectionTool;
+
+	UPROPERTY()
+	TSubclassOf<class AShovelTool> ShovelToolClass;
+	UPROPERTY()
+	class AShovelTool* ShovelTool;
+	
+	UPROPERTY()
+	TSubclassOf<class ABrushTool> BrushToolClass;
+	UPROPERTY()
+	class ABrushTool* BrushTool;
+
+	UPROPERTY()
+	TArray<class ARelicsGround*> RelicsGroundRefs;
+
+	UPROPERTY()
+	TSubclassOf<class AExcavationWidgetActor> ExcavationUIActorClass;
+
+	UPROPERTY()
+	class AExcavationWidgetActor* ExcavationUIActor;
+
 #pragma endregion 발굴 장비 IA
 
 	//마우스 회전방지
