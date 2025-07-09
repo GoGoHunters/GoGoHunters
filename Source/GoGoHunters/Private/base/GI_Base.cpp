@@ -2,13 +2,59 @@
 
 
 #include "base/GI_Base.h"
+#include "Engine/DataTable.h"
+#include "UObject/ConstructorHelpers.h"
 #include "Kismet/GameplayStatics.h"
+#include "LHJ/CRelicData.h"
 #include "Engine/World.h"
 
 void UGI_Base::Init()
 {
     Super::Init();
+    InitRelicData();
+	InitRelicDetailData();
+}
 
+void UGI_Base::InitRelicData()
+{
+    if (!RelicDataTable) return;
+
+    RelicDataMap.Empty();
+    TArray<FName> RowNames = RelicDataTable->GetRowNames();
+    for (const FName& RowName : RowNames)
+    {
+        FCRelicData* Row = RelicDataTable->FindRow<FCRelicData>(RowName, TEXT("InitRelicData"));
+        if (Row)
+        {
+            RelicDataMap.Add(Row->Index, *Row);
+        }
+    }
+}
+
+void UGI_Base::InitRelicDetailData()
+{
+	if (!RelicDetailDataTable) return;
+
+	RelicDetailDataMap.Empty();
+	TArray<FName> RowNames = RelicDetailDataTable->GetRowNames();
+	for (const FName& RowName : RowNames)
+	{
+		FCRelicDetailData* Row = RelicDetailDataTable->FindRow<FCRelicDetailData>(RowName, TEXT("InitRelicData"));
+		if (Row)
+		{
+			RelicDetailDataMap.Add(Row->RelicName.ToString(), *Row);
+		}
+	}
+}
+
+const FCRelicData* UGI_Base::GetRelicDataByIndex(const int32 RelicIndex) const
+{
+    return RelicDataMap.Find(RelicIndex);
+}
+
+const FCRelicDetailData* UGI_Base::GetRelicDetailDataByName(const FString& RelicName) const
+{
+	return RelicDetailDataMap.Find(RelicName);
 }
 
 void UGI_Base::Shutdown()

@@ -21,7 +21,8 @@ public class GoGoHunters : ModuleRules
             "AudioMixer",
             "AudioCapture",
             "Json",
-            "JsonUtilities"
+            "JsonUtilities",
+            "UMG", "Slate", "SlateCore"
         });
 	}
 }

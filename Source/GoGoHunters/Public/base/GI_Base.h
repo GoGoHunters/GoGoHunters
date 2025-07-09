@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "Engine/GameInstance.h"
 #include "WebSocket/U_WebSocketManager.h"
+#include "LHJ/CRelicData.h"
 #include "GI_Base.generated.h"
 
 /**
@@ -32,6 +33,10 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Level Transition")
 	void StartAsyncLoading();
 
+	// 유물 데이터 관련
+	const TMap<int32, FCRelicData>& GetAllRelicData() const { return RelicDataMap; }
+	const FCRelicData* GetRelicDataByIndex(const int32 RelicIndex) const;
+	const FCRelicDetailData* GetRelicDetailDataByName(const FString& RelicName) const;
 
 private:
 	UPROPERTY() 
@@ -43,4 +48,17 @@ private:
 	
 	UPROPERTY()
 	bool bIsLoadingLevel = false;
+
+	// 유물 데이터
+	UPROPERTY()
+	TObjectPtr<UDataTable> RelicDataTable;
+	UPROPERTY()
+	TObjectPtr<UDataTable> RelicDetailDataTable;
+	UPROPERTY()
+	TMap<int32, FCRelicData> RelicDataMap;
+	UPROPERTY()
+	TMap<FString, FCRelicDetailData> RelicDetailDataMap;
+	// 유물 데이터 관련
+	void InitRelicData();
+	void InitRelicDetailData();
 };

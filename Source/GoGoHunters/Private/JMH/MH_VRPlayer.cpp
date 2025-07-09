@@ -17,6 +17,8 @@
 #include "EngineUtils.h"
 #include "Components/WidgetInteractionComponent.h"
 #include "Components/WidgetComponent.h"
+#include "GameFramework/SpringArmComponent.h"
+#include "JMH/CMuseumComponent.h"
 
 AMH_VRPlayer::AMH_VRPlayer()
 {
@@ -58,6 +60,13 @@ AMH_VRPlayer::AMH_VRPlayer()
 	RHandSKM->SetupAttachment(RHandController);
 	RHandSKM->SetRelativeRotation(FRotator(90.f, -90.f, 0.f));
 
+	CHelpers::CreateComponent<USpringArmComponent>(this, &RelicCollectionSpringArm, "RelicCollectionSpringArm", VRCamera);
+	RelicCollectionSpringArm->SetRelativeRotation(FRotator(0.f, 180.f, 0.f));
+	RelicCollectionSpringArm->SocketOffset = FVector(0.f, 40.f, 0.f);
+	RelicCollectionSpringArm->bEnableCameraLag = true;
+	CHelpers::CreateComponent<UChildActorComponent>(this, &RelicCollectionWidget, "RelicCollectionWidget", RelicCollectionSpringArm);
+	RelicCollectionWidget->SetRelativeRotation(FRotator(0, 160, 0));
+
 	// 메시 로딩
 	static ConstructorHelpers::FObjectFinder<USkeletalMesh> LHandMeshAsset(TEXT("/Game/Characters/MannequinsXR/Meshes/SKM_MannyXR_left.SKM_MannyXR_left"));
 	if (LHandMeshAsset.Succeeded())
@@ -90,6 +99,8 @@ AMH_VRPlayer::AMH_VRPlayer()
 		LWidgetInteractionComponent->TraceChannel = ECC_Visibility;
 		LWidgetInteractionComponent->PointerIndex = 1;
 	}
+
+	CHelpers::CreateActorComponent<UCMuseumComponent>(this, &MuseumComponent, "MuseumComponent");
 }
 
 // Called when the game starts or when spawned
@@ -203,6 +214,8 @@ void AMH_VRPlayer::SetupPlayerInputComponent(UInputComponent* PlayerInputCompone
 	EnhancedInput->BindAction(IA_ExcavationTool1, ETriggerEvent::Triggered, this, &AMH_VRPlayer::ExcavationTool1);
 	EnhancedInput->BindAction(IA_ExcavationTool2, ETriggerEvent::Triggered, this, &AMH_VRPlayer::ExcavationTool2);
 	EnhancedInput->BindAction(IA_ExcavationTool3, ETriggerEvent::Triggered, this, &AMH_VRPlayer::ExcavationTool3);
+
+	if (MuseumComponent) MuseumComponent->SetupPlayerInputComponent(EnhancedInput);
 }
 
 void AMH_VRPlayer::SetPlayerState(EPlayerVRState NewState)
