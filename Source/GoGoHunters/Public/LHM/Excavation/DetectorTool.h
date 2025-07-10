@@ -35,7 +35,8 @@ public:
 	class UStaticMeshComponent* DetectorMesh;
 
 	UPROPERTY()
-	class ARelicsBase* TargetArtifact;
+	class ARelicsBase* Relics;
+
 	UPROPERTY()
 	class UDetectionComponent* DetectionComp;
 
