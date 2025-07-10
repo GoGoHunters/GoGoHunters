@@ -4,11 +4,14 @@
 #include "Components/Button.h"
 #include "Components/Image.h"
 #include "Components/TextBlock.h"
+#include "JMH/CMuseumComponent.h"
+#include "JMH/MH_VRPlayer.h"
+#include "LHJ/CRelicBase.h"
 
 void UCRelicWidget::NativeConstruct()
 {
 	Super::NativeConstruct();
-	
+
 	GI = Cast<UGI_Base>(GetGameInstance());
 	if (GI) SetRelicDetailData();
 
@@ -33,6 +36,10 @@ void UCRelicWidget::SetRelicDetailData()
 
 void UCRelicWidget::OnSelectRelicButtonClicked()
 {
+	AMH_VRPlayer* Player=Cast<AMH_VRPlayer>(GetWorld()->GetFirstPlayerController()->GetPawn());
+	if (!Player) return;
+	UCMuseumComponent* MuseumComponent=Player->GetComponentByClass<UCMuseumComponent>();
+	if (!MuseumComponent) return;
 	// Player 손에 액터를 스폰시킨다
-	
+	MuseumComponent->PlayPreviewMode(RelicData, *RelicDetailData);	
 }

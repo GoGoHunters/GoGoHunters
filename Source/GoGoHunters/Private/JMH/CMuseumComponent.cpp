@@ -3,8 +3,10 @@
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
 #include "MotionControllerComponent.h"
+#include "Components/WidgetInteractionComponent.h"
 #include "JMH/MH_VRPlayer.h"
 #include "LHJ/CMuseumActorBase.h"
+#include "LHJ/CRelicBase.h"
 #include "Utilities/CHelpers.h"
 
 UCMuseumComponent::UCMuseumComponent()
@@ -32,24 +34,15 @@ void UCMuseumComponent::TickComponent(float DeltaTime, ELevelTick TickType,
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
 
-	if (MuseumState == EMuseumState::Decorate)
+	if (bIsPreviewMode)
 	{
-		FVector Start = OwnerPlayer->RHandController->GetComponentLocation();
-		FVector End = Start + (OwnerPlayer->RHandController->GetForwardVector() * 600.f);
-		DrawDebugLine(GetWorld(), Start, End, FColor::Red, false, 0.f, 0, 1);
-		Start = OwnerPlayer->LHandController->GetComponentLocation();
-		End = Start + (OwnerPlayer->LHandController->GetForwardVector() * 600.f);
-		DrawDebugLine(GetWorld(), Start, End, FColor::Red, false, 0.f, 0, 1);
+		PreviewMode();
 	}
 }
 
 void UCMuseumComponent::SetupPlayerInputComponent(UEnhancedInputComponent* EnhancedInput)
 {
 	EnhancedInput->BindAction(IA_Menu, ETriggerEvent::Started, this, &UCMuseumComponent::OnMenuButtonClicked);
-	EnhancedInput->BindAction(IA_SelectItem_R, ETriggerEvent::Started, this,
-	                          &UCMuseumComponent::OnSelectItemButtonClicked);
-	EnhancedInput->BindAction(IA_SelectItem_L, ETriggerEvent::Started, this,
-	                          &UCMuseumComponent::OnSelectItemButtonClicked);
 }
 
 void UCMuseumComponent::OnMenuButtonClicked()
@@ -57,6 +50,36 @@ void UCMuseumComponent::OnMenuButtonClicked()
 	if (!OwnerPlayer) return;
 	if (UGameplayStatics::GetCurrentLevelName(OwnerPlayer->GetWorld()) != FName("LV_MH_MyMuseum")) return;
 	SwitchState();
+}
+
+void UCMuseumComponent::PreviewMode()
+{
+	FHitResult outHit;
+	FVector start = OwnerPlayer->LAimMotionController->GetComponentLocation();
+	FVector end = start + OwnerPlayer->LAimMotionController->GetForwardVector() * 600.f;
+	FCollisionQueryParams params;
+	params.AddIgnoredActor(OwnerPlayer);
+	bool bHit = GetWorld()->LineTraceSingleByChannel(outHit, start, end, ECC_Visibility, params);;
+	if (bHit)
+	{
+		BuildTransform.SetLocation(outHit.Location);
+		BuildTransform.SetRotation(FRotator::ZeroRotator.Quaternion());
+		// BuildTransform.SetRotation(BuildRotation.Quaternion());
+		BuildTransform.SetScale3D(FVector(1));
+		Relic->SetActorTransform(BuildTransform);
+		Relic->SetRelicMaterial(RelicAcceptMaterial);
+		bCanPlace = true;
+	}
+	else
+	{
+		BuildTransform.SetLocation(end);
+		BuildTransform.SetRotation(FRotator::ZeroRotator.Quaternion());
+		// BuildTransform.SetRotation(BuildRotation.Quaternion());
+		BuildTransform.SetScale3D(FVector(1));
+		Relic->SetActorTransform(BuildTransform);
+		Relic->SetRelicMaterial(RelicRejectedMaterial);
+		bCanPlace = false;
+	}
 }
 
 void UCMuseumComponent::SwitchState()
@@ -67,9 +90,21 @@ void UCMuseumComponent::SwitchState()
 	{
 	case EMuseumState::Display:
 		OwnerPlayer->RelicCollectionWidget->SetHiddenInGame(true);
+		OwnerPlayer->LWidgetInteractionComponent->SetActive(false);
+		OwnerPlayer->LWidgetInteractionComponent->bEnableHitTesting = false;
+		OwnerPlayer->LWidgetInteractionComponent->bShowDebug = false;
+		OwnerPlayer->RWidgetInteractionComponent->SetActive(false);
+		OwnerPlayer->RWidgetInteractionComponent->bEnableHitTesting = false;
+		OwnerPlayer->RWidgetInteractionComponent->bShowDebug = false;
 		break;
 	case EMuseumState::Decorate:
 		OwnerPlayer->RelicCollectionWidget->SetHiddenInGame(false);
+		OwnerPlayer->LWidgetInteractionComponent->SetActive(true);
+		OwnerPlayer->LWidgetInteractionComponent->bEnableHitTesting = true;
+		OwnerPlayer->LWidgetInteractionComponent->bShowDebug = true;
+		OwnerPlayer->RWidgetInteractionComponent->SetActive(true);
+		OwnerPlayer->RWidgetInteractionComponent->bEnableHitTesting = true;
+		OwnerPlayer->RWidgetInteractionComponent->bShowDebug = true;
 		break;
 	}
 }
@@ -83,8 +118,9 @@ void UCMuseumComponent::OnSelectItemButtonClicked(const FInputActionInstance& IA
 	if (!PC) return;
 
 	UMotionControllerComponent* MotionController = nullptr;
-	if (IA_Instance.GetSourceAction() == IA_SelectItem_R) MotionController = OwnerPlayer->RHandController;
-	else if (IA_Instance.GetSourceAction() == IA_SelectItem_L) MotionController = OwnerPlayer->LHandController;
+	if (IA_Instance.GetSourceAction() == OwnerPlayer->IA_MHInteract) MotionController = OwnerPlayer->RHandController;
+	else if (IA_Instance.GetSourceAction() == OwnerPlayer->IA_MHInteract_L) MotionController = OwnerPlayer->
+		LHandController;
 
 	if (!MotionController) return;
 
@@ -124,4 +160,36 @@ void UCMuseumComponent::OnSelectItemButtonClicked(const FInputActionInstance& IA
 			SelectedActor = nullptr; // 선택 해제
 		}
 	}
+}
+
+void UCMuseumComponent::PlayPreviewMode(const FCRelicData& InRelicData, const FCRelicDetailData& InRelicDetailData)
+{
+	if (!OwnerPlayer) return;
+	if (MuseumState != EMuseumState::Decorate) return;
+
+	if (Relic->StaticClass() != InRelicDetailData.RelicActorClass)
+	{
+		if (Relic)
+		{
+			Relic->Destroy();
+			Relic = nullptr;			
+		}
+		FActorSpawnParameters SpawnParams;
+		SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+		Relic = GetWorld()->SpawnActor<ACRelicBase>(InRelicDetailData.RelicActorClass, SpawnParams);
+		if (Relic)
+		{
+			Relic->SetActorEnableCollision(false);
+
+			// 다이나믹 머터리얼 생성 및 적용
+			if (Relic->GetRelicMesh() && Relic->GetRelicMesh()->GetMaterial(0))
+			{
+				RelicDynamicMaterial = Relic->GetRelicMesh()->CreateAndSetMaterialInstanceDynamic(0);
+			}
+		}
+	}
+
+	RelicData = InRelicData;
+	RelicDetailData = InRelicDetailData;
+	bIsPreviewMode = true;
 }

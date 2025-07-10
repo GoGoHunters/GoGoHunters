@@ -2,13 +2,17 @@
 
 #include "CoreMinimal.h"
 #include "Components/ActorComponent.h"
+#include "LHJ/CRelicData.h"
 #include "CMuseumComponent.generated.h"
 
 class UInputMappingContext;
 class UEnhancedInputComponent;
 class UInputAction;
 class AMH_VRPlayer;
+class ACRelicBase;
 struct FInputActionInstance;
+struct FCRelicData;
+struct FCRelicDetailData;
 
 UENUM(BlueprintType)
 enum EMuseumState : uint8
@@ -25,7 +29,8 @@ class GOGOHUNTERS_API UCMuseumComponent : public UActorComponent
 
 public:
 	void SetupPlayerInputComponent(UEnhancedInputComponent* EnhancedInput);
-	
+	void OnSelectItemButtonClicked(const FInputActionInstance& IA_Instance);
+	void PlayPreviewMode(const FCRelicData& InRelicData, const FCRelicDetailData& InRelicDetailData);
 
 private:
 	UPROPERTY(EditDefaultsOnly, Category="Input")
@@ -44,6 +49,24 @@ private:
 	UPROPERTY()
 	TObjectPtr<AActor> SelectedActor = nullptr; // 선택된 오브젝트 저장
 
+	FCRelicData RelicData;
+	FCRelicDetailData RelicDetailData;
+	UPROPERTY()
+	TObjectPtr<ACRelicBase> Relic = nullptr;
+	bool bIsPreviewMode = false;
+	bool bCanPlace = false;
+
+	// 생성된 다이나믹 머터리얼 인스턴스 관리
+	UPROPERTY()
+	TObjectPtr<UMaterialInstanceDynamic> RelicDynamicMaterial = nullptr;
+
+	FTransform BuildTransform;
+
+	UPROPERTY(EditAnywhere)
+	TObjectPtr<UMaterialInterface> RelicAcceptMaterial;
+	UPROPERTY(EditAnywhere)
+	TObjectPtr<UMaterialInterface> RelicRejectedMaterial;
+
 	UCMuseumComponent();
 	virtual void BeginPlay() override;
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType,
@@ -53,6 +76,6 @@ private:
 
 	UFUNCTION()
 	void OnMenuButtonClicked();
-	UFUNCTION()
-	void OnSelectItemButtonClicked(const FInputActionInstance& IA_Instance);
+
+	void PreviewMode();
 };

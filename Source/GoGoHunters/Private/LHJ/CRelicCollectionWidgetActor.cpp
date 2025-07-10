@@ -16,6 +16,7 @@ ACRelicCollectionWidgetActor::ACRelicCollectionWidgetActor()
 void ACRelicCollectionWidgetActor::BeginPlay()
 {
 	Super::BeginPlay();
+	
 }
 
 void ACRelicCollectionWidgetActor::Tick(float DeltaTime)

@@ -7,12 +7,6 @@
 #include "Components/TextBlock.h"
 #include "UIs/Museum/CRelicWidget.h"
 
-// --- 페이지네이션용 멤버 변수 선언 (헤더에 추가 필요) ---
-// int32 ItemsPerPage = 12;
-// int32 CurrentPage = 0;
-// TArray<FCRelicData> PlaceableRelics;
-// ---
-
 void UCRelicCollectionWidget::NativeConstruct()
 {
 	Super::NativeConstruct();
@@ -31,6 +25,7 @@ void UCRelicCollectionWidget::NativeConstruct()
 	}
 
 	Btn_Prev->OnClicked.AddDynamic(this, &UCRelicCollectionWidget::OnPrevPage);
+	Btn_Later->OnClicked.AddDynamic(this, &UCRelicCollectionWidget::OnNextPage);
 }
 
 bool UCRelicCollectionWidget::InitRelicWidgets()
@@ -46,8 +41,8 @@ bool UCRelicCollectionWidget::InitRelicWidgets()
 	}
 
 	CurrentPage = 0;
-	ShowPage(CurrentPage);
 	MaxPage = FMath::CeilToInt((float)PlaceableRelics.Num() / ItemsPerPage);
+	ShowPage(CurrentPage);
 
 	return PlaceableRelics.Num() > 0;
 }
@@ -56,7 +51,7 @@ void UCRelicCollectionWidget::ShowPage(int32 PageIndex)
 {
 	Grid_Relics->ClearChildren();
 
-	const int32 Columns = 3;
+	const int32 Columns = 2;
 	int32 StartIndex = PageIndex * ItemsPerPage;
 	int32 EndIndex = FMath::Min(StartIndex + ItemsPerPage, PlaceableRelics.Num());
 	int32 Row = 0;

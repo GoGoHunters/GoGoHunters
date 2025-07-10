@@ -11,12 +11,16 @@ ACRelicBase::ACRelicBase()
 void ACRelicBase::BeginPlay()
 {
 	Super::BeginPlay();
-	
+	RelicMaterial = RelicMesh->GetMaterial(0);
 }
 
 void ACRelicBase::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-
 }
 
+void ACRelicBase::SetRelicMaterial(UMaterialInterface* NewRelicMaterial)
+{
+	if (!NewRelicMaterial) return;
+	RelicMesh->SetMaterial(0, NewRelicMaterial);
+}

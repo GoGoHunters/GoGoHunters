@@ -7,6 +7,7 @@
 #include "InputAction.h"
 #include "MH_VRPlayer.generated.h"
 
+class ACRelicCollectionWidgetActor;
 class UCMuseumComponent;
 class ACWorldMap;
 class UMotionControllerComponent;
@@ -280,4 +281,7 @@ private:
 	// Museum Component
 	UPROPERTY(EditDefaultsOnly)
 	UCMuseumComponent* MuseumComponent;
+
+	UPROPERTY()
+	TObjectPtr<ACRelicCollectionWidgetActor> RelicCollectionWidgetActor;
 };

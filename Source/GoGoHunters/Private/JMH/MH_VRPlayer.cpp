@@ -20,6 +20,7 @@
 #include "Components/WidgetComponent.h"
 #include "GameFramework/SpringArmComponent.h"
 #include "JMH/CMuseumComponent.h"
+#include "LHJ/CRelicCollectionWidgetActor.h"
 #include "LHM/Excavation/RelicsGround.h"
 #include "LHM/Excavation/ExcavationWidgetActor.h"
 #include "LHM/Excavation/BrushTool.h"
@@ -187,6 +188,8 @@ void AMH_VRPlayer::BeginPlay()
 		}
 	}
 
+	if (RelicCollectionWidget && RelicCollectionWidget->GetChildActor())
+		RelicCollectionWidgetActor = Cast<ACRelicCollectionWidgetActor>(RelicCollectionWidget->GetChildActor());
 }
 
 // Called every frame
@@ -205,16 +208,16 @@ void AMH_VRPlayer::Tick(float DeltaTime)
 	}
 	
 	// UI 상호작용 상태 업데이트 (트리거를 누르지 않았을 때도 UI 감지)
-	if (CurrentState == EPlayerVRState::Idle && !bIsUIInteractionActive)
-	{
-		// 양손에서 UI 감지 (시각적 피드백용)
-		UWidgetComponent* TempWidget = nullptr;
-		if (IsPointingAtUI(RHandController, TempWidget) || IsPointingAtUI(LHandController, TempWidget))
-		{
-			// UI를 가리키고 있지만 아직 상호작용하지 않은 상태
-			// 여기서 UI 하이라이트 효과 등을 추가할 수 있음
-		}
-	}
+	// if (CurrentState == EPlayerVRState::Idle && !bIsUIInteractionActive)
+	// {
+	// 	// 양손에서 UI 감지 (시각적 피드백용)
+	// 	UWidgetComponent* TempWidget = nullptr;
+	// 	if (IsPointingAtUI(RHandController, TempWidget) || IsPointingAtUI(LHandController, TempWidget))
+	// 	{
+	// 		// UI를 가리키고 있지만 아직 상호작용하지 않은 상태
+	// 		// 여기서 UI 하이라이트 효과 등을 추가할 수 있음
+	// 	}
+	 // }
 }
 
 // Called to bind functionality to input

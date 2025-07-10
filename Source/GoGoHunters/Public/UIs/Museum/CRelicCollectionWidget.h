@@ -38,7 +38,7 @@ private:
 	UPROPERTY(EditDefaultsOnly)
 	TSubclassOf<UCRelicWidget> RelicWidgetFactory;
 
-	int32 ItemsPerPage = 12;
+	int32 ItemsPerPage = 4;
 	int32 CurrentPage = 0;
 	int32 MaxPage = 0;
 	TArray<FCRelicData> PlaceableRelics;
