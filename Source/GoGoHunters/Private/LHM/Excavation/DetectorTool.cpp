@@ -10,6 +10,9 @@
 #include "Components/SceneComponent.h"
 #include "Components/StaticMeshComponent.h"
 #include "EngineUtils.h"
+#include "LHM/Excavation/RelicsGround.h"
+#include "LHM/Excavation/RelicsManager.h"
+#include "LHM/Excavation/ExcavationManager.h"
 
 // Sets default values
 ADetectorTool::ADetectorTool()
@@ -49,6 +52,7 @@ void ADetectorTool::BeginPlay()
 	
 	// UI 가시화 테스트용
 	DetectionUI = Cast<UDetectionUI>(DetectionWidgetComp->GetUserWidgetObject());
+
 }
 
 // Called every frame
@@ -76,6 +80,31 @@ void ADetectorTool::StopDetection()
 {
 	bIsDetecting = false;
 
+	// 해당 Relics를 관리하는 Manager 찾기
+	ARelicsManager* FindManager = nullptr;
+	for (TActorIterator<ARelicsManager> It(GetWorld()); It; ++It)
+	{
+		if (It->TargetRelics == Relics)
+		{
+			FindManager = *It;
+			break;
+		}
+	}
+
+	if (FindManager)
+	{
+		// 전역 ExcavationManager를 찾아서 Relics 발굴 시작
+		for (TActorIterator<AExcavationManager> It(GetWorld()); It; ++It)
+		{
+			It->StartRelicsExcavation(FindManager);
+			break;
+		}
+	}
+
+	// 마커 표시
+	if (Relics && Relics->Marker)
+		Relics->Marker->ActivateMarker();
+
 	// 피드백/이펙트 중지
 	if (DetectionComp)
 		DetectionComp->StopFeedback();
@@ -89,7 +118,7 @@ void ADetectorTool::StopDetection()
 
 	// 탐지 상태 초기화
 	//bIsDetecting = true;
-	TargetArtifact = nullptr;
+	Relics = nullptr;
 }
 
 void ADetectorTool::UpdateDetection(float DeltaTime)
@@ -121,12 +150,12 @@ void ADetectorTool::UpdateDetection(float DeltaTime)
 		return;
 	}
 
-	TargetArtifact = ClosestRelics;
+	Relics = ClosestRelics;
 
 // 3. 진행도 로직
-	float Distance = FVector::Dist(GetActorLocation(), TargetArtifact->GetLocation());
-	const float MinDetectDistance = 100;
-	const float MaxDetectDistance = 800.f;
+	float Distance = FVector::Dist(GetActorLocation(), Relics->GetLocation());
+	const float MinDetectDistance = 300;
+	const float MaxDetectDistance = 1500.f;
 	const float FillSpeed = 50.f;
 
 	if (Distance > MinDetectDistance && Distance <= MaxDetectDistance)
@@ -144,7 +173,7 @@ void ADetectorTool::UpdateDetection(float DeltaTime)
 	}
 	else
 	{
-		// 한계 바깥(>8m)은 0%
+		// 한계 바깥(>15m)은 0%
 		DetectionProgress = 0.f;
 	}
 
@@ -156,11 +185,7 @@ void ADetectorTool::UpdateDetection(float DeltaTime)
 
 	if (DetectionProgress >= 100.f)
 	{
-		// 마커 표시
-		if (TargetArtifact && TargetArtifact->Marker)
-			TargetArtifact->Marker->ActivateMarker();
-
-		StopDetection();
+		SetIsDetecting(false);
 	}
 }
 
