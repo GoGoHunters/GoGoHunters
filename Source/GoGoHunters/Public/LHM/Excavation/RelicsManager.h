@@ -27,11 +27,15 @@ public:
 	void StartExcavation(); // 초기 시작
 	void NotifyGroundProgress(float Progress); // HeightMap 파괴량 보고
 
-	UPROPERTY(EditAnywhere)
-	class ARelicsBase* TargetRelics;
+	UFUNCTION(BlueprintCallable)
+	class ARelicsBase* GetRelics() const { return Relics; }
 
-	UPROPERTY(EditAnywhere)
-	TArray<class ARelicsGround*> GroundLayers;
+protected:
+	UPROPERTY(VisibleAnywhere)
+	TArray<class UChildActorComponent*> GroundChildActors;
+
+	UPROPERTY(VisibleAnywhere)
+	class UChildActorComponent* RelicsChild;
 
 	UPROPERTY(EditAnywhere)
 	UStaticMeshComponent* ExcavationLand_01;
@@ -43,6 +47,13 @@ public:
 	UStaticMeshComponent* ExcavationSite;
 
 private:
+	TArray<class ARelicsGround*> GroundLayers;
+
+	UPROPERTY(EditAnywhere, Category="Relics")
+	TSubclassOf<ARelicsBase> RelicsClass;
+
+	class ARelicsBase* Relics;
+
 	int32 CurrentLayerIndex = 0;
 	bool bBrushPhaseStarted = false;
 

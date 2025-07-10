@@ -3,12 +3,42 @@
 
 #include "LHM/Excavation/RelicsManager.h"
 #include "LHM/Excavation/RelicsGround.h"
+#include "Components/ChildActorComponent.h"
+#include "LHM/Excavation/RelicsBase.h"
 
 // Sets default values
 ARelicsManager::ARelicsManager()
 {
  	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
+
+	RootComponent = CreateDefaultSubobject<USceneComponent>(TEXT("RootScene"));
+	ExcavationLand_01 = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("ExcavationLand_01"));
+	ExcavationLand_02 = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("ExcavationLand_02"));
+	ExcavationSite = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("ExcavationSite"));
+
+	ExcavationLand_01->SetupAttachment(RootComponent);
+	ExcavationLand_02->SetupAttachment(RootComponent);
+	ExcavationSite->SetupAttachment(RootComponent);
+
+	ExcavationLand_01->SetHiddenInGame(false);
+	ExcavationLand_02->SetHiddenInGame(true);
+	ExcavationSite->SetHiddenInGame(true);
+
+	RelicsChild = CreateDefaultSubobject<UChildActorComponent>(TEXT("Relics"));
+	RelicsChild->SetupAttachment(RootComponent);
+	RelicsChild->SetChildActorClass(RelicsClass);
+
+	for (int32 i = 0; i < 3; ++i)
+	{
+		FString ChildName = FString::Printf(TEXT("GroundLayer_%d"), i + 1);
+		UChildActorComponent* GroundChild = CreateDefaultSubobject<UChildActorComponent>(*ChildName);
+		GroundChild->SetupAttachment(RootComponent);
+		GroundChildActors.Add(GroundChild);
+	}
+
+	CurrentLayerIndex = 0;
+	bBrushPhaseStarted = false;
 
 }
 
@@ -17,6 +47,21 @@ void ARelicsManager::BeginPlay()
 {
 	Super::BeginPlay();
 	
+	GroundLayers.Empty();
+
+	for (auto Child: GroundChildActors)
+	{
+		if (auto* Ground = Cast<ARelicsGround>(Child->GetChildActor()))
+		{
+			GroundLayers.Add(Ground);
+			Ground->SetActorHiddenInGame(true); // 시작 시 숨김
+		}
+	}
+
+	if (RelicsChild)
+	{
+		Relics = Cast<ARelicsBase>(RelicsChild->GetChildActor());
+	}
 }
 
 // Called every frame
@@ -46,7 +91,6 @@ void ARelicsManager::StartExcavation()
 	if (ExcavationSite)
 		ExcavationSite->SetHiddenInGame(false);
 
-	CurrentLayerIndex = 0;
 	bBrushPhaseStarted = false;
 
 	UE_LOG(LogTemp, Log, TEXT("[RelicsManager] Excavation started for: %s"), *GetName());

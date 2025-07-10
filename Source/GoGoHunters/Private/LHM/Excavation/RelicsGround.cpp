@@ -22,7 +22,7 @@ void ARelicsGround::BeginPlay()
 {
 	Super::BeginPlay();
 
-	SetActorHiddenInGame(true);
+	//SetActorHiddenInGame(true);
 }
 
 // Called every frame

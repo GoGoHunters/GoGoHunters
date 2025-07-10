@@ -70,7 +70,7 @@ void ADetectorTool::SetIsDetecting(bool _bIsDetecting)
 {
 	bIsDetecting = _bIsDetecting;
 
-	if(!bIsDetecting)
+	if (!bIsDetecting)
 	{
 		StopDetection();
 	}
@@ -80,45 +80,20 @@ void ADetectorTool::StopDetection()
 {
 	bIsDetecting = false;
 
-	// 해당 Relics를 관리하는 Manager 찾기
-	ARelicsManager* FindManager = nullptr;
-	for (TActorIterator<ARelicsManager> It(GetWorld()); It; ++It)
-	{
-		if (It->TargetRelics == Relics)
-		{
-			FindManager = *It;
-			break;
-		}
-	}
-
-	if (FindManager)
-	{
-		// 전역 ExcavationManager를 찾아서 Relics 발굴 시작
-		for (TActorIterator<AExcavationManager> It(GetWorld()); It; ++It)
-		{
-			It->StartRelicsExcavation(FindManager);
-			break;
-		}
-	}
-
-	// 마커 표시
-	if (Relics && Relics->Marker)
-		Relics->Marker->ActivateMarker();
-
 	// 피드백/이펙트 중지
 	if (DetectionComp)
+	{
 		DetectionComp->StopFeedback();
+	}
 
 	// ProgressBar 및 내부 진행도 리셋
-	DetectionProgress = 0.f;
 	if (DetectionUI)
+	{
+		DetectionProgress = 0.f;
 		DetectionUI->UpdateUI(DetectionProgress);
+	}
 
 	UE_LOG(LogTemp, Log, TEXT("[DetectorTool] 탐지 완료 및 UI & 탐지 상태 초기화"));
-
-	// 탐지 상태 초기화
-	//bIsDetecting = true;
-	Relics = nullptr;
 }
 
 void ADetectorTool::UpdateDetection(float DeltaTime)
@@ -144,9 +119,11 @@ void ADetectorTool::UpdateDetection(float DeltaTime)
 // 2. 탐지 가능한 Relics가 없으면 UI 리셋, 진행도 0
 	if (!ClosestRelics)
 	{
-		DetectionProgress = 0.f;
 		if (DetectionUI)
+		{
+			DetectionProgress = 0.f;
 			DetectionUI->UpdateUI(DetectionProgress);
+		}
 		return;
 	}
 
@@ -185,7 +162,35 @@ void ADetectorTool::UpdateDetection(float DeltaTime)
 
 	if (DetectionProgress >= 100.f)
 	{
-		SetIsDetecting(false);
+		// 해당 Relics를 관리하는 Manager 찾기
+		ARelicsManager* FindManager = nullptr;
+		for (TActorIterator<ARelicsManager> It(GetWorld()); It; ++It)
+		{
+			if (It->GetRelics() == Relics)
+			{
+				FindManager = *It;
+				break;
+			}
+		}
+
+		if (FindManager)
+		{
+			// 전역 ExcavationManager를 찾아서 Relics 발굴 시작
+			for (TActorIterator<AExcavationManager> It(GetWorld()); It; ++It)
+			{
+				It->StartRelicsExcavation(FindManager);
+				break;
+			}
+		}
+
+		// 마커 표시
+		if (Relics && Relics->Marker)
+		{
+			Relics->Marker->ActivateMarker();
+			Relics = nullptr;
+		}
+
+		StopDetection(); // 탐지 완료 후 상태 초기화
 	}
 }
 
