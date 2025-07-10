@@ -50,9 +50,9 @@ private:
 	bool bIsLoadingLevel = false;
 
 	// 유물 데이터
-	UPROPERTY()
+	UPROPERTY(EditDefaultsOnly, Category=DataTable)
 	TObjectPtr<UDataTable> RelicDataTable;
-	UPROPERTY()
+	UPROPERTY(EditDefaultsOnly, Category=DataTable)
 	TObjectPtr<UDataTable> RelicDetailDataTable;
 	UPROPERTY()
 	TMap<int32, FCRelicData> RelicDataMap;

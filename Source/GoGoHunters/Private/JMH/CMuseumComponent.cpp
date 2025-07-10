@@ -66,8 +66,10 @@ void UCMuseumComponent::SwitchState()
 	switch (MuseumState)
 	{
 	case EMuseumState::Display:
+		OwnerPlayer->RelicCollectionWidget->SetHiddenInGame(true);
 		break;
 	case EMuseumState::Decorate:
+		OwnerPlayer->RelicCollectionWidget->SetHiddenInGame(false);
 		break;
 	}
 }

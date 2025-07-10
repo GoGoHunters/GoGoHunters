@@ -70,6 +70,7 @@ AMH_VRPlayer::AMH_VRPlayer()
 	RelicCollectionSpringArm->bEnableCameraLag = true;
 	CHelpers::CreateComponent<UChildActorComponent>(this, &RelicCollectionWidget, "RelicCollectionWidget", RelicCollectionSpringArm);
 	RelicCollectionWidget->SetRelativeRotation(FRotator(0, 160, 0));
+	RelicCollectionWidget->SetHiddenInGame(true);
 
 	// 메시 로딩
 	static ConstructorHelpers::FObjectFinder<USkeletalMesh> LHandMeshAsset(TEXT("/Game/Characters/MannequinsXR/Meshes/SKM_MannyXR_left.SKM_MannyXR_left"));

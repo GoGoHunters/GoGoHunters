@@ -50,7 +50,9 @@ private:
 	                           FActorComponentTickFunction* ThisTickFunction) override;
 
 	void SwitchState();
-	
+
+	UFUNCTION()
 	void OnMenuButtonClicked();
+	UFUNCTION()
 	void OnSelectItemButtonClicked(const FInputActionInstance& IA_Instance);
 };
