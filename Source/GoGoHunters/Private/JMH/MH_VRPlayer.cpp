@@ -147,12 +147,12 @@ void AMH_VRPlayer::BeginPlay()
 		break;
 	}
 
-	// 발굴 레벨에서만 RelicsGroundRef & UIActor
+#pragma region Excavation
 	FString CurrentLevel = GetWorld()->GetMapName();
 	CurrentLevel.RemoveFromStart(GetWorld()->StreamingLevelsPrefix); // 레벨 이름 앞에 접두사 _ 제거
 
 	UE_LOG(LogTemp, Log, TEXT("Current Level: %s"), *CurrentLevel);
-	if (CurrentLevel == "LV_Test") // 테스트용 레벨
+	if (CurrentLevel == "LV_HM_Excavation") // 테스트용 레벨
 	{
 		// 월드에 있는 모든 ARelicsGround를 찾아 저장
 		for (TActorIterator<ARelicsGround> It(GetWorld()); It; ++It)
@@ -174,6 +174,7 @@ void AMH_VRPlayer::BeginPlay()
 			}
 		}
 	}
+#pragma endregion 발굴 레벨에서만 초기화
 
 }
 
