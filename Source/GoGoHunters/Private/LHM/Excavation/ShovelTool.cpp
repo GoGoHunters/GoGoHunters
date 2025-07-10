@@ -22,12 +22,12 @@ AShovelTool::AShovelTool()
 	{
 		ShovelMesh->SetStaticMesh(ShovelMeshAsset.Object);
 		ShovelMesh->SetupAttachment(RootComponent);
-		ShovelMesh->SetRelativeLocation(FVector(80, 0, 0)); // (X=80.000000,Y=0.000000,Z=0.000000)
+		ShovelMesh->SetRelativeLocation(FVector(90, 0, 0)); // (X=80.000000,Y=0.000000,Z=0.000000)
 	}
 
 	SplatPoint = CreateDefaultSubobject<USceneComponent>(TEXT("SplatPoint"));
 	SplatPoint->SetupAttachment(ShovelMesh);
-	SplatPoint->SetRelativeLocation(FVector(18, 0, 3)); // (X=18.000000,Y=0.000000,Z=3.000000)
+	SplatPoint->SetRelativeLocation(FVector(15, 0, 10)); // (X=15.000000,Y=0.000000,Z=10.000000)
 
 	bIsDigging = false;
 	DiggingRate = 0.1f; // 0.1초마다 한 번씩 데미지 적용

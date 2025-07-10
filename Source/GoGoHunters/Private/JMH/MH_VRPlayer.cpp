@@ -20,6 +20,7 @@
 #include "Components/WidgetComponent.h"
 #include "LHM/Excavation/RelicsGround.h"
 #include "LHM/Excavation/ExcavationWidgetActor.h"
+#include "LHM/Excavation/BrushTool.h"
 
 AMH_VRPlayer::AMH_VRPlayer()
 {
@@ -386,6 +387,7 @@ void AMH_VRPlayer::ExcavationTool1()
 	if (!DetectionTool)
 	{
 		if (ShovelTool) ShovelTool->Destroy();
+		if (BrushTool) BrushTool->Destroy();
 
 		FActorSpawnParameters SpawnParams;
 		SpawnParams.Owner = this;
@@ -415,6 +417,7 @@ void AMH_VRPlayer::ExcavationTool2()
 	if (!ShovelTool)
 	{
 		if (DetectionTool) DetectionTool->Destroy();
+		if (BrushTool) BrushTool->Destroy();
 
 		FActorSpawnParameters SpawnParams;
 		SpawnParams.Owner = this;
@@ -447,7 +450,32 @@ void AMH_VRPlayer::ExcavationTool2()
 
 void AMH_VRPlayer::ExcavationTool3()
 {
+	if (!BrushTool)
+	{
+		if (DetectionTool) DetectionTool->Destroy();
+		if (ShovelTool) ShovelTool->Destroy();
 
+		FActorSpawnParameters SpawnParams;
+		SpawnParams.Owner = this;
+
+		if (BrushToolClass = LoadClass<ABrushTool>(nullptr, TEXT("/Game/LHM/BP/Excavation/BP_BrushTool.BP_BrushTool_C")))
+		{
+			BrushTool = GetWorld()->SpawnActor<ABrushTool>(BrushToolClass, FVector::ZeroVector, FRotator::ZeroRotator, SpawnParams);
+			if (BrushTool)
+			{
+				USceneComponent* HandSocket = RHandController;
+				BrushTool->AttachToComponent(HandSocket, FAttachmentTransformRules::SnapToTargetNotIncludingScale, NAME_None);
+
+				SetPlayerState(EPlayerVRState::UsingTool);
+			}
+		}
+	}
+	else
+	{
+		BrushTool->Destroy();
+		BrushTool = nullptr;
+		SetPlayerState(EPlayerVRState::Idle);
+	}
 }
 
 void AMH_VRPlayer::ExcavationDetectStart()

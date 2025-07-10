@@ -150,6 +150,11 @@ public:
 	TSubclassOf<class AShovelTool> ShovelToolClass;
 	UPROPERTY()
 	class AShovelTool* ShovelTool;
+	
+	UPROPERTY()
+	TSubclassOf<class ABrushTool> BrushToolClass;
+	UPROPERTY()
+	class ABrushTool* BrushTool;
 
 	UPROPERTY()
 	TArray<class ARelicsGround*> RelicsGroundRefs;
