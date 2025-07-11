@@ -24,3 +24,9 @@ void ACRelicBase::SetRelicMaterial(UMaterialInterface* NewRelicMaterial)
 	if (!NewRelicMaterial) return;
 	RelicMesh->SetMaterial(0, NewRelicMaterial);
 }
+
+void ACRelicBase::InitializeAsset(const FCRelicData& InRelicData, const FCRelicDetailData& InRelicDetailData)
+{
+	RelicData = InRelicData;
+	RelicDetailData = InRelicDetailData;
+}

@@ -381,6 +381,9 @@ void AMH_VRPlayer::TriggerInteract(const FInputActionInstance& IA_Instance)
 	
 	// UI 감지 및 상호작용 처리
 	HandleUIInteraction(IA_Instance);
+
+	// 유물 설치용 함수 호출
+	if (MuseumComponent) MuseumComponent->PlaceRelic();
 }
 
 void AMH_VRPlayer::TriggerInteractCompleted()

@@ -7,6 +7,7 @@
 #include "Kismet/GameplayStatics.h"
 #include "LHJ/CRelicData.h"
 #include "Engine/World.h"
+#include "GameFramework/SaveGame.h"
 
 void UGI_Base::Init()
 {
@@ -116,4 +117,35 @@ void UGI_Base::OnLevelLoadComplete()
 		
 		UE_LOG(LogTemp, Log, TEXT("Level loading completed, transitioning to: %s"), *TargetLevel);
 	}
+}
+
+void UGI_Base::SaveRelicData(const FRelicSaveData& NewData)
+{
+    URelicSaveGame* SaveGameInstance;
+    if (UGameplayStatics::DoesSaveGameExist(TEXT("RelicSaveSlot"), 0))
+    {
+        SaveGameInstance = Cast<URelicSaveGame>(UGameplayStatics::LoadGameFromSlot(TEXT("RelicSaveSlot"), 0));
+    }
+    else
+    {
+        SaveGameInstance = Cast<URelicSaveGame>(UGameplayStatics::CreateSaveGameObject(URelicSaveGame::StaticClass()));
+    }
+    if (SaveGameInstance)
+    {
+        SaveGameInstance->RelicSaveArray.Add(NewData);
+        UGameplayStatics::SaveGameToSlot(SaveGameInstance, TEXT("RelicSaveSlot"), 0);
+    }
+}
+
+void UGI_Base::LoadRelicData(TArray<FRelicSaveData>& OutArray)
+{
+    OutArray.Empty();
+    if (UGameplayStatics::DoesSaveGameExist(TEXT("RelicSaveSlot"), 0))
+    {
+        URelicSaveGame* LoadedGame = Cast<URelicSaveGame>(UGameplayStatics::LoadGameFromSlot(TEXT("RelicSaveSlot"), 0));
+        if (LoadedGame)
+        {
+            OutArray = LoadedGame->RelicSaveArray;
+        }
+    }
 }

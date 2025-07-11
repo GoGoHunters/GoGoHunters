@@ -29,8 +29,8 @@ class GOGOHUNTERS_API UCMuseumComponent : public UActorComponent
 
 public:
 	void SetupPlayerInputComponent(UEnhancedInputComponent* EnhancedInput);
-	void OnSelectItemButtonClicked(const FInputActionInstance& IA_Instance);
 	void PlayPreviewMode(const FCRelicData& InRelicData, const FCRelicDetailData& InRelicDetailData);
+	void PlaceRelic();
 
 private:
 	UPROPERTY(EditDefaultsOnly, Category="Input")
@@ -78,4 +78,5 @@ private:
 	void OnMenuButtonClicked();
 
 	void PreviewMode();
+	void PreviewEnd();
 };

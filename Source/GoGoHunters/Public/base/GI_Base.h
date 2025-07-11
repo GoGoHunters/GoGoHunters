@@ -6,6 +6,8 @@
 #include "Engine/GameInstance.h"
 #include "WebSocket/U_WebSocketManager.h"
 #include "LHJ/CRelicData.h"
+#include "GameFramework/SaveGame.h"
+#include "Kismet/GameplayStatics.h"
 #include "GI_Base.generated.h"
 
 /**
@@ -38,6 +40,9 @@ public:
 	const FCRelicData* GetRelicDataByIndex(const int32 RelicIndex) const;
 	const FCRelicDetailData* GetRelicDetailDataByName(const FString& RelicName) const;
 
+	void SaveRelicData(const FRelicSaveData& NewData);
+	void LoadRelicData(TArray<FRelicSaveData>& OutArray);
+
 private:
 	UPROPERTY() 
 	UU_WebSocketManager* WebSocketManager;
@@ -51,7 +56,7 @@ private:
 
 	// 유물 데이터
 	UPROPERTY(EditDefaultsOnly, Category=DataTable)
-	TObjectPtr<UDataTable> RelicDataTable;
+	TObjectPtr<UDataTable> RelicDataTable; // 테스트 용
 	UPROPERTY(EditDefaultsOnly, Category=DataTable)
 	TObjectPtr<UDataTable> RelicDetailDataTable;
 	UPROPERTY()
@@ -61,4 +66,25 @@ private:
 	// 유물 데이터 관련
 	void InitRelicData();
 	void InitRelicDetailData();
+};
+
+USTRUCT(BlueprintType)
+struct FRelicSaveData
+{
+    GENERATED_BODY();
+    UPROPERTY(BlueprintReadWrite)
+    int32 RelicIndex;
+    UPROPERTY(BlueprintReadWrite)
+    bool bIsPlaced;
+    UPROPERTY(BlueprintReadWrite)
+    FTransform PlacedTransform;
+};
+
+UCLASS()
+class URelicSaveGame : public USaveGame
+{
+    GENERATED_BODY()
+public:
+    UPROPERTY(BlueprintReadWrite)
+    TArray<FRelicSaveData> RelicSaveArray;
 };

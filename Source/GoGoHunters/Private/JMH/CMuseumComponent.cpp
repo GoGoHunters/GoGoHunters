@@ -8,6 +8,7 @@
 #include "LHJ/CMuseumActorBase.h"
 #include "LHJ/CRelicBase.h"
 #include "Utilities/CHelpers.h"
+#include "base/GI_Base.h"
 
 UCMuseumComponent::UCMuseumComponent()
 {
@@ -25,6 +26,33 @@ void UCMuseumComponent::BeginPlay()
 			UEnhancedInputLocalPlayerSubsystem>(PC->GetLocalPlayer()))
 		{
 			Subsystem->AddMappingContext(IMC_Museum, 1);
+		}
+	}
+
+	// LV_MH_MyMuseum 레벨에서만 SaveGame 로드 및 유물 스폰
+	if (UGameplayStatics::GetCurrentLevelName(GetWorld()) == TEXT("LV_MH_MyMuseum"))
+	{
+		if (UGI_Base* GI = Cast<UGI_Base>(UGameplayStatics::GetGameInstance(GetWorld())))
+		{
+			TArray<FRelicSaveData> SaveArray;
+			GI->LoadRelicData(SaveArray);
+			for (const FRelicSaveData& Data : SaveArray)
+			{
+				if (!Data.bIsPlaced) continue;
+				
+				const FCRelicData* Local_RelicData = GI->GetRelicDataByIndex(Data.RelicIndex);
+				if (!Local_RelicData) continue;
+				const FCRelicDetailData* Local_RelicDetailData = GI->GetRelicDetailDataByName(Local_RelicData->RelicName.ToString());
+				if (!Local_RelicDetailData) continue;
+				FActorSpawnParameters SpawnParams;
+				SpawnParams.Owner = OwnerPlayer;
+				SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+				ACRelicBase* RelicActor = GetWorld()->SpawnActor<ACRelicBase>(Local_RelicDetailData->RelicActorClass, Data.PlacedTransform, SpawnParams);
+				if (RelicActor)
+				{
+					RelicActor->InitializeAsset(*Local_RelicData, *Local_RelicDetailData);
+				}
+			}
 		}
 	}
 }
@@ -109,59 +137,6 @@ void UCMuseumComponent::SwitchState()
 	}
 }
 
-void UCMuseumComponent::OnSelectItemButtonClicked(const FInputActionInstance& IA_Instance)
-{
-	if (MuseumState != EMuseumState::Decorate) return;
-	if (!OwnerPlayer) return;
-
-	APlayerController* PC = Cast<APlayerController>(OwnerPlayer->GetController());
-	if (!PC) return;
-
-	UMotionControllerComponent* MotionController = nullptr;
-	if (IA_Instance.GetSourceAction() == OwnerPlayer->IA_MHInteract) MotionController = OwnerPlayer->RHandController;
-	else if (IA_Instance.GetSourceAction() == OwnerPlayer->IA_MHInteract_L) MotionController = OwnerPlayer->
-		LHandController;
-
-	if (!MotionController) return;
-
-	// 선택된 오브젝트가 없으면: 라인트레이스 등으로 선택
-	if (!SelectedActor)
-	{
-		FVector Start = MotionController->GetComponentLocation();
-		FVector End = Start + (MotionController->GetForwardVector() * 600.f);
-
-		FHitResult Hit;
-		FCollisionQueryParams Params;
-		Params.AddIgnoredActor(OwnerPlayer);
-
-		if (OwnerPlayer->GetWorld()->LineTraceSingleByChannel(Hit, Start, End, ECC_Visibility, Params))
-		{
-			if (Hit.GetActor() && Hit.GetActor()->IsA(ACMuseumActorBase::StaticClass()))
-			{
-				SelectedActor = Hit.GetActor();
-				UE_LOG(LogTemp, Warning, TEXT("SelectedActor: %s"), *SelectedActor->GetName());
-				// 선택 효과(예: Outline 등) 추가 가능
-			}
-		}
-	}
-	// 선택된 오브젝트가 있으면: 현재 위치에 배치
-	else
-	{
-		FVector Start = MotionController->GetComponentLocation();
-		FVector End = Start + (MotionController->GetForwardVector() * 600.f);
-
-		FHitResult Hit;
-		if (OwnerPlayer->GetWorld()->LineTraceSingleByChannel(Hit, Start, End, ECC_Visibility))
-		{
-			FVector TargetLocation = Hit.Location;
-			SelectedActor->SetActorLocation(TargetLocation);
-			UE_LOG(LogTemp, Warning, TEXT("SelectedActor End: %s"), *SelectedActor->GetName());
-			// 필요시 회전/스케일도 조정 가능
-			SelectedActor = nullptr; // 선택 해제
-		}
-	}
-}
-
 void UCMuseumComponent::PlayPreviewMode(const FCRelicData& InRelicData, const FCRelicDetailData& InRelicDetailData)
 {
 	if (!OwnerPlayer) return;
@@ -192,4 +167,42 @@ void UCMuseumComponent::PlayPreviewMode(const FCRelicData& InRelicData, const FC
 	RelicData = InRelicData;
 	RelicDetailData = InRelicDetailData;
 	bIsPreviewMode = true;
+}
+
+void UCMuseumComponent::PlaceRelic()
+{
+	if (!bIsPreviewMode) return;
+	if (!bCanPlace) return;
+
+	FActorSpawnParameters SpawnParams;
+	SpawnParams.Owner = OwnerPlayer;
+	SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+	auto placeActor = GetWorld()->SpawnActor<ACRelicBase>(RelicDetailData.RelicActorClass, BuildTransform, SpawnParams);
+	if (placeActor)
+	{
+		placeActor->InitializeAsset(RelicData, RelicDetailData);
+
+		// SaveGame 저장
+		if (UGI_Base* GI = Cast<UGI_Base>(UGameplayStatics::GetGameInstance(GetWorld())))
+		{
+			FRelicSaveData NewSaveData;
+			NewSaveData.RelicIndex = RelicData.Index;
+			NewSaveData.bIsPlaced = true;
+			NewSaveData.PlacedTransform = BuildTransform;
+			GI->SaveRelicData(NewSaveData);
+		}
+	}
+	
+	PreviewEnd();
+	SwitchState();
+}
+
+void UCMuseumComponent::PreviewEnd()
+{
+	bIsPreviewMode = false;
+	bCanPlace = false;
+	Relic = nullptr;
+	RelicDynamicMaterial = nullptr;
+	RelicData = FCRelicData();
+	RelicDetailData = FCRelicDetailData();
 }
