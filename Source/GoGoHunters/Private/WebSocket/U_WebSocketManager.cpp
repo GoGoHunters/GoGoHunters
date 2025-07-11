@@ -77,6 +77,20 @@ void UU_WebSocketManager::WebSocketSendMessage(const FString& Message)
     }
 }
 
+void UU_WebSocketManager::WebSocketSendByteData(const TArray<uint8>& DataToSend)
+{
+    if (WebSocket.IsValid() && WebSocket->IsConnected())
+    {
+        // 바이트 데이터를 서버로 전송
+        WebSocket->Send(DataToSend.GetData(), DataToSend.Num(), true);
+        UE_LOG(LogTemp, Warning, TEXT("Sent %d bytes to server."), DataToSend.Num());
+    }
+    else
+    {
+        UE_LOG(LogTemp, Error, TEXT("WebSocket not connected. Cannot send data."));
+    }
+}
+
 bool UU_WebSocketManager::IsConnected() const
 {
     return WebSocket.IsValid() && WebSocket->IsConnected();
