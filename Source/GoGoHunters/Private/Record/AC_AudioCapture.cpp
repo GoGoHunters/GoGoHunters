@@ -87,11 +87,11 @@ bool UAC_AudioCapture::TryStartCapture()
 
     uint32 NumFramesDesired = 10240;
 
-    if (AudioCapture->OpenCaptureStream(CaptureParams, UAC_AudioCapture::ProcessAudioData, NumFramesDesired))
+ /*   if (AudioCapture->OpenCaptureStream(CaptureParams, UAC_AudioCapture::ProcessAudioData, NumFramesDesired))
     {
         AudioCapture->StartStream();
         return true;
-    }
+    }*/
     return false;
 }
 
