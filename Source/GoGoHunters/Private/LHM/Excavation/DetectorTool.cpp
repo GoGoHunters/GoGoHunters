@@ -92,8 +92,6 @@ void ADetectorTool::StopDetection()
 		DetectionProgress = 0.f;
 		DetectionUI->UpdateUI(DetectionProgress);
 	}
-
-	UE_LOG(LogTemp, Log, TEXT("[DetectorTool] 탐지 완료 및 UI & 탐지 상태 초기화"));
 }
 
 void ADetectorTool::UpdateDetection(float DeltaTime)
@@ -131,7 +129,8 @@ void ADetectorTool::UpdateDetection(float DeltaTime)
 
 // 3. 진행도 로직
 	float Distance = FVector::Dist(GetActorLocation(), Relics->GetLocation());
-	const float MinDetectDistance = 300;
+	const float MinDetectDistance = 500; // 테스트용
+	//const float MinDetectDistance = 300;
 	const float MaxDetectDistance = 1500.f;
 	const float FillSpeed = 50.f;
 
@@ -189,6 +188,8 @@ void ADetectorTool::UpdateDetection(float DeltaTime)
 			Relics->Marker->ActivateMarker();
 			Relics = nullptr;
 		}
+
+		UE_LOG(LogTemp, Log, TEXT("[DetectorTool] 탐지 완료 및 UI & 탐지 상태 초기화"));
 
 		StopDetection(); // 탐지 완료 후 상태 초기화
 	}
