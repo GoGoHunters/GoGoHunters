@@ -30,3 +30,9 @@ void ACRelicBase::InitializeAsset(const FCRelicData& InRelicData, const FCRelicD
 	RelicData = InRelicData;
 	RelicDetailData = InRelicDetailData;
 }
+
+void ACRelicBase::SetRelicMaterial()
+{
+	if(!RelicMaterial) return;
+	RelicMesh->SetMaterial(0, RelicMaterial);
+}

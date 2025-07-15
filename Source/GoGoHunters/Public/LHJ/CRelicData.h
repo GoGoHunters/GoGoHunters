@@ -14,9 +14,7 @@ struct FCRelicData : public FTableRowBase
 	GENERATED_BODY()
 
 	UPROPERTY(EditAnywhere)
-	int32 Index; // 인덱스 (PK)
-	UPROPERTY(EditAnywhere)
-	FText RelicName; // 유물 이름 (FK)
+	FText RelicName=FText::FromString(""); // 유물 이름 (FK)
 	UPROPERTY(EditAnywhere)
 	FDateTime DropDate; // 획득 날짜,시간
 	UPROPERTY(EditAnywhere)

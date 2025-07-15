@@ -1,6 +1,3 @@
-// Fill out your copyright notice in the Description page of Project Settings.
-
-
 #include "base/GI_Base.h"
 #include "Engine/DataTable.h"
 #include "UObject/ConstructorHelpers.h"
@@ -12,22 +9,23 @@
 void UGI_Base::Init()
 {
     Super::Init();
-    InitRelicData();
+    InitRelicDataFromSave();
 	InitRelicDetailData();
 }
 
-void UGI_Base::InitRelicData()
+void UGI_Base::InitRelicDataFromSave()
 {
-    if (!RelicDataTable) return;
+    RelicDataArray.Empty();
 
-    RelicDataMap.Empty();
-    TArray<FName> RowNames = RelicDataTable->GetRowNames();
-    for (const FName& RowName : RowNames)
+    if (UGameplayStatics::DoesSaveGameExist(TEXT("RelicSaveSlot"), 0))
     {
-        FCRelicData* Row = RelicDataTable->FindRow<FCRelicData>(RowName, TEXT("InitRelicData"));
-        if (Row)
+        URelicSaveGame* LoadedGame = Cast<URelicSaveGame>(UGameplayStatics::LoadGameFromSlot(TEXT("RelicSaveSlot"), 0));
+        if (LoadedGame)
         {
-            RelicDataMap.Add(Row->Index, *Row);
+            for (const FRelicSaveData& SaveData : LoadedGame->RelicSaveArray)
+            {
+                RelicDataArray.Add(SaveData.RelicData);
+            }
         }
     }
 }
@@ -46,11 +44,6 @@ void UGI_Base::InitRelicDetailData()
 			RelicDetailDataMap.Add(Row->RelicName.ToString(), *Row);
 		}
 	}
-}
-
-const FCRelicData* UGI_Base::GetRelicDataByIndex(const int32 RelicIndex) const
-{
-    return RelicDataMap.Find(RelicIndex);
 }
 
 const FCRelicDetailData* UGI_Base::GetRelicDetailDataByName(const FString& RelicName) const

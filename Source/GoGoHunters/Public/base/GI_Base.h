@@ -1,5 +1,3 @@
-// Fill out your copyright notice in the Description page of Project Settings.
-
 #pragma once
 
 #include "CoreMinimal.h"
@@ -9,6 +7,16 @@
 #include "GameFramework/SaveGame.h"
 #include "Kismet/GameplayStatics.h"
 #include "GI_Base.generated.h"
+
+USTRUCT(BlueprintType)
+struct FRelicSaveData
+{
+	GENERATED_BODY()
+	UPROPERTY(BlueprintReadWrite)
+	FTransform PlacedTransform;
+	UPROPERTY(BlueprintReadWrite)
+	FCRelicData RelicData;
+};
 
 /**
  * 
@@ -36,10 +44,10 @@ public:
 	void StartAsyncLoading();
 
 	// 유물 데이터 관련
-	const TMap<int32, FCRelicData>& GetAllRelicData() const { return RelicDataMap; }
-	const FCRelicData* GetRelicDataByIndex(const int32 RelicIndex) const;
+	const TArray<FCRelicData>& GetAllRelicData() const { return RelicDataArray; }
 	const FCRelicDetailData* GetRelicDetailDataByName(const FString& RelicName) const;
 
+	UFUNCTION(BlueprintCallable)
 	void SaveRelicData(const FRelicSaveData& NewData);
 	void LoadRelicData(TArray<FRelicSaveData>& OutArray);
 
@@ -60,24 +68,12 @@ private:
 	UPROPERTY(EditDefaultsOnly, Category=DataTable)
 	TObjectPtr<UDataTable> RelicDetailDataTable;
 	UPROPERTY()
-	TMap<int32, FCRelicData> RelicDataMap;
+	TArray<FCRelicData> RelicDataArray;
 	UPROPERTY()
 	TMap<FString, FCRelicDetailData> RelicDetailDataMap;
 	// 유물 데이터 관련
-	void InitRelicData();
+	void InitRelicDataFromSave();
 	void InitRelicDetailData();
-};
-
-USTRUCT(BlueprintType)
-struct FRelicSaveData
-{
-    GENERATED_BODY();
-    UPROPERTY(BlueprintReadWrite)
-    int32 RelicIndex;
-    UPROPERTY(BlueprintReadWrite)
-    bool bIsPlaced;
-    UPROPERTY(BlueprintReadWrite)
-    FTransform PlacedTransform;
 };
 
 UCLASS()

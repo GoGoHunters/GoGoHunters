@@ -14,6 +14,7 @@ public:
 	UStaticMeshComponent* GetRelicMesh() const { return RelicMesh; }
 	void SetRelicMaterial(UMaterialInterface* NewRelicMaterial);
 	void InitializeAsset(const FCRelicData& InRelicData, const FCRelicDetailData& InRelicDetailData);
+	void SetRelicMaterial();
 	
 protected:
 	UPROPERTY(EditAnywhere)

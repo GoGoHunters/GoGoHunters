@@ -32,12 +32,12 @@ bool UCRelicCollectionWidget::InitRelicWidgets()
 {
 	Grid_Relics->ClearChildren();
 
-	TMap<int32, FCRelicData> RelicData = GI->GetAllRelicData();
+	TArray<FCRelicData> RelicData = GI->GetAllRelicData();
 	PlaceableRelics.Empty();
 	for (const auto& Relic : RelicData)
 	{
-		if (Relic.Value.IsPlace) continue;
-		PlaceableRelics.Add(Relic.Value);
+		if (Relic.IsPlace) continue;
+		PlaceableRelics.Add(Relic);
 	}
 
 	CurrentPage = 0;

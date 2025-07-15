@@ -38,19 +38,20 @@ void UCMuseumComponent::BeginPlay()
 			GI->LoadRelicData(SaveArray);
 			for (const FRelicSaveData& Data : SaveArray)
 			{
-				if (!Data.bIsPlaced) continue;
-				
-				const FCRelicData* Local_RelicData = GI->GetRelicDataByIndex(Data.RelicIndex);
-				if (!Local_RelicData) continue;
-				const FCRelicDetailData* Local_RelicDetailData = GI->GetRelicDetailDataByName(Local_RelicData->RelicName.ToString());
+				if (!Data.RelicData.IsPlace) continue;
+
+				FCRelicData Local_RelicData = Data.RelicData;
+				if (Local_RelicData.RelicName.ToString() == "") continue;
+				const FCRelicDetailData* Local_RelicDetailData = GI->GetRelicDetailDataByName(Local_RelicData.RelicName.ToString());
 				if (!Local_RelicDetailData) continue;
 				FActorSpawnParameters SpawnParams;
 				SpawnParams.Owner = OwnerPlayer;
 				SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
-				ACRelicBase* RelicActor = GetWorld()->SpawnActor<ACRelicBase>(Local_RelicDetailData->RelicActorClass, Data.PlacedTransform, SpawnParams);
+				ACRelicBase* RelicActor = GetWorld()->SpawnActor<ACRelicBase>(
+					Local_RelicDetailData->RelicActorClass, Data.PlacedTransform, SpawnParams);
 				if (RelicActor)
 				{
-					RelicActor->InitializeAsset(*Local_RelicData, *Local_RelicDetailData);
+					RelicActor->InitializeAsset(Local_RelicData, *Local_RelicDetailData);
 				}
 			}
 		}
@@ -147,7 +148,7 @@ void UCMuseumComponent::PlayPreviewMode(const FCRelicData& InRelicData, const FC
 		if (Relic)
 		{
 			Relic->Destroy();
-			Relic = nullptr;			
+			Relic = nullptr;
 		}
 		FActorSpawnParameters SpawnParams;
 		SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
@@ -174,6 +175,8 @@ void UCMuseumComponent::PlaceRelic()
 	if (!bIsPreviewMode) return;
 	if (!bCanPlace) return;
 
+	bIsPreviewMode = false;
+
 	FActorSpawnParameters SpawnParams;
 	SpawnParams.Owner = OwnerPlayer;
 	SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
@@ -181,25 +184,25 @@ void UCMuseumComponent::PlaceRelic()
 	if (placeActor)
 	{
 		placeActor->InitializeAsset(RelicData, RelicDetailData);
+		placeActor->SetRelicMaterial();
 
 		// SaveGame 저장
 		if (UGI_Base* GI = Cast<UGI_Base>(UGameplayStatics::GetGameInstance(GetWorld())))
 		{
 			FRelicSaveData NewSaveData;
-			NewSaveData.RelicIndex = RelicData.Index;
-			NewSaveData.bIsPlaced = true;
 			NewSaveData.PlacedTransform = BuildTransform;
+			NewSaveData.RelicData = RelicData;
 			GI->SaveRelicData(NewSaveData);
 		}
 	}
-	
+
 	PreviewEnd();
 	SwitchState();
 }
 
 void UCMuseumComponent::PreviewEnd()
 {
-	bIsPreviewMode = false;
+	Relic->Destroy();
 	bCanPlace = false;
 	Relic = nullptr;
 	RelicDynamicMaterial = nullptr;
