@@ -1,14 +1,54 @@
-// Fill out your copyright notice in the Description page of Project Settings.
-
-
 #include "base/GI_Base.h"
+#include "Engine/DataTable.h"
+#include "UObject/ConstructorHelpers.h"
 #include "Kismet/GameplayStatics.h"
+#include "LHJ/CRelicData.h"
 #include "Engine/World.h"
+#include "GameFramework/SaveGame.h"
 
 void UGI_Base::Init()
 {
     Super::Init();
+    InitRelicDataFromSave();
+	InitRelicDetailData();
+}
 
+void UGI_Base::InitRelicDataFromSave()
+{
+    RelicDataArray.Empty();
+
+    if (UGameplayStatics::DoesSaveGameExist(TEXT("RelicSaveSlot"), 0))
+    {
+        URelicSaveGame* LoadedGame = Cast<URelicSaveGame>(UGameplayStatics::LoadGameFromSlot(TEXT("RelicSaveSlot"), 0));
+        if (LoadedGame)
+        {
+            for (const FRelicSaveData& SaveData : LoadedGame->RelicSaveArray)
+            {
+                RelicDataArray.Add(SaveData.RelicData);
+            }
+        }
+    }
+}
+
+void UGI_Base::InitRelicDetailData()
+{
+	if (!RelicDetailDataTable) return;
+
+	RelicDetailDataMap.Empty();
+	TArray<FName> RowNames = RelicDetailDataTable->GetRowNames();
+	for (const FName& RowName : RowNames)
+	{
+		FCRelicDetailData* Row = RelicDetailDataTable->FindRow<FCRelicDetailData>(RowName, TEXT("InitRelicData"));
+		if (Row)
+		{
+			RelicDetailDataMap.Add(Row->RelicName.ToString(), *Row);
+		}
+	}
+}
+
+const FCRelicDetailData* UGI_Base::GetRelicDetailDataByName(const FString& RelicName) const
+{
+	return RelicDetailDataMap.Find(RelicName);
 }
 
 void UGI_Base::Shutdown()
@@ -70,4 +110,52 @@ void UGI_Base::OnLevelLoadComplete()
 		
 		UE_LOG(LogTemp, Log, TEXT("Level loading completed, transitioning to: %s"), *TargetLevel);
 	}
+}
+
+void UGI_Base::SaveRelicData(FRelicSaveData NewData)
+{
+    // 1. RelicDataArray에서 동일한 Date를 가진 데이터가 있는지 찾기
+    bool bFound = false;
+    for (FCRelicData& Data : RelicDataArray)
+    {
+        if (Data.DropDate == NewData.RelicData.DropDate)
+        {
+            Data = NewData.RelicData; // 데이터 업데이트
+            bFound = true;
+            break;
+        }
+    }
+    if (!bFound)
+    {
+        RelicDataArray.Add(NewData.RelicData); // 없으면 추가
+    }
+
+    URelicSaveGame* SaveGameInstance;
+    if (UGameplayStatics::DoesSaveGameExist(TEXT("RelicSaveSlot"), 0))
+    {
+        SaveGameInstance = Cast<URelicSaveGame>(UGameplayStatics::LoadGameFromSlot(TEXT("RelicSaveSlot"), 0));
+    }
+    else
+    {
+        SaveGameInstance = Cast<URelicSaveGame>(UGameplayStatics::CreateSaveGameObject(URelicSaveGame::StaticClass()));
+    }
+    if (SaveGameInstance)
+    {
+        // 2. SaveGameInstance->RelicSaveArray도 동일하게 처리
+        bool bSaveFound = false;
+        for (FRelicSaveData& SaveData : SaveGameInstance->RelicSaveArray)
+        {
+            if (SaveData.RelicData.DropDate == NewData.RelicData.DropDate)
+            {
+                SaveData = NewData; // 데이터 업데이트
+                bSaveFound = true;
+                break;
+            }
+        }
+        if (!bSaveFound)
+        {
+            SaveGameInstance->RelicSaveArray.Add(NewData); // 없으면 추가
+        }
+        UGameplayStatics::SaveGameToSlot(SaveGameInstance, TEXT("RelicSaveSlot"), 0);
+    }
 }

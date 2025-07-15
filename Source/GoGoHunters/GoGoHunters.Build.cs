@@ -23,7 +23,8 @@ public class GoGoHunters : ModuleRules
             "AudioCaptureCore",
             "SignalProcessing",
             "Json",
-            "JsonUtilities"
+            "JsonUtilities",
+            "UMG", "Slate", "SlateCore"
         });
 	}
 }

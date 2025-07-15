@@ -18,6 +18,9 @@
 #include "EngineUtils.h"
 #include "Components/WidgetInteractionComponent.h"
 #include "Components/WidgetComponent.h"
+#include "GameFramework/SpringArmComponent.h"
+#include "JMH/CMuseumComponent.h"
+#include "LHJ/CRelicCollectionWidgetActor.h"
 #include "LHM/Excavation/RelicsGround.h"
 #include "LHM/Excavation/ExcavationWidgetActor.h"
 #include "LHM/Excavation/BrushTool.h"
@@ -62,6 +65,14 @@ AMH_VRPlayer::AMH_VRPlayer()
 	RHandSKM->SetupAttachment(RHandController);
 	RHandSKM->SetRelativeRotation(FRotator(90.f, -90.f, 0.f));
 
+	CHelpers::CreateComponent<USpringArmComponent>(this, &RelicCollectionSpringArm, "RelicCollectionSpringArm", VRCamera);
+	RelicCollectionSpringArm->SetRelativeRotation(FRotator(0.f, 180.f, 0.f));
+	RelicCollectionSpringArm->SocketOffset = FVector(0.f, 40.f, 0.f);
+	RelicCollectionSpringArm->bEnableCameraLag = true;
+	CHelpers::CreateComponent<UChildActorComponent>(this, &RelicCollectionWidget, "RelicCollectionWidget", RelicCollectionSpringArm);
+	RelicCollectionWidget->SetRelativeRotation(FRotator(0, 160, 0));
+	RelicCollectionWidget->SetHiddenInGame(true);
+
 	// 메시 로딩
 	static ConstructorHelpers::FObjectFinder<USkeletalMesh> LHandMeshAsset(TEXT("/Game/Characters/MannequinsXR/Meshes/SKM_MannyXR_left.SKM_MannyXR_left"));
 	if (LHandMeshAsset.Succeeded())
@@ -86,7 +97,7 @@ AMH_VRPlayer::AMH_VRPlayer()
 		RWidgetInteractionComponent->InteractionSource = EWidgetInteractionSource::World;
 		RWidgetInteractionComponent->TraceChannel = ECC_Visibility;
 		RWidgetInteractionComponent->PointerIndex = 0;
-
+		
 		LWidgetInteractionComponent->InteractionDistance = 800.f; // UI 상호작용 거리 증가
 		LWidgetInteractionComponent->bEnableHitTesting = false; // UI 상호작용을 위해 활성화
 		LWidgetInteractionComponent->bShowDebug = false;
@@ -94,6 +105,8 @@ AMH_VRPlayer::AMH_VRPlayer()
 		LWidgetInteractionComponent->TraceChannel = ECC_Visibility;
 		LWidgetInteractionComponent->PointerIndex = 1;
 	}
+
+	CHelpers::CreateActorComponent<UCMuseumComponent>(this, &MuseumComponent, "MuseumComponent");
 }
 
 // Called when the game starts or when spawned
@@ -176,6 +189,8 @@ void AMH_VRPlayer::BeginPlay()
 	}
 #pragma endregion 발굴 레벨에서만 초기화
 
+	if (RelicCollectionWidget && RelicCollectionWidget->GetChildActor())
+		RelicCollectionWidgetActor = Cast<ACRelicCollectionWidgetActor>(RelicCollectionWidget->GetChildActor());
 }
 
 // Called every frame
@@ -192,18 +207,18 @@ void AMH_VRPlayer::Tick(float DeltaTime)
 		// 라인 안 보일 땐 그랩도 안 되게 Actor를 비워두기
 		FocusedGrabbableActor = nullptr;
 	}
-
+	
 	// UI 상호작용 상태 업데이트 (트리거를 누르지 않았을 때도 UI 감지)
-	if (CurrentState == EPlayerVRState::Idle && !bIsUIInteractionActive)
-	{
-		// 양손에서 UI 감지 (시각적 피드백용)
-		UWidgetComponent* TempWidget = nullptr;
-		if (IsPointingAtUI(RHandController, TempWidget) || IsPointingAtUI(LHandController, TempWidget))
-		{
-			// UI를 가리키고 있지만 아직 상호작용하지 않은 상태
-			// 여기서 UI 하이라이트 효과 등을 추가할 수 있음
-		}
-	}
+	// if (CurrentState == EPlayerVRState::Idle && !bIsUIInteractionActive)
+	// {
+	// 	// 양손에서 UI 감지 (시각적 피드백용)
+	// 	UWidgetComponent* TempWidget = nullptr;
+	// 	if (IsPointingAtUI(RHandController, TempWidget) || IsPointingAtUI(LHandController, TempWidget))
+	// 	{
+	// 		// UI를 가리키고 있지만 아직 상호작용하지 않은 상태
+	// 		// 여기서 UI 하이라이트 효과 등을 추가할 수 있음
+	// 	}
+	 // }
 }
 
 // Called to bind functionality to input
@@ -229,9 +244,9 @@ void AMH_VRPlayer::SetupPlayerInputComponent(UInputComponent* PlayerInputCompone
 	EnhancedInput->BindAction(IA_MHGrab, ETriggerEvent::Started, this, &AMH_VRPlayer::TryGrab);
 	EnhancedInput->BindAction(IA_MHGrab, ETriggerEvent::Completed, this, &AMH_VRPlayer::TryUnGrab);
 	EnhancedInput->BindAction(IA_AdjustTeleportDirection, ETriggerEvent::Triggered, this,
-							  &AMH_VRPlayer::HandleThumbstickInput);
+	                          &AMH_VRPlayer::HandleThumbstickInput);
 	EnhancedInput->BindAction(IA_RotateHeldObject, ETriggerEvent::Triggered, this,
-							  &AMH_VRPlayer::HandleThumbstickInput);
+	                          &AMH_VRPlayer::HandleThumbstickInput);
 
 	// Excavation Tool Actions
 	EnhancedInput->BindAction(IA_ExcavationTool1, ETriggerEvent::Started, this, &AMH_VRPlayer::ExcavationTool1);
@@ -241,6 +256,8 @@ void AMH_VRPlayer::SetupPlayerInputComponent(UInputComponent* PlayerInputCompone
 	EnhancedInput->BindAction(IA_ExcavationDetect, ETriggerEvent::Completed, this, &AMH_VRPlayer::ExcavationDetectEnd);
 	EnhancedInput->BindAction(IA_ExcavationDig, ETriggerEvent::Started, this, &AMH_VRPlayer::ExcavationDigStart);
 	EnhancedInput->BindAction(IA_ExcavationDig, ETriggerEvent::Completed, this, &AMH_VRPlayer::ExcavationDigEnd);
+
+	if (MuseumComponent) MuseumComponent->SetupPlayerInputComponent(EnhancedInput);
 }
 
 void AMH_VRPlayer::SetPlayerState(EPlayerVRState NewState)
@@ -249,8 +266,8 @@ void AMH_VRPlayer::SetPlayerState(EPlayerVRState NewState)
 
 	// 상태 전환 로그
 	UE_LOG(LogTemp, Log, TEXT("[VR] 상태 전환: %s → %s"),
-		   *UEnum::GetValueAsString(CurrentState),
-		   *UEnum::GetValueAsString(NewState));
+	       *UEnum::GetValueAsString(CurrentState),
+	       *UEnum::GetValueAsString(NewState));
 
 	// 이전 상태 정리 (예: 도구 해제, 입력 정지 등 필요 시 여기에)
 
@@ -361,9 +378,12 @@ void AMH_VRPlayer::TriggerInteract(const FInputActionInstance& IA_Instance)
 {
 	// 먼저 월드맵 상호작용 시도
 	TryWorldMapInteraction(IA_Instance);
-
+	
 	// UI 감지 및 상호작용 처리
 	HandleUIInteraction(IA_Instance);
+
+	// 유물 설치용 함수 호출
+	if (MuseumComponent) MuseumComponent->PlaceRelic();
 }
 
 void AMH_VRPlayer::TriggerInteractCompleted()
@@ -378,7 +398,7 @@ void AMH_VRPlayer::TriggerInteractCompleted()
 		}
 		DisableWidgetInteraction();
 	}
-
+	
 	// 월드맵 상호작용 리셋
 	ResetWorldMapInteraction();
 }
