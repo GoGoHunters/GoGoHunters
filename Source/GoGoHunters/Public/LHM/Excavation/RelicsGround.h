@@ -26,15 +26,36 @@ public:
 	virtual void Tick(float DeltaTime) override;
 
 public:
-	UFUNCTION(BlueprintCallable)
+	UFUNCTION(BlueprintCallable, Category = "Diggind Events")
 	void SetShovelReference(class AShovelTool* NewShovelRef);
+	UFUNCTION(BlueprintCallable, Category = "Diggind Events")
+	void SetRelicsManager(class ARelicsManager* NewRelicsManager) { RelicsManager = NewRelicsManager; }
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "HeightMapPainter")
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Digging Events")
 	class AShovelTool* Shovel_Ref;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Digging Events")
+	class ARelicsManager* RelicsManager;
 
+public:
 	UFUNCTION(BlueprintCallable, Category = "Digging Events")
 	void TriggerOnGroundDug(FVector ImpactLocation);
 
 	UPROPERTY(BlueprintAssignable, Category = "Digging Events")
-    FOnGroundDugDelegate OnGroundDug;
+	FOnGroundDugDelegate OnGroundDug;
+
+	void UpdateDigProgress();
+	float CalculateDestructionFromRenderTarget();
+
+	UFUNCTION(BlueprintCallable, Category = "Digging Events")
+	void SetPainterMaterial(class UMaterialInstanceDynamic* InMaterial) { PainterMaterial = InMaterial; }
+	
+	UFUNCTION(BlueprintCallable)
+	void SetHeightFieldRenderTarget(UTextureRenderTarget2D* InRT) { HeightFieldRT = InRT; }
+
+	UPROPERTY()
+	class UMaterialInstanceDynamic* PainterMaterial;
+	
+	UPROPERTY()
+	UTextureRenderTarget2D* HeightFieldRT;
+
 };
