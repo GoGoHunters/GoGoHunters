@@ -55,58 +55,26 @@ void ARelicsGround::UpdateDigProgress()
 	if (!RelicsManager) return;
 
 	float DigProgress = CalculateDestructionFromRenderTarget();
-	//RelicsManager->NotifyGroundProgress(DigProgress);
+	RelicsManager->NotifyGroundProgress(DigProgress);
 }
 
 float ARelicsGround::CalculateDestructionFromRenderTarget()
 {
-	//if (!PainterMaterial) return 0.f;
-
-	//UTexture* Tex = nullptr;
-	//PainterMaterial->GetTextureParameterValue(FMaterialParameterInfo("HeightField"), Tex);
-
-	////UTextureRenderTarget2D* HeightRT = Cast<UTextureRenderTarget2D>(Tex);
-	//HeightFieldRT = Cast<UTextureRenderTarget2D>(Tex);
-	//if (!HeightFieldRT) return 0.f;
-
-	//FTextureRenderTargetResource* RTResource = HeightFieldRT->GameThread_GetRenderTargetResource();
-	//TArray<FColor> Pixels;
-	//RTResource->ReadPixels(Pixels);
-
-	//int32 DestroyedPixels = 0;
-	//for (const FColor& Pixel : Pixels)
-	//{
-	//	if (Pixel.R < 100) DestroyedPixels++;
-	//}
-
-	////UE_LOG(LogTemp, Log, TEXT("[RelicsGround] Destruction Percent: %.2f%%"), DestroyedPixels / Pixels.Num());
-	//return (float)DestroyedPixels / Pixels.Num();
-
-	if (!HeightFieldRT)
-	{
-		UE_LOG(LogTemp, Warning, TEXT("RenderTarget 없음"));
-		return 0.f;
-	}
+	if (!HeightFieldRT) return 0.f;
 
 	FTextureRenderTargetResource* RTResource = HeightFieldRT->GameThread_GetRenderTargetResource();
 	TArray<FColor> Pixels;
 	RTResource->ReadPixels(Pixels);
 
-	if (Pixels.Num() == 0)
-	{
-		UE_LOG(LogTemp, Warning, TEXT("[RelicsGround] 픽셀 없음"));
-		return 0.f;
-	}
-
-	int32 Destroyed = 0;
+	// 평균 밝기 계산
+	int64 TotalR = 0;
 	for (const FColor& Pixel : Pixels)
-	{
-		if (Pixel.R < 100) Destroyed++;
-	}
+		TotalR += Pixel.R;
 
-	float Percent = (float)Destroyed / Pixels.Num();
+	float AvgR = static_cast<float>(TotalR) / Pixels.Num(); // 0~255
+	float DestructionPercent = AvgR / 255.f;
 
-	UE_LOG(LogTemp, Log, TEXT("[RelicsGround] 파괴도: %.2f%% (총 픽셀: %d, 파괴된 픽셀: %d)"),
-		   Percent * 100.f, Pixels.Num(), Destroyed);
-	return Percent;
+	UE_LOG(LogTemp, Log, TEXT("[RelicsGround] 평균 밝기: %.2f"), AvgR);
+	UE_LOG(LogTemp, Log, TEXT("[RelicsGround] 파괴도: %.2f%%"), DestructionPercent * 100.f);
+	return DestructionPercent * 100.f;
 }

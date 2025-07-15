@@ -107,7 +107,7 @@ void ARelicsManager::NotifyGroundProgress(float Progress)
 {
 	if (CurrentLayerIndex >= GroundLayers.Num()) return;
 
-	if (Progress >= 0.85f) // 85% 이상 파괴되었으면
+	if (Progress >= 0.5f) // 50% 이상 파괴되었으면
 	{
 		auto CurrentLayer = GroundLayers[CurrentLayerIndex];
 		if (IsValid(CurrentLayer))
@@ -127,6 +127,6 @@ void ARelicsManager::NotifyGroundProgress(float Progress)
 
 void ARelicsManager::EnterBrushPhase()
 {
-
+	UE_LOG(LogTemp, Log, TEXT("EnterBrushPhase"));
 }
 
