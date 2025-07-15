@@ -60,6 +60,9 @@ public:
     UFUNCTION(BlueprintCallable, Category = "WebSocket")
     void WebSocketSendMessage(const FString& Message);
 
+    UFUNCTION(BlueprintCallable, Category = "WebSocket")
+    void WebSocketSendByteData(const TArray<uint8>& DataToSend);
+
     UFUNCTION(BlueprintPure, Category = "WebSocket")
     bool IsConnected() const;
 

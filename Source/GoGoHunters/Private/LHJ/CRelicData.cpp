@@ -1,0 +1,2 @@
+#include "LHJ/CRelicData.h"
+

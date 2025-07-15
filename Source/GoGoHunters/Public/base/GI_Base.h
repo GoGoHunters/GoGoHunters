@@ -1,11 +1,20 @@
-// Fill out your copyright notice in the Description page of Project Settings.
-
 #pragma once
 
 #include "CoreMinimal.h"
 #include "Engine/GameInstance.h"
 #include "WebSocket/U_WebSocketManager.h"
+#include "LHJ/CRelicData.h"
+#include "GameFramework/SaveGame.h"
+#include "Kismet/GameplayStatics.h"
 #include "GI_Base.generated.h"
+
+USTRUCT(BlueprintType)
+struct FRelicSaveData
+{
+	GENERATED_BODY()
+	UPROPERTY(BlueprintReadWrite)
+	FCRelicData RelicData;
+};
 
 /**
  * 
@@ -32,6 +41,12 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Level Transition")
 	void StartAsyncLoading();
 
+	// 유물 데이터 관련
+	const TArray<FCRelicData>& GetAllRelicData() const { return RelicDataArray; }
+	const FCRelicDetailData* GetRelicDetailDataByName(const FString& RelicName) const;
+
+	UFUNCTION(BlueprintCallable)
+	void SaveRelicData(FRelicSaveData NewData);
 
 private:
 	UPROPERTY() 
@@ -43,4 +58,24 @@ private:
 	
 	UPROPERTY()
 	bool bIsLoadingLevel = false;
+
+	// 유물 데이터
+	UPROPERTY(EditDefaultsOnly, Category=DataTable)
+	TObjectPtr<UDataTable> RelicDetailDataTable;
+	UPROPERTY()
+	TArray<FCRelicData> RelicDataArray;
+	UPROPERTY()
+	TMap<FString, FCRelicDetailData> RelicDetailDataMap;
+	// 유물 데이터 관련
+	void InitRelicDataFromSave();
+	void InitRelicDetailData();
+};
+
+UCLASS()
+class URelicSaveGame : public USaveGame
+{
+    GENERATED_BODY()
+public:
+    UPROPERTY(BlueprintReadWrite)
+    TArray<FRelicSaveData> RelicSaveArray;
 };

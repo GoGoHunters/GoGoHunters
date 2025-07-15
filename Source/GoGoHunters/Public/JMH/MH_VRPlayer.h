@@ -7,10 +7,13 @@
 #include "InputAction.h"
 #include "MH_VRPlayer.generated.h"
 
+class ACRelicCollectionWidgetActor;
+class UCMuseumComponent;
 class ACWorldMap;
 class UMotionControllerComponent;
 class UWidgetInteractionComponent;
 class UWidgetComponent;
+class USpringArmComponent;
 
 /*
  * 텔레포트 조건 = Teleportable 액터 태그
@@ -242,6 +245,14 @@ public:
 	UPROPERTY(EditAnywhere, Category="VR Movement")
 	float SnapTurnAngle = 15.f;
 
+	UPROPERTY(EditDefaultsOnly)
+	USpringArmComponent* RelicCollectionSpringArm;
+	UPROPERTY(EditDefaultsOnly)
+	UChildActorComponent* RelicCollectionWidget;
+
+	UPROPERTY()
+	TObjectPtr<ACRelicCollectionWidgetActor> RelicCollectionWidgetActor;
+	
 private:
 	UPROPERTY()
 	TObjectPtr<ACWorldMap> CachedWorldMap = nullptr;
@@ -269,4 +280,8 @@ private:
 	// WidgetInteraction 활성화/비활성화
 	void EnableWidgetInteraction(UMotionControllerComponent* MotionController);
 	void DisableWidgetInteraction();
+
+	// Museum Component
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, meta=(AllowPrivateAccess))
+	UCMuseumComponent* MuseumComponent;
 };

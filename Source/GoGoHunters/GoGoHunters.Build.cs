@@ -20,8 +20,11 @@ public class GoGoHunters : ModuleRules
 			"WebSockets",
             "AudioMixer",
             "AudioCapture",
+            "AudioCaptureCore",
+            "SignalProcessing",
             "Json",
-            "JsonUtilities"
+            "JsonUtilities",
+            "UMG", "Slate", "SlateCore"
         });
 	}
 }
