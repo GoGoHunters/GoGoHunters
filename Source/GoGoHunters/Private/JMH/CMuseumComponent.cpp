@@ -86,7 +86,7 @@ void UCMuseumComponent::PreviewMode()
 	FVector end = start + OwnerPlayer->LAimMotionController->GetForwardVector() * 600.f;
 	FCollisionQueryParams params;
 	params.AddIgnoredActor(OwnerPlayer);
-	bool bHit = GetWorld()->LineTraceSingleByChannel(outHit, start, end, ECC_Visibility, params);;
+	bool bHit = GetWorld()->LineTraceSingleByChannel(outHit, start, end, ECC_GameTraceChannel6, params);;
 	if (bHit)
 	{
 		BuildTransform.SetLocation(outHit.Location);
