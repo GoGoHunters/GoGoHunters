@@ -67,7 +67,7 @@ void AShovelTool::PlayFeedback(FVector ImpactLocation)
 	// 햅틱 피드백 재생
 	APlayerController* PC = UGameplayStatics::GetPlayerController(this, 0);
 	if (PC && DigHapticEffect)
-	{
+	{ 
 		PC->PlayHapticEffect(DigHapticEffect, EControllerHand::Right, 1.0f, false);
 	}
 }
