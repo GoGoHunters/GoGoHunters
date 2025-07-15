@@ -13,8 +13,6 @@ struct FRelicSaveData
 {
 	GENERATED_BODY()
 	UPROPERTY(BlueprintReadWrite)
-	FTransform PlacedTransform;
-	UPROPERTY(BlueprintReadWrite)
 	FCRelicData RelicData;
 };
 
@@ -48,8 +46,7 @@ public:
 	const FCRelicDetailData* GetRelicDetailDataByName(const FString& RelicName) const;
 
 	UFUNCTION(BlueprintCallable)
-	void SaveRelicData(const FRelicSaveData& NewData);
-	void LoadRelicData(TArray<FRelicSaveData>& OutArray);
+	void SaveRelicData(FRelicSaveData NewData);
 
 private:
 	UPROPERTY() 
@@ -63,8 +60,6 @@ private:
 	bool bIsLoadingLevel = false;
 
 	// 유물 데이터
-	UPROPERTY(EditDefaultsOnly, Category=DataTable)
-	TObjectPtr<UDataTable> RelicDataTable; // 테스트 용
 	UPROPERTY(EditDefaultsOnly, Category=DataTable)
 	TObjectPtr<UDataTable> RelicDetailDataTable;
 	UPROPERTY()

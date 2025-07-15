@@ -9,6 +9,7 @@
 #include "LHJ/CRelicBase.h"
 #include "Utilities/CHelpers.h"
 #include "base/GI_Base.h"
+#include "LHJ/CRelicCollectionWidgetActor.h"
 
 UCMuseumComponent::UCMuseumComponent()
 {
@@ -34,25 +35,22 @@ void UCMuseumComponent::BeginPlay()
 	{
 		if (UGI_Base* GI = Cast<UGI_Base>(UGameplayStatics::GetGameInstance(GetWorld())))
 		{
-			TArray<FRelicSaveData> SaveArray;
-			GI->LoadRelicData(SaveArray);
-			for (const FRelicSaveData& Data : SaveArray)
+			TArray<FCRelicData> RelicArray = GI->GetAllRelicData();
+			for (const FCRelicData& Data : RelicArray)
 			{
-				if (!Data.RelicData.IsPlace) continue;
+				if (!Data.IsPlace) continue;
+				if (Data.RelicName.ToString() == "") continue;
+				
+				const FCRelicDetailData* Local_RelicDetailData = GI->GetRelicDetailDataByName(Data.RelicName.ToString());
 
-				FCRelicData Local_RelicData = Data.RelicData;
-				if (Local_RelicData.RelicName.ToString() == "") continue;
-				const FCRelicDetailData* Local_RelicDetailData = GI->GetRelicDetailDataByName(Local_RelicData.RelicName.ToString());
 				if (!Local_RelicDetailData) continue;
+				
 				FActorSpawnParameters SpawnParams;
 				SpawnParams.Owner = OwnerPlayer;
 				SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
-				ACRelicBase* RelicActor = GetWorld()->SpawnActor<ACRelicBase>(
-					Local_RelicDetailData->RelicActorClass, Data.PlacedTransform, SpawnParams);
-				if (RelicActor)
-				{
-					RelicActor->InitializeAsset(Local_RelicData, *Local_RelicDetailData);
-				}
+
+				ACRelicBase* RelicActor = GetWorld()->SpawnActor<ACRelicBase>(Local_RelicDetailData->RelicActorClass, Data.PlacedTransform, SpawnParams);
+				if (RelicActor) RelicActor->InitializeAsset(Data, *Local_RelicDetailData);
 			}
 		}
 	}
@@ -189,15 +187,34 @@ void UCMuseumComponent::PlaceRelic()
 		// SaveGame 저장
 		if (UGI_Base* GI = Cast<UGI_Base>(UGameplayStatics::GetGameInstance(GetWorld())))
 		{
+			RelicData.PlacedTransform = BuildTransform;
+			RelicData.IsPlace = true;
+			
 			FRelicSaveData NewSaveData;
-			NewSaveData.PlacedTransform = BuildTransform;
 			NewSaveData.RelicData = RelicData;
 			GI->SaveRelicData(NewSaveData);
 		}
 	}
 
+	OwnerPlayer->RelicCollectionWidgetActor->ReloadRelicList();
 	PreviewEnd();
 	SwitchState();
+}
+
+void UCMuseumComponent::RegisterRelic()
+{
+	if (UGI_Base* GI = Cast<UGI_Base>(UGameplayStatics::GetGameInstance(GetWorld())))
+	{
+		FCRelicData NewRelicData;
+		NewRelicData.RelicName = FText::FromString(FString::Printf(TEXT("공룡알")));
+		NewRelicData.DropDate = FDateTime::Now();
+		NewRelicData.PlacedTransform = FTransform();
+		NewRelicData.IsPlace = false;
+
+		FRelicSaveData NewSaveData;
+		NewSaveData.RelicData = NewRelicData;
+		GI->SaveRelicData(NewSaveData);
+	}
 }
 
 void UCMuseumComponent::PreviewEnd()

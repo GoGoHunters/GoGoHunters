@@ -112,8 +112,24 @@ void UGI_Base::OnLevelLoadComplete()
 	}
 }
 
-void UGI_Base::SaveRelicData(const FRelicSaveData& NewData)
+void UGI_Base::SaveRelicData(FRelicSaveData NewData)
 {
+    // 1. RelicDataArray에서 동일한 Date를 가진 데이터가 있는지 찾기
+    bool bFound = false;
+    for (FCRelicData& Data : RelicDataArray)
+    {
+        if (Data.DropDate == NewData.RelicData.DropDate)
+        {
+            Data = NewData.RelicData; // 데이터 업데이트
+            bFound = true;
+            break;
+        }
+    }
+    if (!bFound)
+    {
+        RelicDataArray.Add(NewData.RelicData); // 없으면 추가
+    }
+
     URelicSaveGame* SaveGameInstance;
     if (UGameplayStatics::DoesSaveGameExist(TEXT("RelicSaveSlot"), 0))
     {
@@ -125,20 +141,21 @@ void UGI_Base::SaveRelicData(const FRelicSaveData& NewData)
     }
     if (SaveGameInstance)
     {
-        SaveGameInstance->RelicSaveArray.Add(NewData);
-        UGameplayStatics::SaveGameToSlot(SaveGameInstance, TEXT("RelicSaveSlot"), 0);
-    }
-}
-
-void UGI_Base::LoadRelicData(TArray<FRelicSaveData>& OutArray)
-{
-    OutArray.Empty();
-    if (UGameplayStatics::DoesSaveGameExist(TEXT("RelicSaveSlot"), 0))
-    {
-        URelicSaveGame* LoadedGame = Cast<URelicSaveGame>(UGameplayStatics::LoadGameFromSlot(TEXT("RelicSaveSlot"), 0));
-        if (LoadedGame)
+        // 2. SaveGameInstance->RelicSaveArray도 동일하게 처리
+        bool bSaveFound = false;
+        for (FRelicSaveData& SaveData : SaveGameInstance->RelicSaveArray)
         {
-            OutArray = LoadedGame->RelicSaveArray;
+            if (SaveData.RelicData.DropDate == NewData.RelicData.DropDate)
+            {
+                SaveData = NewData; // 데이터 업데이트
+                bSaveFound = true;
+                break;
+            }
         }
+        if (!bSaveFound)
+        {
+            SaveGameInstance->RelicSaveArray.Add(NewData); // 없으면 추가
+        }
+        UGameplayStatics::SaveGameToSlot(SaveGameInstance, TEXT("RelicSaveSlot"), 0);
     }
 }

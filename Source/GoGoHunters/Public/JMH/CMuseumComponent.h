@@ -32,6 +32,9 @@ public:
 	void PlayPreviewMode(const FCRelicData& InRelicData, const FCRelicDetailData& InRelicDetailData);
 	void PlaceRelic();
 
+	UFUNCTION(BlueprintCallable)
+	void RegisterRelic();
+
 private:
 	UPROPERTY(EditDefaultsOnly, Category="Input")
 	TObjectPtr<UInputMappingContext> IMC_Museum;

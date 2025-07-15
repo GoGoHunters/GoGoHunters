@@ -250,6 +250,9 @@ public:
 	UPROPERTY(EditDefaultsOnly)
 	UChildActorComponent* RelicCollectionWidget;
 
+	UPROPERTY()
+	TObjectPtr<ACRelicCollectionWidgetActor> RelicCollectionWidgetActor;
+	
 private:
 	UPROPERTY()
 	TObjectPtr<ACWorldMap> CachedWorldMap = nullptr;
@@ -279,9 +282,6 @@ private:
 	void DisableWidgetInteraction();
 
 	// Museum Component
-	UPROPERTY(EditDefaultsOnly)
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, meta=(AllowPrivateAccess))
 	UCMuseumComponent* MuseumComponent;
-
-	UPROPERTY()
-	TObjectPtr<ACRelicCollectionWidgetActor> RelicCollectionWidgetActor;
 };

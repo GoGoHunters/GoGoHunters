@@ -17,6 +17,8 @@ struct FCRelicData : public FTableRowBase
 	FText RelicName=FText::FromString(""); // 유물 이름 (FK)
 	UPROPERTY(EditAnywhere)
 	FDateTime DropDate; // 획득 날짜,시간
+	UPROPERTY(BlueprintReadWrite)
+	FTransform PlacedTransform; // 배치 위치
 	UPROPERTY(EditAnywhere)
 	bool IsPlace = false; // 박물관 배치 유무
 };

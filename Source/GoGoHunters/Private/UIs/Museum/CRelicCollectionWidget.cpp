@@ -40,9 +40,20 @@ bool UCRelicCollectionWidget::InitRelicWidgets()
 		PlaceableRelics.Add(Relic);
 	}
 
-	CurrentPage = 0;
-	MaxPage = FMath::CeilToInt((float)PlaceableRelics.Num() / ItemsPerPage);
-	ShowPage(CurrentPage);
+	if (PlaceableRelics.Num() == 0)
+	{
+		Txt_EmptyRelics->SetVisibility(ESlateVisibility::SelfHitTestInvisible);
+		Grid_Relics->SetVisibility(ESlateVisibility::Hidden);
+	}
+	else
+	{
+		Txt_EmptyRelics->SetVisibility(ESlateVisibility::Hidden);
+		Grid_Relics->SetVisibility(ESlateVisibility::SelfHitTestInvisible);
+		
+		CurrentPage = 0;
+		MaxPage = FMath::CeilToInt((float)PlaceableRelics.Num() / ItemsPerPage);
+		ShowPage(CurrentPage);		
+	}
 
 	return PlaceableRelics.Num() > 0;
 }

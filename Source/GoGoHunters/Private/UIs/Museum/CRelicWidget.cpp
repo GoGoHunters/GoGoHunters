@@ -27,7 +27,7 @@ void UCRelicWidget::SetRelicDetailData()
 	Txt_RelicName->SetText(RelicData.RelicName);
 	FSlateBrush NewBrush = Img_Relic->GetBrush();
 
-	if (RelicDetailData->RelicImage)
+	if (RelicDetailData && RelicDetailData->RelicImage)
 	{
 		NewBrush.SetResourceObject(RelicDetailData->RelicImage);
 		Img_Relic->SetBrush(NewBrush);
@@ -36,10 +36,10 @@ void UCRelicWidget::SetRelicDetailData()
 
 void UCRelicWidget::OnSelectRelicButtonClicked()
 {
-	AMH_VRPlayer* Player=Cast<AMH_VRPlayer>(GetWorld()->GetFirstPlayerController()->GetPawn());
+	AMH_VRPlayer* Player = Cast<AMH_VRPlayer>(GetWorld()->GetFirstPlayerController()->GetPawn());
 	if (!Player) return;
-	UCMuseumComponent* MuseumComponent=Player->GetComponentByClass<UCMuseumComponent>();
+	UCMuseumComponent* MuseumComponent = Player->GetComponentByClass<UCMuseumComponent>();
 	if (!MuseumComponent) return;
 	// Player 손에 액터를 스폰시킨다
-	MuseumComponent->PlayPreviewMode(RelicData, *RelicDetailData);	
+	MuseumComponent->PlayPreviewMode(RelicData, *RelicDetailData);
 }

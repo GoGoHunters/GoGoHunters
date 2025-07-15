@@ -1,6 +1,7 @@
 #include "LHJ/CRelicCollectionWidgetActor.h"
 
 #include "Components/WidgetComponent.h"
+#include "UIs/Museum/CRelicCollectionWidget.h"
 #include "Utilities/CHelpers.h"
 
 ACRelicCollectionWidgetActor::ACRelicCollectionWidgetActor()
@@ -16,10 +17,17 @@ ACRelicCollectionWidgetActor::ACRelicCollectionWidgetActor()
 void ACRelicCollectionWidgetActor::BeginPlay()
 {
 	Super::BeginPlay();
-	
+	if (WidgetComponent->GetWidget())
+ 		RelicCollectionWidget = Cast<UCRelicCollectionWidget>(WidgetComponent->GetWidget());
 }
 
 void ACRelicCollectionWidgetActor::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
+}
+
+void ACRelicCollectionWidgetActor::ReloadRelicList()
+{
+	if (!RelicCollectionWidget) return;
+	RelicCollectionWidget->InitRelicWidgets();
 }
