@@ -31,7 +31,7 @@ void UCMuseumComponent::BeginPlay()
 	}
 
 	// LV_MH_MyMuseum 레벨에서만 SaveGame 로드 및 유물 스폰
-	if (UGameplayStatics::GetCurrentLevelName(GetWorld()) == TEXT("LV_MH_MyMuseum"))
+	if (UGameplayStatics::GetCurrentLevelName(GetWorld()).Contains(MuseumLevelName))
 	{
 		if (UGI_Base* GI = Cast<UGI_Base>(UGameplayStatics::GetGameInstance(GetWorld())))
 		{
@@ -75,7 +75,7 @@ void UCMuseumComponent::SetupPlayerInputComponent(UEnhancedInputComponent* Enhan
 void UCMuseumComponent::OnMenuButtonClicked()
 {
 	if (!OwnerPlayer) return;
-	if (UGameplayStatics::GetCurrentLevelName(OwnerPlayer->GetWorld()) != FName("LV_MH_MyMuseum")) return;
+	if (!UGameplayStatics::GetCurrentLevelName(GetWorld()).Contains(MuseumLevelName)) return;
 	SwitchState();
 }
 

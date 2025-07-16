@@ -48,6 +48,8 @@ private:
 	UPROPERTY()
 	TObjectPtr<AMH_VRPlayer> OwnerPlayer;
 	EMuseumState MuseumState = EMuseumState::Display;
+	UPROPERTY(EditDefaultsOnly)
+	FString MuseumLevelName = TEXT("Museum");
 
 	UPROPERTY()
 	TObjectPtr<AActor> SelectedActor = nullptr; // 선택된 오브젝트 저장
