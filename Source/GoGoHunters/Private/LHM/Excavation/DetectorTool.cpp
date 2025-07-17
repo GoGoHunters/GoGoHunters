@@ -128,7 +128,7 @@ void ADetectorTool::UpdateDetection(float DeltaTime)
 	Relics = ClosestRelics;
 
 // 3. 진행도 로직
-	float Distance = FVector::Dist(GetActorLocation(), Relics->GetLocation());
+	float Distance = FVector::Dist(GetActorLocation(), Relics->GetActorLocation());
 	const float MinDetectDistance = 500; // 테스트용
 	//const float MinDetectDistance = 300;
 	const float MaxDetectDistance = 1500.f;
