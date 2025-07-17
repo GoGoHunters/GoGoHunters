@@ -4,6 +4,7 @@
 #include "Engine/DataTable.h"
 #include "CRelicData.generated.h"
 
+class ACMuseumPlaceArea;
 class ACRelicBase;
 /**
  * 
@@ -15,6 +16,8 @@ struct FCRelicData : public FTableRowBase
 
 	UPROPERTY(EditAnywhere)
 	FText RelicName=FText::FromString(""); // 유물 이름 (FK)
+	UPROPERTY(EditAnywhere)
+	TObjectPtr<ACMuseumPlaceArea> PlaceArea;
 	UPROPERTY(EditAnywhere)
 	FDateTime DropDate; // 획득 날짜,시간
 	UPROPERTY(BlueprintReadWrite)
