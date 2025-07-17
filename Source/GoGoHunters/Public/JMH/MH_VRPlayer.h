@@ -135,6 +135,8 @@ public:
 	UInputAction* IA_ExcavationDetect;
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Input")
 	UInputAction* IA_ExcavationDig;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Input")
+	UInputAction* IA_ExcavationBrush;
 
 	void ExcavationTool1();
 	void ExcavationTool2();
@@ -143,6 +145,8 @@ public:
 	void ExcavationDetectEnd();
 	void ExcavationDigStart();
 	void ExcavationDigEnd();
+	void ExcavationBrushStart();
+	void ExcavationBrushEnd();
 	
 	UPROPERTY()
 	TSubclassOf<class ADetectorTool> DetectionToolClass;

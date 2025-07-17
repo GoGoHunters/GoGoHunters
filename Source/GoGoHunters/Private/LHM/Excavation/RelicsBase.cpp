@@ -3,6 +3,7 @@
 
 #include "LHM/Excavation/RelicsBase.h"
 #include "LHM/Excavation/ExcavationMarker.h"
+#include "Components/DecalComponent.h"
 
 // Sets default values
 ARelicsBase::ARelicsBase()
@@ -10,13 +11,44 @@ ARelicsBase::ARelicsBase()
  	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
 
+    RootComponent = CreateDefaultSubobject<USceneComponent>(TEXT("RootScene"));
+    RelicMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("RelicMesh"));
+    RelicMesh->SetupAttachment(RootComponent);
+
+    RelicMesh->SetGenerateOverlapEvents(true);
+    RelicMesh->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
+    RelicMesh->SetCollisionObjectType(ECC_WorldStatic);
+    RelicMesh->SetCollisionResponseToAllChannels(ECR_Ignore);
+    RelicMesh->SetCollisionResponseToChannel(ECC_WorldDynamic, ECR_Overlap);
+
+    for (int i = 0; i < 5; ++i)
+    {
+		FString DecalName = FString::Printf(TEXT("DustDecal_%d"), i + 1);
+		UDecalComponent* DustDecal = CreateDefaultSubobject<UDecalComponent>(FName(DecalName));
+        DustDecal->SetupAttachment(RelicMesh);
+        DustDecals.Add(DustDecal);
+    }
+}
+
+void ARelicsBase::PostInitializeComponents()
+{
+    Super::PostInitializeComponents();
+
+    for (int i = 0; i < 5; ++i)
+    {
+        UMaterialInstanceDynamic* MID = UMaterialInstanceDynamic::Create(DustDecals[i]->GetMaterial(0), this);
+        DustDecals[i]->SetMaterial(0, MID);
+        MID->SetScalarParameterValue(OpacityParameterName, CurrentOpacity);
+
+        DecalMIDs.Add(DustDecals[i], MID);
+    }
 }
 
 // Called when the game starts or when spawned
 void ARelicsBase::BeginPlay()
 {
 	Super::BeginPlay();
-	
+
     if (MarkerClass)
     {
         FActorSpawnParameters SpawnParams;
@@ -38,5 +70,44 @@ void ARelicsBase::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
+}
+
+void ARelicsBase::ReduceDustOpacity(const FVector& BrushLocation, float Amount)
+{
+    UDecalComponent* Closest = nullptr;
+    float MinDist = MAX_flt;
+
+    for (UDecalComponent* Decal : DustDecals)
+    {
+        if (!Decal || !DecalMIDs.Contains(Decal)) continue;
+
+        float Dist = FVector::Dist(Decal->GetComponentLocation(), BrushLocation);
+        if (Dist <= 20.0f && Dist < MinDist)
+        {
+            MinDist = Dist;
+            Closest = Decal;
+        }
+    }
+
+    if (!Closest) return;
+
+    UMaterialInstanceDynamic* MID = DecalMIDs[Closest];
+
+    float Opacity;
+    MID->GetScalarParameterValue(FMaterialParameterInfo(OpacityParameterName), Opacity);
+    Opacity = FMath::Clamp(Opacity - Amount, 0.0f, 1.0f);
+    MID->SetScalarParameterValue(OpacityParameterName, Opacity);
+
+    // 디버그용
+    float OpacityVal;
+    MID->GetScalarParameterValue(FMaterialParameterInfo(OpacityParameterName), OpacityVal);
+    UE_LOG(LogTemp, Log, TEXT("[Debug] Decal Opacity value: %f"), OpacityVal);
+
+    if (Opacity <= 0.0f)
+    {
+        Closest->DestroyComponent();
+        DustDecals.Remove(Closest);
+        DecalMIDs.Remove(Closest);
+    }
 }
 

@@ -256,6 +256,8 @@ void AMH_VRPlayer::SetupPlayerInputComponent(UInputComponent* PlayerInputCompone
 	EnhancedInput->BindAction(IA_ExcavationDetect, ETriggerEvent::Completed, this, &AMH_VRPlayer::ExcavationDetectEnd);
 	EnhancedInput->BindAction(IA_ExcavationDig, ETriggerEvent::Started, this, &AMH_VRPlayer::ExcavationDigStart);
 	EnhancedInput->BindAction(IA_ExcavationDig, ETriggerEvent::Completed, this, &AMH_VRPlayer::ExcavationDigEnd);
+	EnhancedInput->BindAction(IA_ExcavationBrush, ETriggerEvent::Started, this, &AMH_VRPlayer::ExcavationBrushStart);
+	EnhancedInput->BindAction(IA_ExcavationBrush, ETriggerEvent::Completed, this, &AMH_VRPlayer::ExcavationBrushEnd);
 
 	if (MuseumComponent) MuseumComponent->SetupPlayerInputComponent(EnhancedInput);
 }
@@ -501,6 +503,8 @@ void AMH_VRPlayer::ExcavationTool3()
 
 void AMH_VRPlayer::ExcavationDetectStart()
 {
+	if(GetPlayerState() != EPlayerVRState::UsingTool) return;
+
 	if (DetectionTool)
 	{
 		DetectionTool->SetIsDetecting(true);
@@ -510,6 +514,8 @@ void AMH_VRPlayer::ExcavationDetectStart()
 
 void AMH_VRPlayer::ExcavationDetectEnd()
 {
+	if (GetPlayerState() != EPlayerVRState::UsingTool) return;
+
 	if (DetectionTool)
 	{
 		DetectionTool->SetIsDetecting(false);
@@ -519,6 +525,8 @@ void AMH_VRPlayer::ExcavationDetectEnd()
 
 void AMH_VRPlayer::ExcavationDigStart()
 {
+	if (GetPlayerState() != EPlayerVRState::UsingTool) return;
+
 	if (ShovelTool)
 	{
 		ShovelTool->StartDigging();
@@ -528,9 +536,33 @@ void AMH_VRPlayer::ExcavationDigStart()
 
 void AMH_VRPlayer::ExcavationDigEnd()
 {
+	if (GetPlayerState() != EPlayerVRState::UsingTool) return;
+
 	if (ShovelTool)
 	{
 		ShovelTool->StopDigging();
+		//SetPlayerState(EPlayerVRState::UsingTool);
+	}
+}
+
+void AMH_VRPlayer::ExcavationBrushStart()
+{
+	if (GetPlayerState() != EPlayerVRState::UsingTool) return;
+
+	if (BrushTool)
+	{
+		BrushTool->SetIsBrushing(true);
+		//SetPlayerState(EPlayerVRState::Excavating);
+	}
+}
+
+void AMH_VRPlayer::ExcavationBrushEnd()
+{
+	if (GetPlayerState() != EPlayerVRState::UsingTool) return;
+
+	if (BrushTool)
+	{
+		BrushTool->SetIsBrushing(false);
 		//SetPlayerState(EPlayerVRState::UsingTool);
 	}
 }
