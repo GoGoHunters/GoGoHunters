@@ -13,22 +13,17 @@ ARelicsManager::ARelicsManager()
 	PrimaryActorTick.bCanEverTick = true;
 
 	RootComponent = CreateDefaultSubobject<USceneComponent>(TEXT("RootScene"));
-	//ExcavationLand_01 = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("ExcavationLand_01"));
+	ExcavationLand_01 = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("ExcavationLand_01"));
 	ExcavationLand_02 = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("ExcavationLand_02"));
 	ExcavationSite = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("ExcavationSite"));
 
-	//ExcavationLand_01->SetupAttachment(RootComponent);
+	ExcavationLand_01->SetupAttachment(RootComponent);
 	ExcavationLand_02->SetupAttachment(RootComponent);
 	ExcavationSite->SetupAttachment(RootComponent);
 
-	//ExcavationLand_01->SetHiddenInGame(false);
-	//ExcavationLand_02->SetHiddenInGame(true);
-	//ExcavationSite->SetHiddenInGame(true);
-
-	// 테스트용
-	//ExcavationLand_01->SetHiddenInGame(true);
-	ExcavationLand_02->SetHiddenInGame(false);
-	ExcavationSite->SetHiddenInGame(false);
+	ExcavationLand_01->SetHiddenInGame(false);
+	ExcavationLand_02->SetHiddenInGame(true);
+	ExcavationSite->SetHiddenInGame(true);
 
 	RelicsChild = CreateDefaultSubobject<UChildActorComponent>(TEXT("Relics"));
 	RelicsChild->SetupAttachment(RootComponent);
@@ -59,8 +54,7 @@ void ARelicsManager::BeginPlay()
 		if (auto* Ground = Cast<ARelicsGround>(Child->GetChildActor()))
 		{
 			GroundLayers.Add(Ground);
-			//Ground->SetActorHiddenInGame(true); // 시작 시 숨김
-			Ground->SetActorHiddenInGame(false); // 테스트용
+			Ground->SetActorHiddenInGame(true); // 시작 시 숨김
 			Ground->SetRelicsManager(this);
 		}
 	}
@@ -90,7 +84,7 @@ void ARelicsManager::StartExcavation()
 
 	// Excavation 지형 변경
 	if (ExcavationLand_01)
-		ExcavationLand_01->SetHiddenInGame(true);
+		ExcavationLand_01->DestroyComponent();
 
 	if (ExcavationLand_02)
 		ExcavationLand_02->SetHiddenInGame(false);
