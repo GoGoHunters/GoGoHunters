@@ -12,21 +12,29 @@ ARelicsBase::ARelicsBase()
 	PrimaryActorTick.bCanEverTick = true;
 
     RootComponent = CreateDefaultSubobject<USceneComponent>(TEXT("RootScene"));
-    RelicMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("RelicMesh"));
-    RelicMesh->SetupAttachment(RootComponent);
-
-    RelicMesh->SetGenerateOverlapEvents(true);
-    RelicMesh->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
-    RelicMesh->SetCollisionObjectType(ECC_WorldStatic);
-    RelicMesh->SetCollisionResponseToAllChannels(ECR_Ignore);
-    RelicMesh->SetCollisionResponseToChannel(ECC_WorldDynamic, ECR_Overlap);
 
     for (int i = 0; i < 5; ++i)
     {
-		FString DecalName = FString::Printf(TEXT("DustDecal_%d"), i + 1);
-		UDecalComponent* DustDecal = CreateDefaultSubobject<UDecalComponent>(FName(DecalName));
-        DustDecal->SetupAttachment(RelicMesh);
-        DustDecals.Add(DustDecal);
+        FString MeshName = FString::Printf(TEXT("RelicMesh_%d"), i + 1);
+        UStaticMeshComponent* RelicMesh = CreateDefaultSubobject<UStaticMeshComponent>(*MeshName);
+        RelicMesh->SetupAttachment(RootComponent);
+        RelicMesh->SetGenerateOverlapEvents(true);
+        RelicMesh->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
+        RelicMesh->SetCollisionObjectType(ECC_WorldStatic);
+        RelicMesh->SetCollisionResponseToAllChannels(ECR_Ignore);
+        RelicMesh->SetCollisionResponseToChannel(ECC_WorldDynamic, ECR_Overlap);
+        RelicsMeshes.Add(RelicMesh);
+
+        int DecalCount = (i == 0) ? 3 : 1;
+
+        for (int j = 0; j < DecalCount; ++j)
+        {
+            FString DecalName = FString::Printf(TEXT("DustDecal_%d_%d"), i + 1, j + 1);
+            UDecalComponent* Decal = CreateDefaultSubobject<UDecalComponent>(*DecalName);
+            Decal->SetupAttachment(RelicMesh);
+            DustDecals.Add(Decal);
+            DecalToMeshMap.Add(Decal, RelicMesh);
+        }
     }
 }
 
@@ -34,13 +42,12 @@ void ARelicsBase::PostInitializeComponents()
 {
     Super::PostInitializeComponents();
 
-    for (int i = 0; i < 5; ++i)
+    for (UDecalComponent* Decal : DustDecals)
     {
-        UMaterialInstanceDynamic* MID = UMaterialInstanceDynamic::Create(DustDecals[i]->GetMaterial(0), this);
-        DustDecals[i]->SetMaterial(0, MID);
+        UMaterialInstanceDynamic* MID = UMaterialInstanceDynamic::Create(Decal->GetMaterial(0), this);
+        Decal->SetMaterial(0, MID);
         MID->SetScalarParameterValue(OpacityParameterName, CurrentOpacity);
-
-        DecalMIDs.Add(DustDecals[i], MID);
+        DecalMIDs.Add(Decal, MID);
     }
 }
 
@@ -92,22 +99,19 @@ void ARelicsBase::ReduceDustOpacity(const FVector& BrushLocation, float Amount)
     if (!Closest) return;
 
     UMaterialInstanceDynamic* MID = DecalMIDs[Closest];
-
     float Opacity;
     MID->GetScalarParameterValue(FMaterialParameterInfo(OpacityParameterName), Opacity);
     Opacity = FMath::Clamp(Opacity - Amount, 0.0f, 1.0f);
     MID->SetScalarParameterValue(OpacityParameterName, Opacity);
 
-    // 디버그용
-    float OpacityVal;
-    MID->GetScalarParameterValue(FMaterialParameterInfo(OpacityParameterName), OpacityVal);
-    UE_LOG(LogTemp, Log, TEXT("[Debug] Decal Opacity value: %f"), OpacityVal);
+    UE_LOG(LogTemp, Log, TEXT("[Debug] Decal Opacity value: %f"), Opacity);
 
     if (Opacity <= 0.0f)
     {
         Closest->DestroyComponent();
         DustDecals.Remove(Closest);
         DecalMIDs.Remove(Closest);
+        DecalToMeshMap.Remove(Closest);
     }
 }
 

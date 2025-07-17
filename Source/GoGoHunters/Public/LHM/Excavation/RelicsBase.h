@@ -27,7 +27,7 @@ public:
 
 public:
 	UPROPERTY(VisibleAnywhere)
-	class UStaticMeshComponent* RelicMesh;
+	TArray<class UStaticMeshComponent*> RelicsMeshes;
 
 // 탐지
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
@@ -40,8 +40,13 @@ public:
 	UPROPERTY(VisibleAnywhere)
 	TArray<class UDecalComponent*> DustDecals;
 
-	UPROPERTY(VisibleAnywhere)
-	TMap<UDecalComponent*, UMaterialInstanceDynamic*> DecalMIDs;
+	// 데칼 → 메시 매핑
+	UPROPERTY()
+	TMap<class UDecalComponent*, class UStaticMeshComponent*> DecalToMeshMap;
+
+	// 데칼 → 머티리얼 인스턴스
+	UPROPERTY()
+	TMap<class UDecalComponent*, class UMaterialInstanceDynamic*> DecalMIDs;
 
 	UPROPERTY(EditAnywhere)
 	FName OpacityParameterName = TEXT("Opacity");

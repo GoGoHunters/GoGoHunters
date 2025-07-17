@@ -24,14 +24,34 @@ public:
 	virtual void Tick(float DeltaTime) override;
 
 	UFUNCTION()
-	void PickUpTweezers();
+	void PickUpRelic();
 
+	UFUNCTION()
+	void OnBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
+
+	UFUNCTION()
+	void OnEndOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
 public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	class UStaticMeshComponent* TweezersMeshL;
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	class UStaticMeshComponent* TweezersMeshR;
 
+	UPROPERTY(VisibleAnywhere)
+	class UBoxComponent* PickupBox;
+
+	UPROPERTY(VisibleAnywhere)
+	class USceneComponent* PickupPoint;
+
 	void SetIsPickingUp(bool _bIsPickingUp);
 	bool bIsPickingUp = false;
+
+	UPROPERTY()
+	class ARelicsBase* PickedRelic;
+
+	UPROPERTY()
+	class ARelicsBase* RelicCandidate = nullptr;
+
+	UPROPERTY()
+	class UStaticMeshComponent* CandidateMesh = nullptr;
 };
