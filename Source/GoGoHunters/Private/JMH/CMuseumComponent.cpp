@@ -9,6 +9,7 @@
 #include "LHJ/CRelicBase.h"
 #include "Utilities/CHelpers.h"
 #include "base/GI_Base.h"
+#include "LHJ/CMuseumPlaceArea.h"
 #include "LHJ/CRelicCollectionWidgetActor.h"
 
 UCMuseumComponent::UCMuseumComponent()
@@ -51,6 +52,8 @@ void UCMuseumComponent::BeginPlay()
 
 				ACRelicBase* RelicActor = GetWorld()->SpawnActor<ACRelicBase>(Local_RelicDetailData->RelicActorClass, Data.PlacedTransform, SpawnParams);
 				if (RelicActor) RelicActor->InitializeAsset(Data, *Local_RelicDetailData);
+
+				if (Data.PlaceArea) Data.PlaceArea->PlaceRelicAt(Data.PlacedTransform.GetLocation());
 			}
 		}
 	}
@@ -96,6 +99,8 @@ void UCMuseumComponent::PreviewMode()
 		Relic->SetActorTransform(BuildTransform);
 		Relic->SetRelicMaterial(RelicAcceptMaterial);
 		bCanPlace = true;
+
+		PlaceArea = Cast<ACMuseumPlaceArea>(outHit.GetActor());
 	}
 	else
 	{
@@ -106,6 +111,8 @@ void UCMuseumComponent::PreviewMode()
 		Relic->SetActorTransform(BuildTransform);
 		Relic->SetRelicMaterial(RelicRejectedMaterial);
 		bCanPlace = false;
+
+		PlaceArea = nullptr;
 	}
 }
 
@@ -183,12 +190,14 @@ void UCMuseumComponent::PlaceRelic()
 	{
 		placeActor->InitializeAsset(RelicData, RelicDetailData);
 		placeActor->SetRelicMaterial();
-
+		PlaceArea->PlaceRelicAt(BuildTransform.GetLocation());
+		
 		// SaveGame 저장
 		if (UGI_Base* GI = Cast<UGI_Base>(UGameplayStatics::GetGameInstance(GetWorld())))
 		{
 			RelicData.PlacedTransform = BuildTransform;
 			RelicData.IsPlace = true;
+			RelicData.PlaceArea = PlaceArea;
 			
 			FRelicSaveData NewSaveData;
 			NewSaveData.RelicData = RelicData;
@@ -210,6 +219,7 @@ void UCMuseumComponent::RegisterRelic()
 		NewRelicData.DropDate = FDateTime::Now();
 		NewRelicData.PlacedTransform = FTransform();
 		NewRelicData.IsPlace = false;
+		NewRelicData.PlaceArea = nullptr;
 
 		FRelicSaveData NewSaveData;
 		NewSaveData.RelicData = NewRelicData;
@@ -225,4 +235,5 @@ void UCMuseumComponent::PreviewEnd()
 	RelicDynamicMaterial = nullptr;
 	RelicData = FCRelicData();
 	RelicDetailData = FCRelicDetailData();
+	PlaceArea = nullptr;
 }

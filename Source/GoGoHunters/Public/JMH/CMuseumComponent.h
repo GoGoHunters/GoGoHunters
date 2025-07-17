@@ -5,6 +5,7 @@
 #include "LHJ/CRelicData.h"
 #include "CMuseumComponent.generated.h"
 
+class ACMuseumPlaceArea;
 class UInputMappingContext;
 class UEnhancedInputComponent;
 class UInputAction;
@@ -50,7 +51,9 @@ private:
 	EMuseumState MuseumState = EMuseumState::Display;
 	UPROPERTY(EditDefaultsOnly)
 	FString MuseumLevelName = TEXT("Museum");
-
+	
+	UPROPERTY()
+	TObjectPtr<ACMuseumPlaceArea> PlaceArea = nullptr;
 	UPROPERTY()
 	TObjectPtr<AActor> SelectedActor = nullptr; // 선택된 오브젝트 저장
 

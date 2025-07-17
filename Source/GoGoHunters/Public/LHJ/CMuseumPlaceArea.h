@@ -21,6 +21,8 @@ class GOGOHUNTERS_API ACMuseumPlaceArea : public AActor
 	GENERATED_BODY()
 
 public:
+	// 유물 설치
+	void PlaceRelicAt(const FVector& WorldLocation);
 
 private:
 	UPROPERTY()
@@ -49,8 +51,6 @@ private:
 
 	// 유물 설치 가능 여부
 	bool CanPlaceRelicAt(const FVector& WorldLocation) const;
-	// 유물 설치
-	void PlaceRelicAt(const FVector& WorldLocation);
 
 	// 디버그용 그리드 표시 토글
 	void SetGridDebugVisible(bool bVisible);
