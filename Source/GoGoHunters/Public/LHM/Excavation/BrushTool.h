@@ -52,6 +52,6 @@ public:
 	FVector PreviousLocation;
 	float SwipeSpeed = 0.0f;
 
-	void SetIsBrushing(bool _bIsBrushing);
+	void SetIsBrushing(bool _bIsBrushing) { bIsBrushing = _bIsBrushing; }
 	bool bIsBrushing = false;
 };

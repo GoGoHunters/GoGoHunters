@@ -48,18 +48,6 @@ void AShovelTool::Tick(float DeltaTime)
 
 }
 
-void AShovelTool::StartDigging()
-{
-	bIsDigging = true;
-	UE_LOG(LogTemp, Warning, TEXT("Shovel: Digging Started!"));
-}
-
-void AShovelTool::StopDigging()
-{
-	bIsDigging = false;
-	UE_LOG(LogTemp, Warning, TEXT("Shovel: Digging Stopped!"));
-}
-
 void AShovelTool::PlayFeedback(FVector ImpactLocation)
 {
 	if (!bIsDigging) return;

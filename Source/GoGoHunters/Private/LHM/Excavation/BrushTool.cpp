@@ -66,7 +66,7 @@ void ABrushTool::OnBeginOverlap(UPrimitiveComponent* Overlapped, AActor* OtherAc
 	if (ARelicsBase* Relic = Cast<ARelicsBase>(Target))
 	{
 		CurrentOverlappingRelic = Relic;
-		UE_LOG(LogTemp, Log, TEXT("Overlapped with Relic: %s"), *Relic->GetName());
+		UE_LOG(LogTemp, Log, TEXT("[BrushTool] Overlapped with Relic: %s"), *Relic->GetName());
 	}
 }
 
@@ -90,10 +90,5 @@ void ABrushTool::CheckBrushSwipe(float DeltaTime)
 			Relic->ReduceDustOpacity(BrushMesh->GetComponentLocation(), FadeSpeed * DeltaTime);
 		}
 	}
-}
-
-void ABrushTool::SetIsBrushing(bool _bIsBrushing)
-{
-	bIsBrushing = _bIsBrushing;
 }
 
