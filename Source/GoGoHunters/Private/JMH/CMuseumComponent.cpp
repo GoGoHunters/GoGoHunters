@@ -92,15 +92,33 @@ void UCMuseumComponent::PreviewMode()
 	bool bHit = GetWorld()->LineTraceSingleByChannel(outHit, start, end, ECC_GameTraceChannel6, params);;
 	if (bHit)
 	{
-		BuildTransform.SetLocation(outHit.Location);
-		BuildTransform.SetRotation(FRotator::ZeroRotator.Quaternion());
-		// BuildTransform.SetRotation(BuildRotation.Quaternion());
-		BuildTransform.SetScale3D(FVector(1));
-		Relic->SetActorTransform(BuildTransform);
-		Relic->SetRelicMaterial(RelicAcceptMaterial);
-		bCanPlace = true;
-
 		PlaceArea = Cast<ACMuseumPlaceArea>(outHit.GetActor());
+
+		// PlaceArea에 닿았으면, 가장 가까운 GridCell의 Center로 스냅
+		if (PlaceArea)
+		{
+			const TArray<FGridCell>& GridCells = PlaceArea->GetGridCells();
+			float MinDist = TNumericLimits<float>::Max();
+			FVector ClosestCenter = outHit.Location;
+			FVector ClosestScale = FVector(1.f);
+			for (const FGridCell& Cell : GridCells)
+			{
+				float Dist = FVector::Dist2D(Cell.Center, outHit.Location);
+				if (Dist < MinDist)
+				{
+					MinDist = Dist;
+					ClosestCenter = Cell.Center;
+					ClosestScale = Cell.Scale;
+				}
+			}
+			BuildTransform.SetLocation(ClosestCenter);
+			BuildTransform.SetScale3D(ClosestScale);
+			BuildTransform.SetRotation(FRotator::ZeroRotator.Quaternion());
+			
+			Relic->SetActorTransform(BuildTransform);
+			Relic->SetRelicMaterial(RelicAcceptMaterial);
+			bCanPlace = true;
+		}
 	}
 	else
 	{
@@ -190,7 +208,6 @@ void UCMuseumComponent::PlaceRelic()
 	{
 		placeActor->InitializeAsset(RelicData, RelicDetailData);
 		placeActor->SetRelicMaterial();
-		PlaceArea->PlaceRelicAt(BuildTransform.GetLocation());
 		
 		// SaveGame 저장
 		if (UGI_Base* GI = Cast<UGI_Base>(UGameplayStatics::GetGameInstance(GetWorld())))

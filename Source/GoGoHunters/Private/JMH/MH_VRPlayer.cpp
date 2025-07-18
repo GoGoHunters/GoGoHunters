@@ -783,6 +783,7 @@ void AMH_VRPlayer::HandleUIInteraction(const FInputActionInstance& IA_Instance)
 		// UI를 가리키지 않으면 UI 상호작용 종료
 		if (bIsUIInteractionActive)
 		{
+			if (MuseumComponent && *MuseumComponent->GetMuseumState() == EMuseumState::Decorate) return;
 			DisableWidgetInteraction();
 		}
 	}
