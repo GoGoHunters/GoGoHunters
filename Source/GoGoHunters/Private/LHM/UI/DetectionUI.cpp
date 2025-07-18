@@ -5,16 +5,18 @@
 #include "Components/ProgressBar.h"
 #include "Components/TextBlock.h"
 
-void UDetectionUI::UpdateUI(float Progress)
+void UDetectionUI::UpdateUI(float Progress, bool bIsStop)
 {
     DetectionProgressBar->SetPercent(Progress / 100.f);
-    UpdateStatusText(Progress);
+    UpdateStatusText(Progress, bIsStop);
 }
 
-void UDetectionUI::UpdateStatusText(float Progress)
+void UDetectionUI::UpdateStatusText(float Progress, bool bIsStop)
 {
     FString Status;
-	if (Progress < 30.f)
+	if (bIsStop)
+		Status = TEXT("...");
+	else if (Progress < 30.f)
 		Status = TEXT("토양 분석 중...");
 	else if (Progress < 70.f)
 		Status = TEXT("지리적 데이터 패턴 분석 중...");
