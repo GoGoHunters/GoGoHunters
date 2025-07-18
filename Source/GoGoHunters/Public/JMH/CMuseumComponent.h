@@ -36,15 +36,13 @@ public:
 	UFUNCTION(BlueprintCallable)
 	void RegisterRelic();
 
+	const EMuseumState* GetMuseumState() { return &MuseumState; }
+
 private:
 	UPROPERTY(EditDefaultsOnly, Category="Input")
 	TObjectPtr<UInputMappingContext> IMC_Museum;
 	UPROPERTY(EditDefaultsOnly, Category="Input")
 	TObjectPtr<UInputAction> IA_Menu;
-	UPROPERTY(EditDefaultsOnly, Category="Input")
-	TObjectPtr<UInputAction> IA_SelectItem_R;
-	UPROPERTY(EditDefaultsOnly, Category="Input")
-	TObjectPtr<UInputAction> IA_SelectItem_L;
 
 	UPROPERTY()
 	TObjectPtr<AMH_VRPlayer> OwnerPlayer;

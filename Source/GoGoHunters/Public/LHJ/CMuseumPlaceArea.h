@@ -13,6 +13,7 @@ struct FGridCell
 
 	FVector Center;
 	bool bOccupied = false;
+	FVector Scale = FVector(1.f); // 셀별 유물 스케일
 };
 
 UCLASS()
@@ -23,6 +24,13 @@ class GOGOHUNTERS_API ACMuseumPlaceArea : public AActor
 public:
 	// 유물 설치
 	void PlaceRelicAt(const FVector& WorldLocation);
+
+	// GridCells 접근용 Getter
+	const TArray<FGridCell>& GetGridCells() const { return GridCells; }
+
+	// 모든 셀에 동일하게 적용할 유물 스케일
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Grid")
+	FVector CellUniformScale = FVector(1.f);
 
 private:
 	UPROPERTY()

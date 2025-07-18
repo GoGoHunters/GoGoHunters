@@ -42,6 +42,7 @@ void ACMuseumPlaceArea::CreateGrid()
 			);
 			FGridCell Cell;
 			Cell.Center = CellCenter;
+			Cell.Scale = CellUniformScale; // 모든 셀에 동일한 스케일 적용
 			GridCells.Add(Cell);
 		}
 	}
