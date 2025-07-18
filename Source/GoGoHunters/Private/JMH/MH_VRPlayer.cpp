@@ -98,6 +98,7 @@ AMH_VRPlayer::AMH_VRPlayer()
 		RWidgetInteractionComponent->InteractionSource = EWidgetInteractionSource::World;
 		RWidgetInteractionComponent->TraceChannel = ECC_Visibility;
 		RWidgetInteractionComponent->PointerIndex = 0;
+		RWidgetInteractionComponent->VirtualUserIndex = 0;
 		
 		LWidgetInteractionComponent->InteractionDistance = 800.f; // UI 상호작용 거리 증가
 		LWidgetInteractionComponent->bEnableHitTesting = false; // UI 상호작용을 위해 활성화
@@ -105,6 +106,7 @@ AMH_VRPlayer::AMH_VRPlayer()
 		LWidgetInteractionComponent->InteractionSource = EWidgetInteractionSource::World;
 		LWidgetInteractionComponent->TraceChannel = ECC_Visibility;
 		LWidgetInteractionComponent->PointerIndex = 1;
+		LWidgetInteractionComponent->VirtualUserIndex = 1;
 	}
 
 	CHelpers::CreateActorComponent<UCMuseumComponent>(this, &MuseumComponent, "MuseumComponent");
@@ -405,7 +407,15 @@ void AMH_VRPlayer::TriggerInteract(const FInputActionInstance& IA_Instance)
 	HandleUIInteraction(IA_Instance);
 
 	// 유물 설치용 함수 호출
-	if (MuseumComponent) MuseumComponent->PlaceRelic();
+	if (MuseumComponent)
+	{
+		if (*MuseumComponent->GetMuseumState() == Decorate)
+			MuseumComponent->PlaceRelic();	// 유물 설치
+		else if (*MuseumComponent->GetMuseumState() == Display)
+		{
+			// 유물 잡기
+		}
+	}
 }
 
 void AMH_VRPlayer::TriggerInteractCompleted()
@@ -418,7 +428,9 @@ void AMH_VRPlayer::TriggerInteractCompleted()
 		{
 			ActiveWidgetInteraction->ReleasePointerKey(EKeys::LeftMouseButton);
 		}
-		DisableWidgetInteraction();
+
+		if (!MuseumComponent || *MuseumComponent->GetMuseumState() != EMuseumState::Decorate)
+			DisableWidgetInteraction();
 	}
 	
 	// 월드맵 상호작용 리셋

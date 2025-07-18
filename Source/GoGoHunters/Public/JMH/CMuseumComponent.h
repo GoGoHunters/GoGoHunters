@@ -29,6 +29,8 @@ class GOGOHUNTERS_API UCMuseumComponent : public UActorComponent
 	GENERATED_BODY()
 
 public:
+	const EMuseumState* GetMuseumState() { return &MuseumState; }
+	
 	void SetupPlayerInputComponent(UEnhancedInputComponent* EnhancedInput);
 	void PlayPreviewMode(const FCRelicData& InRelicData, const FCRelicDetailData& InRelicDetailData);
 	void PlaceRelic();
@@ -36,8 +38,8 @@ public:
 	UFUNCTION(BlueprintCallable)
 	void RegisterRelic();
 
-	const EMuseumState* GetMuseumState() { return &MuseumState; }
-
+	bool GrabRelic();
+	
 private:
 	UPROPERTY(EditDefaultsOnly, Category="Input")
 	TObjectPtr<UInputMappingContext> IMC_Museum;
@@ -85,4 +87,6 @@ private:
 
 	void PreviewMode();
 	void PreviewEnd();
+
+	void GrabEnd();
 };

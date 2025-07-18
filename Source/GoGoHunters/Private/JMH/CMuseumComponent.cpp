@@ -148,6 +148,9 @@ void UCMuseumComponent::SwitchState()
 		OwnerPlayer->RWidgetInteractionComponent->SetActive(false);
 		OwnerPlayer->RWidgetInteractionComponent->bEnableHitTesting = false;
 		OwnerPlayer->RWidgetInteractionComponent->bShowDebug = false;
+		
+		bIsPreviewMode = false;
+		PreviewEnd();
 		break;
 	case EMuseumState::Decorate:
 		OwnerPlayer->RelicCollectionWidget->SetHiddenInGame(false);
@@ -157,6 +160,7 @@ void UCMuseumComponent::SwitchState()
 		OwnerPlayer->RWidgetInteractionComponent->SetActive(true);
 		OwnerPlayer->RWidgetInteractionComponent->bEnableHitTesting = true;
 		OwnerPlayer->RWidgetInteractionComponent->bShowDebug = true;
+		GrabEnd();
 		break;
 	}
 }
@@ -246,11 +250,15 @@ void UCMuseumComponent::RegisterRelic()
 
 void UCMuseumComponent::PreviewEnd()
 {
-	Relic->Destroy();
+	if (Relic) Relic->Destroy();
 	bCanPlace = false;
 	Relic = nullptr;
 	RelicDynamicMaterial = nullptr;
 	RelicData = FCRelicData();
 	RelicDetailData = FCRelicDetailData();
 	PlaceArea = nullptr;
+}
+
+void UCMuseumComponent::GrabEnd()
+{
 }
