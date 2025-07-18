@@ -23,6 +23,7 @@ ARelicsBase::ARelicsBase()
         RelicMesh->SetCollisionObjectType(ECC_WorldStatic);
         RelicMesh->SetCollisionResponseToAllChannels(ECR_Ignore);
         RelicMesh->SetCollisionResponseToChannel(ECC_WorldDynamic, ECR_Overlap);
+        RelicMesh->SetCollisionResponseToChannel(ECC_WorldDynamic, ECR_Block);
         RelicsMeshes.Add(RelicMesh);
 
         int DecalCount = (i == 0) ? 3 : 1;

@@ -24,6 +24,7 @@ ARelicsManager::ARelicsManager()
 	ExcavationLand_01->SetHiddenInGame(false);
 	ExcavationLand_02->SetHiddenInGame(true);
 	ExcavationSite->SetHiddenInGame(true);
+	ExcavationSite->SetCollisionResponseToChannel(ECC_WorldDynamic, ECR_Block);
 
 	RelicsChild = CreateDefaultSubobject<UChildActorComponent>(TEXT("Relics"));
 	RelicsChild->SetupAttachment(RootComponent);
