@@ -24,6 +24,7 @@
 #include "LHM/Excavation/RelicsGround.h"
 #include "LHM/Excavation/ExcavationWidgetActor.h"
 #include "LHM/Excavation/BrushTool.h"
+#include "LHM/Excavation/TweezersTool.h"
 
 AMH_VRPlayer::AMH_VRPlayer()
 {
@@ -243,21 +244,22 @@ void AMH_VRPlayer::SetupPlayerInputComponent(UInputComponent* PlayerInputCompone
 	//Grab
 	EnhancedInput->BindAction(IA_MHGrab, ETriggerEvent::Started, this, &AMH_VRPlayer::TryGrab);
 	EnhancedInput->BindAction(IA_MHGrab, ETriggerEvent::Completed, this, &AMH_VRPlayer::TryUnGrab);
-	EnhancedInput->BindAction(IA_AdjustTeleportDirection, ETriggerEvent::Triggered, this,
-	                          &AMH_VRPlayer::HandleThumbstickInput);
-	EnhancedInput->BindAction(IA_RotateHeldObject, ETriggerEvent::Triggered, this,
-	                          &AMH_VRPlayer::HandleThumbstickInput);
+	EnhancedInput->BindAction(IA_AdjustTeleportDirection, ETriggerEvent::Triggered, this, &AMH_VRPlayer::HandleThumbstickInput);
+	EnhancedInput->BindAction(IA_RotateHeldObject, ETriggerEvent::Triggered, this, &AMH_VRPlayer::HandleThumbstickInput);
 
 	// Excavation Tool Actions
 	EnhancedInput->BindAction(IA_ExcavationTool1, ETriggerEvent::Started, this, &AMH_VRPlayer::ExcavationTool1);
 	EnhancedInput->BindAction(IA_ExcavationTool2, ETriggerEvent::Started, this, &AMH_VRPlayer::ExcavationTool2);
 	EnhancedInput->BindAction(IA_ExcavationTool3, ETriggerEvent::Started, this, &AMH_VRPlayer::ExcavationTool3);
+	EnhancedInput->BindAction(IA_ExcavationTool4, ETriggerEvent::Started, this, &AMH_VRPlayer::ExcavationTool4);
 	EnhancedInput->BindAction(IA_ExcavationDetect, ETriggerEvent::Triggered, this, &AMH_VRPlayer::ExcavationDetectStart);
 	EnhancedInput->BindAction(IA_ExcavationDetect, ETriggerEvent::Completed, this, &AMH_VRPlayer::ExcavationDetectEnd);
 	EnhancedInput->BindAction(IA_ExcavationDig, ETriggerEvent::Started, this, &AMH_VRPlayer::ExcavationDigStart);
 	EnhancedInput->BindAction(IA_ExcavationDig, ETriggerEvent::Completed, this, &AMH_VRPlayer::ExcavationDigEnd);
 	EnhancedInput->BindAction(IA_ExcavationBrush, ETriggerEvent::Started, this, &AMH_VRPlayer::ExcavationBrushStart);
 	EnhancedInput->BindAction(IA_ExcavationBrush, ETriggerEvent::Completed, this, &AMH_VRPlayer::ExcavationBrushEnd);
+	EnhancedInput->BindAction(IA_ExcavationCollect, ETriggerEvent::Triggered, this, &AMH_VRPlayer::ExcavationCollectStart);
+	EnhancedInput->BindAction(IA_ExcavationCollect, ETriggerEvent::Completed, this, &AMH_VRPlayer::ExcavationCollectEnd);
 
 	if (MuseumComponent) MuseumComponent->SetupPlayerInputComponent(EnhancedInput);
 }
@@ -345,6 +347,9 @@ void AMH_VRPlayer::F_TeleportStart(const struct FInputActionValue& Value)
 	if (TeleportComponent)
 	{
 		TeleportComponent->EnableTeleport();
+		
+		PreTeleportState = GetPlayerState();
+
 		SetPlayerState(EPlayerVRState::Teleporting);
 	}
 }
@@ -359,7 +364,22 @@ void AMH_VRPlayer::F_TeleportEnd(const struct FInputActionValue& Value)
 			SetActorLocation(OutLocation + FVector(0.f, 0.f, 100.f));
 			TeleportDistanceFactor = 1.0f;
 		}
+
 		SetPlayerState(EPlayerVRState::Idle);
+
+		// 이전 상태로 복구 (도구를 들고 있었으면 다시 UsingTool로)
+		if (PreTeleportState == EPlayerVRState::UsingTool)
+		{
+			SetPlayerState(PreTeleportState);
+		}
+		else if (PreTeleportState == EPlayerVRState::Excavating)
+		{
+			SetPlayerState(PreTeleportState);
+		}
+		else
+		{
+			SetPlayerState(EPlayerVRState::Idle);
+		}
 	}
 }
 
@@ -409,9 +429,22 @@ void AMH_VRPlayer::ExcavationTool1()
 {
 	if (!DetectionTool)
 	{
-		if (ShovelTool) ShovelTool->Destroy();
-		if (BrushTool) BrushTool->Destroy();
-
+		if (ShovelTool)
+		{
+			ShovelTool->Destroy();
+			ShovelTool = nullptr;
+		}
+		if (BrushTool)
+		{
+			BrushTool->Destroy();
+			BrushTool = nullptr;
+		}
+		if (TweezersTool)
+		{
+			TweezersTool->Destroy();
+			TweezersTool = nullptr;
+		}
+		
 		FActorSpawnParameters SpawnParams;
 		SpawnParams.Owner = this;
 
@@ -439,8 +472,21 @@ void AMH_VRPlayer::ExcavationTool2()
 {
 	if (!ShovelTool)
 	{
-		if (DetectionTool) DetectionTool->Destroy();
-		if (BrushTool) BrushTool->Destroy();
+		if (DetectionTool)
+		{
+			DetectionTool->Destroy();
+			DetectionTool = nullptr;
+		}
+		if (BrushTool)
+		{
+			BrushTool->Destroy();
+			BrushTool = nullptr;
+		}
+		if (TweezersTool)
+		{
+			TweezersTool->Destroy();
+			TweezersTool = nullptr;
+		}
 
 		FActorSpawnParameters SpawnParams;
 		SpawnParams.Owner = this;
@@ -475,8 +521,21 @@ void AMH_VRPlayer::ExcavationTool3()
 {
 	if (!BrushTool)
 	{
-		if (DetectionTool) DetectionTool->Destroy();
-		if (ShovelTool) ShovelTool->Destroy();
+		if (DetectionTool)
+		{
+			DetectionTool->Destroy();
+			DetectionTool = nullptr;
+		}
+		if (ShovelTool)
+		{
+			ShovelTool->Destroy();
+			ShovelTool = nullptr;
+		}
+		if (TweezersTool)
+		{
+			TweezersTool->Destroy();
+			TweezersTool = nullptr;
+		}
 
 		FActorSpawnParameters SpawnParams;
 		SpawnParams.Owner = this;
@@ -501,70 +560,119 @@ void AMH_VRPlayer::ExcavationTool3()
 	}
 }
 
+void AMH_VRPlayer::ExcavationTool4()
+{
+	if (!TweezersTool)
+	{
+		if (DetectionTool)
+		{
+			DetectionTool->Destroy();
+			DetectionTool = nullptr;
+		}
+		if (ShovelTool)
+		{
+			ShovelTool->Destroy();
+			ShovelTool = nullptr;
+		}
+		if (BrushTool)
+		{
+			BrushTool->Destroy();
+			BrushTool = nullptr;
+		}
+
+		FActorSpawnParameters SpawnParams;
+		SpawnParams.Owner = this;
+
+		if (TweezersToolClass = LoadClass<ATweezersTool>(nullptr, TEXT("/Game/LHM/BP/Excavation/BP_TweezersTool.BP_TweezersTool_C")))
+		{
+			TweezersTool = GetWorld()->SpawnActor<ATweezersTool>(TweezersToolClass, FVector::ZeroVector, FRotator::ZeroRotator, SpawnParams);
+			if (TweezersTool)
+			{
+				USceneComponent* HandSocket = RHandController;
+				TweezersTool->AttachToComponent(HandSocket, FAttachmentTransformRules::SnapToTargetNotIncludingScale, NAME_None);
+
+				SetPlayerState(EPlayerVRState::UsingTool);
+			}
+		}
+	}
+	else
+	{
+		TweezersTool->Destroy();
+		TweezersTool = nullptr;
+		SetPlayerState(EPlayerVRState::Idle);
+	}
+}
+
 void AMH_VRPlayer::ExcavationDetectStart()
 {
 	if(GetPlayerState() != EPlayerVRState::UsingTool) return;
+	if(!DetectionTool) return;
 
-	if (DetectionTool)
-	{
-		DetectionTool->SetIsDetecting(true);
-		//SetPlayerState(EPlayerVRState::Excavating);
-	}
+	DetectionTool->SetIsDetecting(true);
+	SetPlayerState(EPlayerVRState::Excavating);
 }
 
 void AMH_VRPlayer::ExcavationDetectEnd()
 {
-	if (GetPlayerState() != EPlayerVRState::UsingTool) return;
-
-	if (DetectionTool)
-	{
-		DetectionTool->SetIsDetecting(false);
-		//SetPlayerState(EPlayerVRState::UsingTool);
-	}
+	if (GetPlayerState() != EPlayerVRState::Excavating) return;
+	if (!DetectionTool) return;
+	
+	DetectionTool->SetIsDetecting(false);
+	SetPlayerState(EPlayerVRState::UsingTool);
 }
 
 void AMH_VRPlayer::ExcavationDigStart()
 {
 	if (GetPlayerState() != EPlayerVRState::UsingTool) return;
-
-	if (ShovelTool)
-	{
-		ShovelTool->StartDigging();
-		//SetPlayerState(EPlayerVRState::Excavating);
-	}
+	if(!ShovelTool) return;
+	
+	ShovelTool->SetIsDigging(true);
+	SetPlayerState(EPlayerVRState::Excavating);
 }
 
 void AMH_VRPlayer::ExcavationDigEnd()
 {
-	if (GetPlayerState() != EPlayerVRState::UsingTool) return;
+	if (GetPlayerState() != EPlayerVRState::Excavating) return;
+	if (!ShovelTool) return;
 
-	if (ShovelTool)
-	{
-		ShovelTool->StopDigging();
-		//SetPlayerState(EPlayerVRState::UsingTool);
-	}
+	ShovelTool->SetIsDigging(false);
+	SetPlayerState(EPlayerVRState::UsingTool);
 }
 
 void AMH_VRPlayer::ExcavationBrushStart()
 {
 	if (GetPlayerState() != EPlayerVRState::UsingTool) return;
-
-	if (BrushTool)
-	{
-		BrushTool->SetIsBrushing(true);
-		//SetPlayerState(EPlayerVRState::Excavating);
-	}
+	if (!BrushTool) return;
+	
+	BrushTool->SetIsBrushing(true);
+	SetPlayerState(EPlayerVRState::Excavating);
 }
 
 void AMH_VRPlayer::ExcavationBrushEnd()
 {
-	if (GetPlayerState() != EPlayerVRState::UsingTool) return;
+	if (GetPlayerState() != EPlayerVRState::Excavating) return;
+	if (!BrushTool) return;
 
-	if (BrushTool)
-	{
-		BrushTool->SetIsBrushing(false);
-		//SetPlayerState(EPlayerVRState::UsingTool);
-	}
+	BrushTool->SetIsBrushing(false);
+	SetPlayerState(EPlayerVRState::UsingTool);
+}
+
+void AMH_VRPlayer::ExcavationCollectStart()
+{
+	if (GetPlayerState() != EPlayerVRState::UsingTool) return;
+	if (!TweezersTool) return;
+	
+	TweezersTool->SetIsPickingUp(true);
+	SetPlayerState(EPlayerVRState::Excavating);
+}
+
+void AMH_VRPlayer::ExcavationCollectEnd()
+{
+	if (GetPlayerState() != EPlayerVRState::Excavating) return;
+	if (!TweezersTool) return;
+
+	TweezersTool->SetIsPickingUp(false);
+	SetPlayerState(EPlayerVRState::UsingTool);
 }
 
 void AMH_VRPlayer::UpdateInteractionLine()
