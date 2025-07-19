@@ -32,6 +32,9 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Grid")
 	FVector CellUniformScale = FVector(1.f);
 
+	FVector FindEmptySlot(const FVector& FromLocation) const;
+	void UnregisterRelic(const class ACRelicBase* Relic);
+
 private:
 	UPROPERTY()
 	UBoxComponent* BoxComponent;

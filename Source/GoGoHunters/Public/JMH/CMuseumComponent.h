@@ -11,6 +11,7 @@ class UEnhancedInputComponent;
 class UInputAction;
 class AMH_VRPlayer;
 class ACRelicBase;
+class UMH_GrabComp;
 struct FInputActionInstance;
 struct FCRelicData;
 struct FCRelicDetailData;
@@ -37,6 +38,7 @@ public:
 
 	UFUNCTION(BlueprintCallable)
 	void RegisterRelic(const int32& InRelicTag = -1);
+	void GrabRelicEnd(ACRelicBase* GrabRelic, const FVector& HandComponentLocation);
 	
 private:
 	UPROPERTY(EditDefaultsOnly, Category="Input")
@@ -73,6 +75,11 @@ private:
 	UPROPERTY(EditAnywhere)
 	TObjectPtr<UMaterialInterface> RelicRejectedMaterial;
 
+	UPROPERTY(EditAnywhere)
+	float RePlaceAreaSearchRange = 200.f;
+	UPROPERTY()
+	TObjectPtr<UMH_GrabComp> GrabComponent;
+
 	UCMuseumComponent();
 	virtual void BeginPlay() override;
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType,
@@ -85,6 +92,4 @@ private:
 
 	void PreviewMode();
 	void PreviewEnd();
-
-	void GrabRelicEnd();
 };

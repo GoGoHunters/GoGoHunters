@@ -1,5 +1,7 @@
 #include "JMH/CMuseumComponent.h"
 
+#include "EngineUtils.h"
+#include "Algo/Sort.h"
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
 #include "MotionControllerComponent.h"
@@ -9,6 +11,7 @@
 #include "LHJ/CRelicBase.h"
 #include "Utilities/CHelpers.h"
 #include "base/GI_Base.h"
+#include "JMH/MH_GrabComp.h"
 #include "LHJ/CMuseumPlaceArea.h"
 #include "LHJ/CRelicCollectionWidgetActor.h"
 
@@ -60,6 +63,11 @@ void UCMuseumComponent::BeginPlay()
 				if (Data.PlaceArea) Data.PlaceArea->PlaceRelicAt(Data.PlacedTransform.GetLocation());
 			}
 		}
+	}
+
+	if (OwnerPlayer)
+	{
+		GrabComponent = OwnerPlayer->GetComponentByClass<UMH_GrabComp>();
 	}
 }
 
@@ -165,7 +173,7 @@ void UCMuseumComponent::SwitchState()
 		OwnerPlayer->RWidgetInteractionComponent->bEnableHitTesting = true;
 		OwnerPlayer->RWidgetInteractionComponent->bShowDebug = true;
 		OwnerPlayer->RelicCollectionWidgetActor->ReloadRelicList();
-		GrabRelicEnd();
+		GrabComponent->RelicUnGrab();
 		break;
 	}
 }
@@ -271,6 +279,51 @@ void UCMuseumComponent::PreviewEnd()
 	PlaceArea = nullptr;
 }
 
-void UCMuseumComponent::GrabRelicEnd()
+void UCMuseumComponent::GrabRelicEnd(ACRelicBase* GrabRelic, const FVector& HandComponentLocation)
 {
+	// 1. 범위 내 ACMuseumPlaceArea 찾기
+	TArray<ACMuseumPlaceArea*> NearbyAreas;
+	for (TActorIterator<ACMuseumPlaceArea> It(GetWorld()); It; ++It)
+	{
+		ACMuseumPlaceArea* Area = *It;
+		if (FVector::Dist(Area->GetActorLocation(), HandComponentLocation) <= RePlaceAreaSearchRange)
+		{
+			NearbyAreas.Add(Area);
+		}
+	}
+
+	// 가까운 순서대로 정렬
+	Algo::SortBy(NearbyAreas, [HandComponentLocation](const ACMuseumPlaceArea* Area)
+	{
+		return FVector::Dist(Area->GetActorLocation(), HandComponentLocation);
+	});
+
+	// 2. 빈 칸 찾기 및 등록
+	bool bPlaced = false;
+	for (ACMuseumPlaceArea* Area : NearbyAreas)
+	{
+		FVector EmptySlotLocation = Area->FindEmptySlot(HandComponentLocation);
+		if (EmptySlotLocation != FVector::ZeroVector)
+		{
+			// 3-1. 원래 칸에서 Relic 해제
+			if (GrabRelic->GetPlaceAreaActor())
+			{
+				GrabRelic->GetPlaceAreaActor()->UnregisterRelic(GrabRelic);
+			}
+			// 3-2. 새 칸에 등록
+			Area->PlaceRelicAt(EmptySlotLocation);
+			bPlaced = true;
+			break;
+		}
+	}
+
+	// 4. 빈 칸이 없으면 원래 위치로 이동
+	if (!bPlaced)
+	{
+		GrabRelic->ReturnToOriginalLocation();
+	}
+
+	// 5. 피직스 끄기
+	if (UPrimitiveComponent* PrimComp = Cast<UPrimitiveComponent>(GrabRelic->GetRootComponent()))
+		PrimComp->SetSimulatePhysics(false);	
 }
