@@ -15,6 +15,8 @@
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnWebSocketMessageReceived, const FString&, Message);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnWebSocketConnectionStatusChanged, bool, bIsConnected);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnByteDataReceived, const TArray<uint8>&, ReceivedBytes);
+
 
 
 /**
@@ -30,11 +32,14 @@ private:
     TSharedPtr<IWebSocket> WebSocket;
     FString Server_URL;
 
+    TArray<uint8> CurrentIncomingMessageBuffer;
+
     // 웹소켓 이벤트 핸들러
     void OnWebSocketConnected();
     void OnWebSocketConnectionError(const FString& Error);
     void OnWebSocketClosed(int32 StatusCode, const FString& Reason, bool bWasClean);
     void OnWebSocketMessage(const FString& Message);
+    void OnWebSocketRawMessage(const void* Data, SIZE_T Size, SIZE_T BytesRemaining);
 
     void OnFileUploadResponse(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bWasSuccessful);
 
@@ -72,6 +77,9 @@ public:
     UPROPERTY(BlueprintAssignable, Category = "WebSocket")
     FOnWebSocketConnectionStatusChanged OnConnectionStatusChanged;
 
+    UPROPERTY(BlueprintAssignable, Category = "WebSocket|Messages")
+    FOnByteDataReceived OnByteDataReceived;
+
     // Sending File 
     UFUNCTION(BlueprintCallable, Category = "WebSocket")
     void WebSocketSendFile(const FString& FilePath, const FString& URLPath);
@@ -79,6 +87,10 @@ public:
     UFUNCTION(BlueprintCallable, Category = "WebSocket|FileDownload")
     void WebSocketDownloadFile(const FString& URL, const FString& SaveAsFileName);
 
+    // Sending File Byte
+    UFUNCTION(BlueprintCallable, Category = "WebSocket")
+    void WebSocketSendByteFile(const FString& FilePath);
+    
 };
 
 USTRUCT(BlueprintType)
