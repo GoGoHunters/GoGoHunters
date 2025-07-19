@@ -411,10 +411,6 @@ void AMH_VRPlayer::TriggerInteract(const FInputActionInstance& IA_Instance)
 	{
 		if (*MuseumComponent->GetMuseumState() == Decorate)
 			MuseumComponent->PlaceRelic();	// 유물 설치
-		else if (*MuseumComponent->GetMuseumState() == Display)
-		{
-			// 유물 잡기
-		}
 	}
 }
 

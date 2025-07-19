@@ -41,14 +41,14 @@ void UGI_Base::InitRelicDetailData()
 		FCRelicDetailData* Row = RelicDetailDataTable->FindRow<FCRelicDetailData>(RowName, TEXT("InitRelicData"));
 		if (Row)
 		{
-			RelicDetailDataMap.Add(Row->RelicName.ToString(), *Row);
+			RelicDetailDataMap.Add(Row->RelicTag, *Row);
 		}
 	}
 }
 
-const FCRelicDetailData* UGI_Base::GetRelicDetailDataByName(const FString& RelicName) const
+const FCRelicDetailData* UGI_Base::GetRelicDetailDataByTag(const int32& RelicTag) const
 {
-	return RelicDetailDataMap.Find(RelicName);
+	return RelicDetailDataMap.Find(RelicTag);
 }
 
 void UGI_Base::Shutdown()

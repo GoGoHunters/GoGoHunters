@@ -43,7 +43,7 @@ public:
 
 	// 유물 데이터 관련
 	const TArray<FCRelicData>& GetAllRelicData() const { return RelicDataArray; }
-	const FCRelicDetailData* GetRelicDetailDataByName(const FString& RelicName) const;
+	const FCRelicDetailData* GetRelicDetailDataByTag(const int32& RelicTag) const;
 
 	UFUNCTION(BlueprintCallable)
 	void SaveRelicData(FRelicSaveData NewData);
@@ -65,7 +65,7 @@ private:
 	UPROPERTY()
 	TArray<FCRelicData> RelicDataArray;
 	UPROPERTY()
-	TMap<FString, FCRelicDetailData> RelicDetailDataMap;
+	TMap<int32, FCRelicDetailData> RelicDetailDataMap;
 	// 유물 데이터 관련
 	void InitRelicDataFromSave();
 	void InitRelicDetailData();

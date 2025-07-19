@@ -20,9 +20,9 @@ void UCRelicWidget::NativeConstruct()
 
 void UCRelicWidget::SetRelicDetailData()
 {
-	if (RelicData.RelicName.EqualTo(FText::FromString(""))) return;
+	if (RelicData.RelicTag == -1) return;
 
-	RelicDetailData = GI->GetRelicDetailDataByName(RelicData.RelicName.ToString());
+	RelicDetailData = GI->GetRelicDetailDataByTag(RelicData.RelicTag);
 
 	Txt_RelicName->SetText(RelicData.RelicName);
 	FSlateBrush NewBrush = Img_Relic->GetBrush();

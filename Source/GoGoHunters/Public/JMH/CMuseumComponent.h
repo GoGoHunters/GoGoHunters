@@ -36,9 +36,7 @@ public:
 	void PlaceRelic();
 
 	UFUNCTION(BlueprintCallable)
-	void RegisterRelic();
-
-	bool GrabRelic();
+	void RegisterRelic(const int32& InRelicTag);
 	
 private:
 	UPROPERTY(EditDefaultsOnly, Category="Input")
@@ -88,5 +86,5 @@ private:
 	void PreviewMode();
 	void PreviewEnd();
 
-	void GrabEnd();
+	void GrabRelicEnd();
 };
