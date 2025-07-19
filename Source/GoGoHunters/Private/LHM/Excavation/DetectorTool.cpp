@@ -90,7 +90,7 @@ void ADetectorTool::StopDetection()
 	if (DetectionUI)
 	{
 		DetectionProgress = 0.f;
-		DetectionUI->UpdateUI(DetectionProgress);
+		DetectionUI->UpdateUI(DetectionProgress, true);
 	}
 }
 
@@ -120,7 +120,7 @@ void ADetectorTool::UpdateDetection(float DeltaTime)
 		if (DetectionUI)
 		{
 			DetectionProgress = 0.f;
-			DetectionUI->UpdateUI(DetectionProgress);
+			DetectionUI->UpdateUI(DetectionProgress, false);
 		}
 		return;
 	}
@@ -156,7 +156,7 @@ void ADetectorTool::UpdateDetection(float DeltaTime)
 	if (DetectionComp && DetectionUI)
 	{
 		DetectionComp->UpdateFeedback(DetectionProgress);
-		DetectionUI->UpdateUI(DetectionProgress);
+		DetectionUI->UpdateUI(DetectionProgress, false);
 	}
 
 	if (DetectionProgress >= 100.f)
@@ -177,7 +177,7 @@ void ADetectorTool::UpdateDetection(float DeltaTime)
 			// 전역 ExcavationManager를 찾아서 Relics 발굴 시작
 			for (TActorIterator<AExcavationManager> It(GetWorld()); It; ++It)
 			{
-				It->StartRelicsExcavation(FindManager);
+				It->NotifyDetectionCompleted(FindManager);
 				break;
 			}
 		}

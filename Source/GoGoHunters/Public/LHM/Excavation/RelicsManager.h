@@ -22,7 +22,6 @@ protected:
 public:	
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
-
 public:
 	void StartExcavation(); // 초기 시작
 	void NotifyGroundProgress(float Progress); // HeightMap 파괴량 보고
@@ -33,6 +32,19 @@ public:
 protected:
 	UPROPERTY(VisibleAnywhere)
 	TArray<class UChildActorComponent*> GroundChildActors;
+	
+	UPROPERTY(VisibleAnywhere)
+	class UChildActorComponent* GroundChild1;
+	
+	UPROPERTY(VisibleAnywhere)
+	class UChildActorComponent* GroundChild2;
+	
+	UPROPERTY(VisibleAnywhere)
+	class UChildActorComponent* GroundChild3;
+
+	class ARelicsGround* Ground1;
+	class ARelicsGround* Ground2;
+	class ARelicsGround* Ground3;
 
 	UPROPERTY(VisibleAnywhere)
 	class UChildActorComponent* RelicsChild;
@@ -47,6 +59,9 @@ protected:
 	UStaticMeshComponent* ExcavationSite;
 
 private:
+	UPROPERTY(EditDefaultsOnly)
+	TSubclassOf<class ARelicsGround> RelicsGroundClass;
+
 	TArray<class ARelicsGround*> GroundLayers;
 
 	UPROPERTY(EditAnywhere, Category="Relics")
@@ -57,5 +72,16 @@ private:
 	int32 CurrentLayerIndex = 0;
 	bool bBrushPhaseStarted = false;
 
+	UFUNCTION()
 	void EnterBrushPhase();
+
+	UPROPERTY(EditDefaultsOnly)
+	TSubclassOf<class ACollectionBox> CollectionBoxClass;
+
+	UPROPERTY()
+	class ACollectionBox* CollectionBox;
+
+public:
+	UFUNCTION()
+	void SpawnCollectionBox();
 };
