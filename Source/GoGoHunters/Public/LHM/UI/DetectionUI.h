@@ -16,7 +16,7 @@ class GOGOHUNTERS_API UDetectionUI : public UUserWidget
 	
 public:
     UFUNCTION(BlueprintCallable)
-    void UpdateUI(float Progress);
+    void UpdateUI(float Progress, bool bIsStop);
 
 private:
     UPROPERTY(meta = (BindWidget))
@@ -25,5 +25,5 @@ private:
     UPROPERTY(meta = (BindWidget))
     class UTextBlock* StatusText;
 
-    void UpdateStatusText(float Progress);
+    void UpdateStatusText(float Progress, bool bIsStop);
 };

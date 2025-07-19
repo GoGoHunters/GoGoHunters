@@ -47,7 +47,7 @@ public:
 
 	// 데칼 페이드 속도
 	UPROPERTY(EditAnywhere)
-	float FadeSpeed = 0.3f;
+	float FadeSpeed = 0.4f;
 
 	FVector PreviousLocation;
 	float SwipeSpeed = 0.0f;

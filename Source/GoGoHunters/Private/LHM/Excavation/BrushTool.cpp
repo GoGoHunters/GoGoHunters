@@ -48,22 +48,15 @@ void ABrushTool::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
-	SwipeSpeed = FVector::Dist(BrushMesh->GetComponentLocation(), PreviousLocation) / DeltaTime;
-	PreviousLocation = BrushMesh->GetComponentLocation();
+	SwipeSpeed = FVector::Dist(BoxMesh->GetComponentLocation(), PreviousLocation) / DeltaTime;
+	PreviousLocation = BoxMesh->GetComponentLocation();
 
 	if (bIsBrushing) CheckBrushSwipe(DeltaTime);
 }
 
 void ABrushTool::OnBeginOverlap(UPrimitiveComponent* Overlapped, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 BodyIndex, bool bFromSweep, const FHitResult& Hit)
 {
-	AActor* Target = OtherActor;
-
-	if (!Target && OtherComp)
-	{
-		Target = OtherComp->GetOwner();
-	}
-
-	if (ARelicsBase* Relic = Cast<ARelicsBase>(Target))
+	if (ARelicsBase* Relic = Cast<ARelicsBase>(OtherActor))
 	{
 		CurrentOverlappingRelic = Relic;
 		UE_LOG(LogTemp, Log, TEXT("[BrushTool] Overlapped with Relic: %s"), *Relic->GetName());
@@ -87,7 +80,7 @@ void ABrushTool::CheckBrushSwipe(float DeltaTime)
 		ARelicsBase* Relic = Cast<ARelicsBase>(CurrentOverlappingRelic);
 		if (Relic)
 		{
-			Relic->ReduceDustOpacity(BrushMesh->GetComponentLocation(), FadeSpeed * DeltaTime);
+			Relic->ReduceDustOpacity(BoxMesh->GetComponentLocation(), FadeSpeed * DeltaTime);
 		}
 	}
 }

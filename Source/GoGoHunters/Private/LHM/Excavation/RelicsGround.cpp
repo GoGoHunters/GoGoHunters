@@ -74,7 +74,6 @@ float ARelicsGround::CalculateDestructionFromRenderTarget()
 	float AvgR = static_cast<float>(TotalR) / Pixels.Num(); // 0~255
 	float DestructionPercent = AvgR / 255.f;
 
-	UE_LOG(LogTemp, Log, TEXT("[RelicsGround] 평균 밝기: %.2f"), AvgR);
 	UE_LOG(LogTemp, Log, TEXT("[RelicsGround] 파괴도: %.2f%%"), DestructionPercent * 100.f);
 	return DestructionPercent * 100.f;
 }
