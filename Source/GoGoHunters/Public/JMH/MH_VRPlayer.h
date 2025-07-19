@@ -92,6 +92,9 @@ public:
 	UFUNCTION(BlueprintPure, Category = "State")
 	EPlayerVRState GetPlayerState() const;
 
+	// 발굴 중 상태 복구용
+	EPlayerVRState PreTeleportState = EPlayerVRState::Idle;
+
 	UPROPERTY()
 	AActor* FocusedGrabbableActor;
 
@@ -132,17 +135,28 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Input")
 	UInputAction* IA_ExcavationTool3;
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Input")
+	UInputAction* IA_ExcavationTool4;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Input")
 	UInputAction* IA_ExcavationDetect;
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Input")
 	UInputAction* IA_ExcavationDig;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Input")
+	UInputAction* IA_ExcavationBrush;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Input")
+	UInputAction* IA_ExcavationCollect;
 
 	void ExcavationTool1();
 	void ExcavationTool2();
 	void ExcavationTool3();
+	void ExcavationTool4();
 	void ExcavationDetectStart();
 	void ExcavationDetectEnd();
 	void ExcavationDigStart();
 	void ExcavationDigEnd();
+	void ExcavationBrushStart();
+	void ExcavationBrushEnd();
+	void ExcavationCollectStart();
+	void ExcavationCollectEnd();
 	
 	UPROPERTY()
 	TSubclassOf<class ADetectorTool> DetectionToolClass;
@@ -158,6 +172,11 @@ public:
 	TSubclassOf<class ABrushTool> BrushToolClass;
 	UPROPERTY()
 	class ABrushTool* BrushTool;
+
+	UPROPERTY()
+	TSubclassOf<class ATweezersTool> TweezersToolClass;
+	UPROPERTY()
+	class ATweezersTool* TweezersTool;
 
 	UPROPERTY()
 	TArray<class ARelicsGround*> RelicsGroundRefs;

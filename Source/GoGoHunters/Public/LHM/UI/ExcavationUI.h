@@ -27,6 +27,9 @@ protected:
 
 	UPROPERTY(meta = (BindWidget))
 	class UButton* Btn_Tool3;
+	
+	UPROPERTY(meta = (BindWidget))
+	class UButton* Btn_Tool4;
 
 	// 바인딩 함수
 	UFUNCTION()
@@ -37,6 +40,9 @@ protected:
 
 	UFUNCTION()
 	void OnClick_BrushTool();
+	
+	UFUNCTION()
+	void OnClick_TweezerTool();
 
 private:
 	UPROPERTY()

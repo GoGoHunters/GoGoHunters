@@ -31,25 +31,46 @@ void AExcavationManager::Tick(float DeltaTime)
 
 }
 
-void AExcavationManager::StartRelicsExcavation(class ARelicsManager* Target)
+void AExcavationManager::NotifyDetectionCompleted(class ARelicsManager* FromManager)
 {
-	if (!IsValid(Target)) return;
+	if (!IsValid(FromManager)) return;
 
-	CurrentActiveManager = Target;
+	CurrentActiveManager = FromManager;
+	FromManager->StartExcavation();
 
-	UE_LOG(LogTemp, Log, TEXT("[ExcavationManager] Starting excavation for RelicsManager: %s"), *Target->GetName());
+	UE_LOG(LogTemp, Log, TEXT("[ExcavationManager] 유물 발견! 땅 파기 단계로 전환: %s"), *FromManager->GetName());
 
-	Target->StartExcavation();
+	// TODO: 삽 도구 전환, UI 표시 등
+	
 }
 
-void AExcavationManager::OnBrushPhaseEntered(class ARelicsManager* Target)
+void AExcavationManager::NotifyExcavationCompleted(class ARelicsManager* FromManager)
 {
-	if (!IsValid(Target)) return;
+	if (!IsValid(FromManager)) return;
 
-	if (Target == CurrentActiveManager)
-	{
-		// TODO: 붓 도구 전환, UI 표시, 플레이어 상태 업데이트 등
-		UE_LOG(LogTemp, Log, TEXT("[ExcavationManager] Brush phase entered for: %s"), *Target->GetName());
-	}
+	UE_LOG(LogTemp, Log, TEXT("[ExcavationManager] 땅 파기 완료! 붓질 단계로 전환: %s"), *FromManager->GetName());
+	
+	// TODO: 붓 도구 전환, UI 표시 등
+
+}
+
+void AExcavationManager::NotifyDustingCompleted(class ARelicsManager* FromManager)
+{
+	if (!IsValid(FromManager)) return;
+
+	UE_LOG(LogTemp, Log, TEXT("[ExcavationManager] 붓질 완료! 수거 단계로 전환: %s"), *FromManager->GetName());
+
+	FromManager->SpawnCollectionBox(); // 수거박스 생성 요청
+
+	// TODO: 수거 UI 출력, 수거 도구 활성화 등
+}
+
+void AExcavationManager::NotifyCollectionCompleted(class ARelicsManager* FromManager)
+{
+	if (!IsValid(FromManager)) return;
+
+	UE_LOG(LogTemp, Log, TEXT("[ExcavationManager] 모든 유물 수거 완료! 복원실 전송 준비: %s"), *FromManager->GetName());
+
+	// TODO: 복원실 전송, 트리거 활성화 등
 }
 

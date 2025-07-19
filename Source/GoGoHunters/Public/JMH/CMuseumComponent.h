@@ -5,6 +5,7 @@
 #include "LHJ/CRelicData.h"
 #include "CMuseumComponent.generated.h"
 
+class ACMuseumPlaceArea;
 class UInputMappingContext;
 class UEnhancedInputComponent;
 class UInputAction;
@@ -35,20 +36,22 @@ public:
 	UFUNCTION(BlueprintCallable)
 	void RegisterRelic();
 
+	const EMuseumState* GetMuseumState() { return &MuseumState; }
+
 private:
 	UPROPERTY(EditDefaultsOnly, Category="Input")
 	TObjectPtr<UInputMappingContext> IMC_Museum;
 	UPROPERTY(EditDefaultsOnly, Category="Input")
 	TObjectPtr<UInputAction> IA_Menu;
-	UPROPERTY(EditDefaultsOnly, Category="Input")
-	TObjectPtr<UInputAction> IA_SelectItem_R;
-	UPROPERTY(EditDefaultsOnly, Category="Input")
-	TObjectPtr<UInputAction> IA_SelectItem_L;
 
 	UPROPERTY()
 	TObjectPtr<AMH_VRPlayer> OwnerPlayer;
 	EMuseumState MuseumState = EMuseumState::Display;
-
+	UPROPERTY(EditDefaultsOnly)
+	FString MuseumLevelName = TEXT("Museum");
+	
+	UPROPERTY()
+	TObjectPtr<ACMuseumPlaceArea> PlaceArea = nullptr;
 	UPROPERTY()
 	TObjectPtr<AActor> SelectedActor = nullptr; // 선택된 오브젝트 저장
 

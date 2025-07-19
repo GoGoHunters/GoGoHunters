@@ -38,16 +38,9 @@ public:
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Digging")
     float TimeSinceLastDig; // 마지막으로 삽질 데미지를 적용한 이후 경과 시간
 
-protected:
-    //UPROPERTY()
-    //class ARelicsGround* GroundRef;
-
 public:
     UFUNCTION(BlueprintCallable, Category = "Digging")
-    void StartDigging();
-
-    UFUNCTION(BlueprintCallable, Category = "Digging")
-    void StopDigging();
+	void SetIsDigging(bool bNewIsDigging) { bIsDigging = bNewIsDigging; }
 
 	UFUNCTION()
 	void PlayFeedback(FVector ImpactLocation);
