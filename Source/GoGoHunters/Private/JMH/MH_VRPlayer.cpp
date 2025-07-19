@@ -20,6 +20,7 @@
 #include "Components/WidgetComponent.h"
 #include "GameFramework/SpringArmComponent.h"
 #include "JMH/CMuseumComponent.h"
+#include "LHJ/CRelicBase.h"
 #include "LHJ/CRelicCollectionWidgetActor.h"
 #include "LHM/Excavation/RelicsGround.h"
 #include "LHM/Excavation/ExcavationWidgetActor.h"
@@ -777,6 +778,13 @@ void AMH_VRPlayer::TryGrab(const struct FInputActionValue& Value)
 
 	UPrimitiveComponent* HitComp = Cast<UPrimitiveComponent>(
 		FocusedGrabbableActor->GetComponentByClass(UPrimitiveComponent::StaticClass()));
+
+	if (FocusedGrabbableActor->IsA(ACRelicBase::StaticClass())) // 그랩 대상이 유물이면, 피직스를 켜준다
+	{
+		if (UPrimitiveComponent* PrimComp = Cast<UPrimitiveComponent>(HitComp))
+			PrimComp->SetSimulatePhysics(true);
+	}
+	
 	if (!HitComp || !HitComp->IsSimulatingPhysics()) return;
 
 	if (GrabComponent)

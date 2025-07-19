@@ -51,7 +51,11 @@ void UCMuseumComponent::BeginPlay()
 				SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
 
 				ACRelicBase* RelicActor = GetWorld()->SpawnActor<ACRelicBase>(Local_RelicDetailData->RelicActorClass, Data.PlacedTransform, SpawnParams);
-				if (RelicActor) RelicActor->InitializeAsset(Data, *Local_RelicDetailData);
+				if (RelicActor)
+				{
+					RelicActor->InitializeAsset(Data, *Local_RelicDetailData);
+					RelicActor->Tags.Add("Grabable");
+				}
 
 				if (Data.PlaceArea) Data.PlaceArea->PlaceRelicAt(Data.PlacedTransform.GetLocation());
 			}
@@ -213,6 +217,7 @@ void UCMuseumComponent::PlaceRelic()
 	{
 		placeActor->InitializeAsset(RelicData, RelicDetailData);
 		placeActor->SetRelicMaterial();
+		placeActor->Tags.Add("Grabable");
 		
 		// SaveGame 저장
 		if (UGI_Base* GI = Cast<UGI_Base>(UGameplayStatics::GetGameInstance(GetWorld())))
