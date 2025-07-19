@@ -45,6 +45,8 @@ void UU_WebSocketManager::WebSocketConnect(const FString& URL)
     WebSocket->OnClosed().AddUObject(this, &UU_WebSocketManager::OnWebSocketClosed);
     WebSocket->OnMessage().AddUObject(this, &UU_WebSocketManager::OnWebSocketMessage);
 
+    WebSocket->OnRawMessage().AddUObject(this, &UU_WebSocketManager::OnWebSocketRawMessage);
+
     WebSocket->Connect();
     UE_LOG(LogTemp, Log, TEXT("connect to WebSocket: %s"), *WebSocketURL);
 }
@@ -81,7 +83,6 @@ void UU_WebSocketManager::WebSocketSendByteData(const TArray<uint8>& DataToSend)
 {
     if (WebSocket.IsValid() && WebSocket->IsConnected())
     {
-        // 바이트 데이터를 서버로 전송
         WebSocket->Send(DataToSend.GetData(), DataToSend.Num(), true);
         UE_LOG(LogTemp, Warning, TEXT("Sent %d bytes to server."), DataToSend.Num());
     }
@@ -152,6 +153,27 @@ void UU_WebSocketManager::OnWebSocketMessage(const FString& Message)
 
 }
 
+void UU_WebSocketManager::OnWebSocketRawMessage(const void* Data, SIZE_T Size, SIZE_T BytesRemaining)
+{
+    UE_LOG(LogTemp, Log, TEXT("Received WebSocket raw (byte) message. Size: %lld, Bytes Remaining: %lld"), Size, BytesRemaining);
+
+    CurrentIncomingMessageBuffer.Append((const uint8*)Data, Size);
+
+    if (BytesRemaining > 0)
+    {
+        UE_LOG(LogTemp, Log, TEXT("  -- More data for this message is expected. Accumulating... Total accumulated: %d bytes"), CurrentIncomingMessageBuffer.Num());
+    }
+    else
+    {
+        UE_LOG(LogTemp, Log, TEXT("  -- Full message received. Total size: %d bytes. Broadcasting now."), CurrentIncomingMessageBuffer.Num());
+
+        OnByteDataReceived.Broadcast(CurrentIncomingMessageBuffer);
+
+        // 문제가 있을거 같음 버퍼가 언제 지워지는가?
+        CurrentIncomingMessageBuffer.Empty();
+    }
+
+}
 
 void UU_WebSocketManager::WebSocketSendFile(const FString& FilePath, const FString& URLPath)
 {
@@ -285,6 +307,33 @@ void UU_WebSocketManager::WebSocketDownloadFile(const FString& URL, const FStrin
 
     Request->ProcessRequest();
     UE_LOG(LogTemp, Log, TEXT("file download from '%s' to '%s'"), *URL, *FullSavePath);
+}
+
+void UU_WebSocketManager::WebSocketSendByteFile(const FString& FilePath)
+{
+    FString FullFilePath = FilePath;
+    FString FileName = FPaths::GetCleanFilename(FullFilePath);
+
+    TArray<uint8> FileData;
+
+    if (!WaitForFileToBeReadable(FullFilePath))
+    {
+        UE_LOG(LogTemp, Error, TEXT("WebSocketSendFile: File '%s' is not readable after multiple attempts. Aborting upload."), *FullFilePath);
+        return;
+    }
+
+    if (!FFileHelper::LoadFileToArray(FileData, *FullFilePath))
+    {
+        UE_LOG(LogTemp, Error, TEXT("Failed to load file: %s"), *FullFilePath);
+        return;
+    }
+
+    if (FileName.IsEmpty())
+    {
+        UE_LOG(LogTemp, Error, TEXT("Invalid file name from path: %s"), *FullFilePath);
+        return;
+    }
+    WebSocketSendByteData(FileData);
 }
 
 void UU_WebSocketManager::OnFileDownloadComplete(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bWasSuccessful, FString DownloadedFilePath)
