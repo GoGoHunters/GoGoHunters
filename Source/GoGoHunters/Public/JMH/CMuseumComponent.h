@@ -36,7 +36,7 @@ public:
 	void PlaceRelic();
 
 	UFUNCTION(BlueprintCallable)
-	void RegisterRelic(const int32& InRelicTag);
+	void RegisterRelic(const int32& InRelicTag = -1);
 	
 private:
 	UPROPERTY(EditDefaultsOnly, Category="Input")

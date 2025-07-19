@@ -234,13 +234,16 @@ void UCMuseumComponent::PlaceRelic()
 
 void UCMuseumComponent::RegisterRelic(const int32& InRelicTag)
 {
+	if (InRelicTag == -1) return;
 	if (UGI_Base* GI = Cast<UGI_Base>(UGameplayStatics::GetGameInstance(GetWorld())))
 	{
-		const FCRelicDetailData* l_RelicDetailData = GI->GetRelicDetailDataByTag(InRelicTag == -1 ? 10001 : InRelicTag);
+		const FCRelicDetailData* l_RelicDetailData = GI->GetRelicDetailDataByTag(InRelicTag);
+
+		if (!l_RelicDetailData) return;
 		
 		FCRelicData NewRelicData;
-		NewRelicData.RelicName = l_RelicDetailData? l_RelicDetailData->RelicName : FText::FromString(TEXT("공룡알"));
-		NewRelicData.RelicTag = l_RelicDetailData ? InRelicTag : 10001;
+		NewRelicData.RelicName = l_RelicDetailData->RelicName;
+		NewRelicData.RelicTag = InRelicTag;
 		NewRelicData.DropDate = FDateTime::Now();
 		NewRelicData.PlacedTransform = FTransform();
 		NewRelicData.IsPlace = false;
