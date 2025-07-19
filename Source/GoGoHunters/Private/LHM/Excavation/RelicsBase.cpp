@@ -4,6 +4,9 @@
 #include "LHM/Excavation/RelicsBase.h"
 #include "LHM/Excavation/ExcavationMarker.h"
 #include "Components/DecalComponent.h"
+#include "LHM/Excavation/ExcavationManager.h"
+#include "Kismet/GameplayStatics.h"
+#include "EngineUtils.h"
 
 // Sets default values
 ARelicsBase::ARelicsBase()
@@ -18,12 +21,8 @@ ARelicsBase::ARelicsBase()
         FString MeshName = FString::Printf(TEXT("RelicMesh_%d"), i + 1);
         UStaticMeshComponent* RelicMesh = CreateDefaultSubobject<UStaticMeshComponent>(*MeshName);
         RelicMesh->SetupAttachment(RootComponent);
+        RelicMesh->SetCollisionProfileName(FName("Relic_Buried"));
         RelicMesh->SetGenerateOverlapEvents(true);
-        RelicMesh->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
-        RelicMesh->SetCollisionObjectType(ECC_WorldStatic);
-        RelicMesh->SetCollisionResponseToAllChannels(ECR_Ignore);
-        RelicMesh->SetCollisionResponseToChannel(ECC_WorldDynamic, ECR_Overlap);
-        RelicMesh->SetCollisionResponseToChannel(ECC_WorldDynamic, ECR_Block);
         RelicsMeshes.Add(RelicMesh);
 
         int DecalCount = (i == 0) ? 3 : 1;
@@ -90,7 +89,7 @@ void ARelicsBase::ReduceDustOpacity(const FVector& BrushLocation, float Amount)
         if (!Decal || !DecalMIDs.Contains(Decal)) continue;
 
         float Dist = FVector::Dist(Decal->GetComponentLocation(), BrushLocation);
-        if (Dist <= 20.0f && Dist < MinDist)
+        if (Dist <= 30.0f && Dist < MinDist)
         {
             MinDist = Dist;
             Closest = Decal;
@@ -113,6 +112,22 @@ void ARelicsBase::ReduceDustOpacity(const FVector& BrushLocation, float Amount)
         DustDecals.Remove(Closest);
         DecalMIDs.Remove(Closest);
         DecalToMeshMap.Remove(Closest);
+
+        CheckAllDelcalsRemoved();
+    }
+}
+
+void ARelicsBase::CheckAllDelcalsRemoved()
+{
+    if (DustDecals.Num() == 0)
+    {
+        UE_LOG(LogTemp, Log, TEXT("[RelicsBase] 모든 데칼 제거 완료!"));
+
+        for (TActorIterator<AExcavationManager> It(GetWorld()); It; ++It)
+        {
+            It->NotifyDustingCompleted(RelicsManager);
+            break;
+        }
     }
 }
 

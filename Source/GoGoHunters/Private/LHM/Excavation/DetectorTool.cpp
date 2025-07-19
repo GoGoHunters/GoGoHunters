@@ -177,7 +177,7 @@ void ADetectorTool::UpdateDetection(float DeltaTime)
 			// 전역 ExcavationManager를 찾아서 Relics 발굴 시작
 			for (TActorIterator<AExcavationManager> It(GetWorld()); It; ++It)
 			{
-				It->StartRelicsExcavation(FindManager);
+				It->NotifyDetectionCompleted(FindManager);
 				break;
 			}
 		}

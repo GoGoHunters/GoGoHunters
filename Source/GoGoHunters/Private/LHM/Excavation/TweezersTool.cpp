@@ -127,7 +127,10 @@ void ATweezersTool::SetIsPickingUp(bool _bIsPickingUp)
 				{
 					Mesh->DetachFromComponent(FDetachmentTransformRules::KeepWorldTransform);
 					Mesh->SetSimulatePhysics(true);
-					Mesh->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+					Mesh->SetCollisionProfileName(FName("Relic_Physics"));
+					Mesh->SetGenerateOverlapEvents(true);
+					Mesh->BodyInstance.bUseCCD = true; // 빠르게 낙하 시 충돌 누락 방지
+
 					UE_LOG(LogTemp, Log, TEXT("[TweezersTool] Dropped relic mesh"));
 					break;
 				}

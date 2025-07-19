@@ -26,8 +26,15 @@ public:
 	virtual void Tick(float DeltaTime) override;
 
 public:
-	UPROPERTY(VisibleAnywhere)
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
 	TArray<class UStaticMeshComponent*> RelicsMeshes;
+
+// RelicsManager 참조
+	UFUNCTION()
+	void SetRelicsManager(class ARelicsManager* NewRelicsManager) { RelicsManager = NewRelicsManager; }
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Digging Events")
+	class ARelicsManager* RelicsManager;
 
 // 탐지
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
@@ -55,4 +62,6 @@ public:
 	float CurrentOpacity = 1.0f;
 
 	void ReduceDustOpacity(const FVector& BrushLocation, float Amount);
+
+	void CheckAllDelcalsRemoved();
 };

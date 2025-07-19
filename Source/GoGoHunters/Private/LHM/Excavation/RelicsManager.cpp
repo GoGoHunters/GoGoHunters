@@ -5,6 +5,10 @@
 #include "LHM/Excavation/RelicsGround.h"
 #include "Components/ChildActorComponent.h"
 #include "LHM/Excavation/RelicsBase.h"
+#include "LHM/Excavation/ExcavationManager.h"
+#include "LHM/Excavation/CollectionBox.h"
+#include "Kismet/GameplayStatics.h"
+#include "EngineUtils.h"
 
 // Sets default values
 ARelicsManager::ARelicsManager()
@@ -25,19 +29,50 @@ ARelicsManager::ARelicsManager()
 	ExcavationLand_02->SetHiddenInGame(true);
 	ExcavationSite->SetHiddenInGame(true);
 
-	ExcavationLand_02->SetCollisionResponseToChannel(ECC_WorldDynamic, ECR_Block);
-	ExcavationSite->SetCollisionResponseToChannel(ECC_WorldDynamic, ECR_Block);
+	ExcavationLand_02->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+	ExcavationLand_02->SetCollisionObjectType(ECC_WorldStatic);
+	ExcavationLand_02->SetCollisionResponseToAllChannels(ECR_Block);
+	ExcavationSite->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+	ExcavationSite->SetCollisionObjectType(ECC_WorldStatic);
+	ExcavationSite->SetCollisionResponseToAllChannels(ECR_Block);
 
 	RelicsChild = CreateDefaultSubobject<UChildActorComponent>(TEXT("Relics"));
 	RelicsChild->SetupAttachment(RootComponent);
 	RelicsChild->SetChildActorClass(RelicsClass);
 
-	for (int32 i = 0; i < 3; ++i)
+	static ConstructorHelpers::FClassFinder<ARelicsGround> GroundClassFinder(TEXT("/Game/LHM/BP/Excavation/BP_RelicsGround"));
+	if (GroundClassFinder.Succeeded())
 	{
-		FString ChildName = FString::Printf(TEXT("GroundLayer_%d"), i + 1);
-		UChildActorComponent* GroundChild = CreateDefaultSubobject<UChildActorComponent>(*ChildName);
-		GroundChild->SetupAttachment(RootComponent);
-		GroundChildActors.Add(GroundChild);
+		RelicsGroundClass = GroundClassFinder.Class;
+		/*for (int32 i = 0; i < 3; ++i)
+		{
+			FString ChildName = FString::Printf(TEXT("GroundLayer_%d"), i + 1);
+			if (UChildActorComponent* GroundChild = CreateDefaultSubobject<UChildActorComponent>(*ChildName))
+			{
+				GroundChild->SetupAttachment(RootComponent);
+				GroundChild->SetChildActorClass(RelicsGroundClass);
+				GroundChildActors.Add(GroundChild);
+			}
+		}*/
+
+		GroundChild1 = CreateDefaultSubobject<UChildActorComponent>(TEXT("GroundLayer_1"));
+		GroundChild2 = CreateDefaultSubobject<UChildActorComponent>(TEXT("GroundLayer_2"));
+		GroundChild3 = CreateDefaultSubobject<UChildActorComponent>(TEXT("GroundLayer_3"));
+		GroundChild1->SetupAttachment(RootComponent);
+		GroundChild2->SetupAttachment(RootComponent);
+		GroundChild3->SetupAttachment(RootComponent);
+		GroundChild1->SetChildActorClass(RelicsGroundClass);
+		GroundChild2->SetChildActorClass(RelicsGroundClass);
+		GroundChild3->SetChildActorClass(RelicsGroundClass);
+		GroundChildActors.Add(GroundChild1);
+		GroundChildActors.Add(GroundChild2);
+		GroundChildActors.Add(GroundChild3);
+
+		//UE_LOG(LogTemp, Log, TEXT("GroundChildActors.Num() = %d"), GroundChildActors.Num());
+	}
+	else
+	{
+		UE_LOG(LogTemp, Error, TEXT("RelicsGroundClass not found!"));
 	}
 
 	CurrentLayerIndex = 0;
@@ -50,21 +85,58 @@ void ARelicsManager::BeginPlay()
 {
 	Super::BeginPlay();
 	
+	//GroundLayers.Empty();
+	//for (auto Child: GroundChildActors)
+	//{
+	//	if (Child)
+	//	{
+	//		if (Child->GetChildActor())
+	//		{
+	//			if (auto* Ground = Cast<ARelicsGround>(Child->GetChildActor()))
+	//			{
+	//				GroundLayers.Add(Ground);
+	//				Ground->SetActorHiddenInGame(true); // 시작 시 숨김
+	//				Ground->SetRelicsManager(this);
+	//				UE_LOG(LogTemp, Log, TEXT("[RelicsManager] Ground Layer %d: %s"), GroundLayers.Num(), *Ground->GetName());
+	//				UE_LOG(LogTemp, Log, TEXT("[RelicsManager] Child Actor Class: %s"), *Child->GetChildActorClass()->GetName());
+	//				UE_LOG(LogTemp, Log, TEXT("[RelicsManager] Child Actor Name: %s"), *Child->GetChildActor()->GetName());
+	//			}
+	//		}
+	//	}
+	//	else
+	//	{
+	//		UE_LOG(LogTemp, Log, TEXT("Child is null..."));
+	//	}
+	//}
+
 	GroundLayers.Empty();
 
-	for (auto Child: GroundChildActors)
+	if (GroundChild1 && GroundChild2 && GroundChild3)
 	{
-		if (auto* Ground = Cast<ARelicsGround>(Child->GetChildActor()))
-		{
-			GroundLayers.Add(Ground);
-			Ground->SetActorHiddenInGame(true); // 시작 시 숨김
-			Ground->SetRelicsManager(this);
-		}
+		Ground1 = Cast<ARelicsGround>(GroundChild1->GetChildActor());
+		Ground2 = Cast<ARelicsGround>(GroundChild2->GetChildActor());
+		Ground3 = Cast<ARelicsGround>(GroundChild3->GetChildActor());
+
+		GroundLayers.Add(Ground1);
+		GroundLayers.Add(Ground2);
+		GroundLayers.Add(Ground3);
+
+		Ground1->SetActorHiddenInGame(true); // 시작 시 숨김
+		Ground2->SetActorHiddenInGame(true); // 시작 시 숨김
+		Ground3->SetActorHiddenInGame(true); // 시작 시 숨김
+		Ground1->SetRelicsManager(this);
+		Ground2->SetRelicsManager(this);
+		Ground3->SetRelicsManager(this);
+
+		UE_LOG(LogTemp, Log, TEXT("[RelicsManager] Ground Layer[0]: %s"), *GroundLayers[0]->GetName());
+		UE_LOG(LogTemp, Log, TEXT("[RelicsManager] Ground Layer[1]: %s"), *GroundLayers[1]->GetName());
+		UE_LOG(LogTemp, Log, TEXT("[RelicsManager] Ground Layer[2]: %s"), *GroundLayers[2]->GetName());
 	}
 
 	if (RelicsChild)
 	{
 		Relics = Cast<ARelicsBase>(RelicsChild->GetChildActor());
+		Relics->SetRelicsManager(this);
 	}
 }
 
@@ -115,6 +187,8 @@ void ARelicsManager::NotifyGroundProgress(float Progress)
 
 		CurrentLayerIndex++;
 
+		UE_LOG(LogTemp, Log, TEXT("Destroyed Ground Layer %d / GroundLayers.num is %d"), CurrentLayerIndex + 1, GroundLayers.Num());
+
 		if (CurrentLayerIndex >= GroundLayers.Num())
 		{
 			EnterBrushPhase(); // 마지막 레이어 제거 후 붓 단계로 전환
@@ -124,6 +198,32 @@ void ARelicsManager::NotifyGroundProgress(float Progress)
 
 void ARelicsManager::EnterBrushPhase()
 {
-	UE_LOG(LogTemp, Log, TEXT("EnterBrushPhase"));
+	for (TActorIterator<AExcavationManager> It(GetWorld()); It; ++It)
+	{
+		It->NotifyExcavationCompleted(this);
+		break;
+	}
+}
+
+void ARelicsManager::SpawnCollectionBox()
+{
+	if (!IsValid(Relics)) return;
+	if (IsValid(CollectionBox)) return;
+	if (!CollectionBoxClass) return;
+
+	FVector SpawnLocation = FVector(-1120, -3180, 300); // (X=-1120.000000,Y=-3180.000000,Z=300.000000)
+	FRotator SpawnRotation = FRotator::ZeroRotator;
+
+	FActorSpawnParameters Params;
+	Params.Owner = this;
+
+	CollectionBox = GetWorld()->SpawnActor<ACollectionBox>(CollectionBoxClass, SpawnLocation, SpawnRotation, Params);
+
+	if (CollectionBox)
+	{
+		CollectionBox->SetTargetRelic(Relics);
+		CollectionBox->SetRelicsManager(this);
+		UE_LOG(LogTemp, Log, TEXT("[RelicsManager] CollectionBox 스폰 완료"));
+	}
 }
 

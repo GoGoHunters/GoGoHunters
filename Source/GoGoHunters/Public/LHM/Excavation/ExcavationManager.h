@@ -25,10 +25,16 @@ public:
 
 public:
 	// 탐지된 유물에 대한 발굴 시작 지시
-	void StartRelicsExcavation(class ARelicsManager* Target);
+	void NotifyDetectionCompleted(class ARelicsManager* Target);
 
 	// 붓단계 진입 콜백 (RelicsManager → 통보)
-	void OnBrushPhaseEntered(class ARelicsManager* Target);
+	void NotifyExcavationCompleted(class ARelicsManager* Target);
+
+	// 붓질 완료 (데칼 제거 완료)
+	void NotifyDustingCompleted(class ARelicsManager* Target);
+
+	// 유물 수거 완료
+	void NotifyCollectionCompleted(class ARelicsManager* Target);
 
 protected:
 	UPROPERTY()
