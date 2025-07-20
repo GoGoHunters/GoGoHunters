@@ -103,8 +103,7 @@ void ADetectorTool::UpdateDetection(float DeltaTime)
 	for (TActorIterator<ARelicsBase> It(GetWorld()); It; ++It)
 	{
 		if (!It->Marker) continue;
-		if (!It->Marker->IsHidden()) // 이미 탐지 완료된 유물은 건너뜀
-			continue;
+		if (!It->Marker->IsHidden()) continue;
 
 		float Dist = FVector::Dist(It->GetActorLocation(), GetActorLocation());
 		if (Dist < ClosestDist)

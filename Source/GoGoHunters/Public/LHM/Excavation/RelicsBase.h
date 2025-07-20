@@ -36,6 +36,14 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Digging Events")
 	class ARelicsManager* RelicsManager;
 
+	// 유물 태그 설정
+	UFUNCTION(BlueprintCallable, Category = "Relics")
+	void SetRelicTag(int32 InRelicTag) { RelicTag = InRelicTag; }
+
+	// 유물 태그 반환
+	UFUNCTION(BlueprintCallable, Category = "Relics")
+	int32 GetRelicTag() const { return RelicTag; }
+
 // 탐지
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	TSubclassOf<class AExcavationMarker> MarkerClass;
@@ -60,6 +68,10 @@ public:
 
 	UPROPERTY(EditAnywhere)
 	float CurrentOpacity = 1.0f;
+
+	// 유물 태그 정보
+	UPROPERTY(EditAnywhere, Category="Relics")
+	int32 RelicTag = -1;
 
 	void ReduceDustOpacity(const FVector& BrushLocation, float Amount);
 
