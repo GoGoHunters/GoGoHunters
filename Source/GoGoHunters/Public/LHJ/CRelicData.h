@@ -17,6 +17,8 @@ struct FCRelicData : public FTableRowBase
 	UPROPERTY(EditAnywhere)
 	FText RelicName=FText::FromString(""); // 유물 이름 (FK)
 	UPROPERTY(EditAnywhere)
+	uint32 RelicTag = -1;
+	UPROPERTY(EditAnywhere)
 	TObjectPtr<ACMuseumPlaceArea> PlaceArea;
 	UPROPERTY(EditAnywhere)
 	FDateTime DropDate; // 획득 날짜,시간
@@ -33,6 +35,8 @@ struct FCRelicDetailData : public FTableRowBase
 	
 	UPROPERTY(EditAnywhere)
 	FText RelicName; // 유물 이름 (PK)
+	UPROPERTY(EditAnywhere)
+	uint32 RelicTag = 0;
 	UPROPERTY(EditAnywhere)
 	FText RelicDesc; // 유물 설명
 	UPROPERTY(EditAnywhere)

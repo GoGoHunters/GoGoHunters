@@ -40,9 +40,9 @@ void UCMuseumComponent::BeginPlay()
 			for (const FCRelicData& Data : RelicArray)
 			{
 				if (!Data.IsPlace) continue;
-				if (Data.RelicName.ToString() == "") continue;
+				if (Data.RelicTag == -1) continue;
 				
-				const FCRelicDetailData* Local_RelicDetailData = GI->GetRelicDetailDataByName(Data.RelicName.ToString());
+				const FCRelicDetailData* Local_RelicDetailData = GI->GetRelicDetailDataByTag(Data.RelicTag);
 
 				if (!Local_RelicDetailData) continue;
 				
@@ -148,6 +148,9 @@ void UCMuseumComponent::SwitchState()
 		OwnerPlayer->RWidgetInteractionComponent->SetActive(false);
 		OwnerPlayer->RWidgetInteractionComponent->bEnableHitTesting = false;
 		OwnerPlayer->RWidgetInteractionComponent->bShowDebug = false;
+		
+		bIsPreviewMode = false;
+		PreviewEnd();
 		break;
 	case EMuseumState::Decorate:
 		OwnerPlayer->RelicCollectionWidget->SetHiddenInGame(false);
@@ -157,6 +160,8 @@ void UCMuseumComponent::SwitchState()
 		OwnerPlayer->RWidgetInteractionComponent->SetActive(true);
 		OwnerPlayer->RWidgetInteractionComponent->bEnableHitTesting = true;
 		OwnerPlayer->RWidgetInteractionComponent->bShowDebug = true;
+		OwnerPlayer->RelicCollectionWidgetActor->ReloadRelicList();
+		GrabRelicEnd();
 		break;
 	}
 }
@@ -227,12 +232,15 @@ void UCMuseumComponent::PlaceRelic()
 	SwitchState();
 }
 
-void UCMuseumComponent::RegisterRelic()
+void UCMuseumComponent::RegisterRelic(const int32& InRelicTag)
 {
 	if (UGI_Base* GI = Cast<UGI_Base>(UGameplayStatics::GetGameInstance(GetWorld())))
 	{
+		const FCRelicDetailData* l_RelicDetailData = GI->GetRelicDetailDataByTag(InRelicTag == -1 ? 10001 : InRelicTag);
+		
 		FCRelicData NewRelicData;
-		NewRelicData.RelicName = FText::FromString(FString::Printf(TEXT("공룡알")));
+		NewRelicData.RelicName = l_RelicDetailData? l_RelicDetailData->RelicName : FText::FromString(TEXT("공룡알"));
+		NewRelicData.RelicTag = l_RelicDetailData ? InRelicTag : 10001;
 		NewRelicData.DropDate = FDateTime::Now();
 		NewRelicData.PlacedTransform = FTransform();
 		NewRelicData.IsPlace = false;
@@ -246,11 +254,15 @@ void UCMuseumComponent::RegisterRelic()
 
 void UCMuseumComponent::PreviewEnd()
 {
-	Relic->Destroy();
+	if (Relic) Relic->Destroy();
 	bCanPlace = false;
 	Relic = nullptr;
 	RelicDynamicMaterial = nullptr;
 	RelicData = FCRelicData();
 	RelicDetailData = FCRelicDetailData();
 	PlaceArea = nullptr;
+}
+
+void UCMuseumComponent::GrabRelicEnd()
+{
 }

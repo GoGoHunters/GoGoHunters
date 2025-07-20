@@ -103,8 +103,7 @@ void ADetectorTool::UpdateDetection(float DeltaTime)
 	for (TActorIterator<ARelicsBase> It(GetWorld()); It; ++It)
 	{
 		if (!It->Marker) continue;
-		if (!It->Marker->IsHidden()) // 이미 탐지 완료된 유물은 건너뜀
-			continue;
+		if (!It->Marker->IsHidden()) continue;
 
 		float Dist = FVector::Dist(It->GetActorLocation(), GetActorLocation());
 		if (Dist < ClosestDist)
@@ -129,8 +128,7 @@ void ADetectorTool::UpdateDetection(float DeltaTime)
 
 // 3. 진행도 로직
 	float Distance = FVector::Dist(GetActorLocation(), Relics->GetActorLocation());
-	const float MinDetectDistance = 500; // 테스트용
-	//const float MinDetectDistance = 300;
+	const float MinDetectDistance = 400;
 	const float MaxDetectDistance = 1500.f;
 	const float FillSpeed = 50.f;
 

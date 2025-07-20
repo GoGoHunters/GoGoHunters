@@ -6,6 +6,7 @@ ACRelicBase::ACRelicBase()
 {
 	PrimaryActorTick.bCanEverTick = true;
 	CHelpers::CreateComponent<UStaticMeshComponent>(this, &RelicMesh, "RelicMesh");
+	RelicMesh->SetCollisionProfileName(FName("WorldDynamic"));
 }
 
 void ACRelicBase::BeginPlay()
