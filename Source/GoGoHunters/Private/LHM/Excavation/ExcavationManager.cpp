@@ -4,6 +4,10 @@
 #include "LHM/Excavation/ExcavationManager.h"
 #include "LHM/Excavation/RelicsManager.h"
 #include "EngineUtils.h"
+#include "Kismet/GameplayStatics.h"
+#include "JMH/CMuseumComponent.h"
+#include "base/GI_Base.h"
+#include "LHM/Excavation/RelicsBase.h"
 
 // Sets default values
 AExcavationManager::AExcavationManager()
@@ -80,6 +84,31 @@ void AExcavationManager::NotifyCollectionCompleted(class ARelicsManager* FromMan
 	if (!IsValid(FromManager)) return;
 
 	UE_LOG(LogTemp, Log, TEXT("[ExcavationManager] 수거 완료! 발굴 완료: %s"), *FromManager->GetName());
+
+	// 게임 인스턴스에서 유물 등록
+	if (UGI_Base* GI = Cast<UGI_Base>(UGameplayStatics::GetGameInstance(GetWorld())))
+	{
+		// 플레이어의 MuseumComponent를 찾아서 RegisterRelic 호출
+		if (APlayerController* PC = UGameplayStatics::GetPlayerController(GetWorld(), 0))
+		{
+			if (APawn* Pawn = PC->GetPawn())
+			{
+				if (UCMuseumComponent* MuseumComponent = Pawn->FindComponentByClass<UCMuseumComponent>())
+				{
+					// RelicsBase에서 유물 태그 가져오기
+					ARelicsBase* Relics = FromManager->GetRelics();
+					int32 RelicTag = -1;
+					if (Relics)
+					{
+						RelicTag = Relics->GetRelicTag();
+					}
+					
+					MuseumComponent->RegisterRelic(RelicTag);
+					UE_LOG(LogTemp, Log, TEXT("[ExcavationManager] 유물 등록 완료 - 태그: %d"), RelicTag);
+				}
+			}
+		}
+	}
 
 	// 발굴 완료 단계로 전환
 	SetCurrentPhase(EExcavationPhase::Completed);
