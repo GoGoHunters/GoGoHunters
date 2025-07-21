@@ -5,6 +5,7 @@
 #include "LHM/Excavation/RelicsBase.h"
 #include "Components/BoxComponent.h"
 #include "Components/DecalComponent.h"
+#include "Kismet/GameplayStatics.h"
 
 // Sets default values
 ABrushTool::ABrushTool()
@@ -81,8 +82,55 @@ void ABrushTool::CheckBrushSwipe(float DeltaTime)
 		ARelicsBase* Relic = Cast<ARelicsBase>(CurrentOverlappingRelic);
 		if (Relic)
 		{
-			Relic->ReduceDustOpacity(BoxMesh->GetComponentLocation(), FadeSpeed * DeltaTime);
+			Relic->ReduceDustOpacity(BoxMesh->GetComponentLocation(), FadeSpeed * DeltaTime, *this);
 		}
 	}
+}
+
+void ABrushTool::UpdateFeedback(float Intensity)
+{
+	PlayVibration(Intensity);
+	UpdateVisualFeedback(Intensity);
+	PlaySoundFeedback(Intensity);
+}
+
+void ABrushTool::StopFeedback()
+{
+	bIsBrushing = false;
+
+	// 햅틱 중지
+	APlayerController* PC = UGameplayStatics::GetPlayerController(this, 0);
+	if (PC)
+	{
+		PC->StopHapticEffect(EControllerHand::Right);
+	}
+}
+
+void ABrushTool::PlayVibration(float Intensity)
+{
+	// 햅틱 피드백 재생
+	APlayerController* PC = UGameplayStatics::GetPlayerController(this, 0);
+	if (PC && HapticEffect)
+	{
+		float ClampedIntensity = FMath::Clamp(Intensity, 0.0f, 1.0f);
+		PC->PlayHapticEffect(HapticEffect, EControllerHand::Right, ClampedIntensity, false);
+	}
+}
+
+void ABrushTool::UpdateVisualFeedback(float Intensity)
+{
+
+}
+
+void ABrushTool::PlaySoundFeedback(float Intensity)
+{
+
+}
+
+void ABrushTool::SetIsBrushing(bool _bIsBrushing)
+{
+	bIsBrushing = _bIsBrushing;
+
+	if (!bIsBrushing) StopFeedback();
 }
 

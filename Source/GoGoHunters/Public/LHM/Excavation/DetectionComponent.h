@@ -16,16 +16,7 @@ public:
 	// Sets default values for this component's properties
 	UDetectionComponent();
 
-protected:
-	// Called when the game starts
-	virtual void BeginPlay() override;
-
-public:	
-	// Called every frame
-	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
-
 public:
-	void OnStartFeedback();
 	void UpdateFeedback(float Progress);
 	void StopFeedback();
 

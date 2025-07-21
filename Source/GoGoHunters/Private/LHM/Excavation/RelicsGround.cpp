@@ -38,7 +38,7 @@ void ARelicsGround::SetShovelReference(class AShovelTool* NewShovelRef)
 {
 	Shovel_Ref = NewShovelRef;
 
-	if (Shovel_Ref) OnGroundDug.AddDynamic(Shovel_Ref, &AShovelTool::PlayFeedback);
+	if (Shovel_Ref) OnGroundDug.AddDynamic(Shovel_Ref, &AShovelTool::UpdateFeedback);
 }
 
 void ARelicsGround::TriggerOnGroundDug(FVector ImpactLocation)
