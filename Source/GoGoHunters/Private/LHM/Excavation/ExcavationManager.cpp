@@ -161,6 +161,7 @@ void AExcavationManager::SetCurrentPhase(EExcavationPhase NewPhase)
 	}
 
 	UE_LOG(LogTemp, Log, TEXT("[ExcavationManager] 발굴 단계 변경: %d"), (int32)CurrentPhase);
+	OnExcavationPhaseChanged.Broadcast(CurrentPhase);
 }
 
 bool AExcavationManager::IsToolAvailableForPhase(int32 ToolIndex) const

@@ -21,7 +21,7 @@ void UExcavationUI::NativeConstruct()
 	if (Btn_Tool4) Btn_Tool4->OnClicked.AddDynamic(this, &UExcavationUI::OnClick_TweezerTool);
 
 	// 초기 UI 업데이트
-	UpdateToolAvailability();
+	if (ExcavationManager) OnExcavationPhaseChanged(ExcavationManager->GetCurrentPhase());
 }
 
 void UExcavationUI::NativeDestruct()
@@ -48,29 +48,6 @@ void UExcavationUI::OnExcavationPhaseChanged(EExcavationPhase NewPhase)
 	}
 
 	UE_LOG(LogTemp, Log, TEXT("[ExcavationUI] 델리게이트로 발굴 단계 변경 감지: %d"), (int32)CurrentPhase);
-}
-
-void UExcavationUI::UpdateToolAvailability()
-{
-	if (!ExcavationManager) return;
-
-	// 현재 발굴 단계 가져오기
-	EExcavationPhase NewPhase = ExcavationManager->GetCurrentPhase();
-	
-	// 단계가 변경되었을 때만 UI 업데이트
-	if (CurrentPhase != NewPhase)
-	{
-		CurrentPhase = NewPhase;
-		
-		// 각 도구의 가용성 확인 및 버튼 상태 업데이트
-		for (int32 i = 0; i < 4; ++i)
-		{
-			bool bIsAvailable = ExcavationManager->IsToolAvailableForPhase(i);
-			SetToolButtonEnabled(i, bIsAvailable);
-		}
-
-		UE_LOG(LogTemp, Log, TEXT("[ExcavationUI] 발굴 단계 변경으로 UI 업데이트: %d"), (int32)CurrentPhase);
-	}
 }
 
 void UExcavationUI::SetToolButtonEnabled(int32 ToolIndex, bool bEnabled)
@@ -104,13 +81,14 @@ void UExcavationUI::SetToolButtonEnabled(int32 ToolIndex, bool bEnabled)
 		}
 		else
 		{
-			TargetButton->SetRenderOpacity(0.3f);
+			TargetButton->SetRenderOpacity(0.7f);
 		}
 	}
 }
 
 void UExcavationUI::OnClick_DetectionTool()
 {
+	UE_LOG(LogTemp, Warning, TEXT("[ExcavationUI] OnClick_DetectionTool"));
 	if (!ExcavationManager) return;
 	
 	// 현재 단계에서 탐지 도구 사용 가능한지 확인
@@ -126,6 +104,7 @@ void UExcavationUI::OnClick_DetectionTool()
 
 void UExcavationUI::OnClick_ShovelTool()
 {
+	UE_LOG(LogTemp, Warning, TEXT("[ExcavationUI] OnClick_ShovelTool"));
 	if (!ExcavationManager) return;
 	
 	// 현재 단계에서 삽 도구 사용 가능한지 확인
@@ -141,6 +120,7 @@ void UExcavationUI::OnClick_ShovelTool()
 
 void UExcavationUI::OnClick_BrushTool()
 {
+	UE_LOG(LogTemp, Warning, TEXT("[ExcavationUI] OnClick_BrushTool"));
 	if (!ExcavationManager) return;
 	
 	// 현재 단계에서 붓 도구 사용 가능한지 확인
@@ -156,6 +136,7 @@ void UExcavationUI::OnClick_BrushTool()
 
 void UExcavationUI::OnClick_TweezerTool()
 {
+	UE_LOG(LogTemp, Warning, TEXT("[ExcavationUI] OnClick_TweezerTool"));
 	if (!ExcavationManager) return;
 	
 	// 현재 단계에서 집게 도구 사용 가능한지 확인

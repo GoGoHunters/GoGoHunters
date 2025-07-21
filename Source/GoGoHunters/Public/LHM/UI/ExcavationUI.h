@@ -19,10 +19,6 @@ public:
 	virtual void NativeConstruct() override;
 	virtual void NativeDestruct() override;
 
-	// 발굴 단계에 따른 UI 업데이트
-	UFUNCTION(BlueprintCallable, Category = "Excavation UI")
-	void UpdateToolAvailability();
-
 	// 특정 도구 버튼 활성화/비활성화
 	UFUNCTION(BlueprintCallable, Category = "Excavation UI")
 	void SetToolButtonEnabled(int32 ToolIndex, bool bEnabled);
