@@ -22,11 +22,12 @@ ADetectorTool::ADetectorTool()
 
 	RootComponent = CreateDefaultSubobject<USceneComponent>(TEXT("RootScene"));
 	DetectorMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("DetectorMesh"));
-	static ConstructorHelpers::FObjectFinder<UStaticMesh> MeshAsset(TEXT("/Game/LHM/Meshes/SM_DetectionTool.SM_DetectionTool"));
+	static ConstructorHelpers::FObjectFinder<UStaticMesh> MeshAsset(TEXT("/Game/JMH/Mesh/04_Assets/Tools/Device0212.Device0212"));
 	if (MeshAsset.Succeeded())
 	{
 		DetectorMesh->SetStaticMesh(MeshAsset.Object);
 		DetectorMesh->SetupAttachment(RootComponent);
+		DetectorMesh->SetCollisionResponseToChannel(ECC_Pawn, ECR_Ignore);
 	}
 
 	DetectionComp = CreateDefaultSubobject<UDetectionComponent>(TEXT("DetectionComponent"));

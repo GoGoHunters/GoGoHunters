@@ -17,12 +17,13 @@ AShovelTool::AShovelTool()
 
 	RootComponent = CreateDefaultSubobject<USceneComponent>(TEXT("RootComponent"));
 	ShovelMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("ShovelMesh"));
-	static ConstructorHelpers::FObjectFinder<UStaticMesh> ShovelMeshAsset(TEXT("/Game/LHM/Meshes/SM_Shovel.SM_Shovel"));
+	static ConstructorHelpers::FObjectFinder<UStaticMesh> ShovelMeshAsset(TEXT("/Game/JMH/Mesh/04_Assets/Tools/Shovels0212.Shovels0212"));
 	if (ShovelMeshAsset.Succeeded())
 	{
 		ShovelMesh->SetStaticMesh(ShovelMeshAsset.Object);
 		ShovelMesh->SetupAttachment(RootComponent);
-		ShovelMesh->SetRelativeLocation(FVector(90, 0, 0)); // (X=80.000000,Y=0.000000,Z=0.000000)
+		//ShovelMesh->SetRelativeLocation(FVector(90, 0, 0)); // (X=80.000000,Y=0.000000,Z=0.000000)
+		ShovelMesh->SetCollisionResponseToChannel(ECC_Pawn, ECR_Ignore);
 	}
 
 	SplatPoint = CreateDefaultSubobject<USceneComponent>(TEXT("SplatPoint"));
