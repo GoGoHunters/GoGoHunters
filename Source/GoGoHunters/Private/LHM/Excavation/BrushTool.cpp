@@ -14,13 +14,14 @@ ABrushTool::ABrushTool()
 
 	RootComponent = CreateDefaultSubobject<USceneComponent>(TEXT("RootScene"));
 	BrushMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("BrushMesh"));
-	static ConstructorHelpers::FObjectFinder<UStaticMesh> MeshAsset(TEXT("/Game/LHM/Meshes/SM_Brush.SM_Brush"));
+	static ConstructorHelpers::FObjectFinder<UStaticMesh> MeshAsset(TEXT("/Game/JMH/Mesh/04_Assets/Tools/Brush021.Brush021"));
 	if (MeshAsset.Succeeded())
 	{
 		BrushMesh->SetStaticMesh(MeshAsset.Object);
 		BrushMesh->SetupAttachment(RootComponent);
-		BrushMesh->SetRelativeLocation(FVector(10, 0, 0)); // (X=10.000000,Y=-0.000000,Z=-0.000000)
-		BrushMesh->SetRelativeRotation(FRotator(90, 0, 180)); // (Pitch=90.000000,Yaw=0.000000,Roll=180.000000)
+		//BrushMesh->SetRelativeLocation(FVector(10, 0, 0)); // (X=10.000000,Y=-0.000000,Z=-0.000000)
+		//BrushMesh->SetRelativeRotation(FRotator(90, 0, 180)); // (Pitch=90.000000,Yaw=0.000000,Roll=180.000000)
+		BrushMesh->SetCollisionResponseToChannel(ECC_Pawn, ECR_Ignore);
 	}
 
 	BoxMesh = CreateDefaultSubobject<UBoxComponent>(TEXT("BoxMesh"));
