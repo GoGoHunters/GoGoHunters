@@ -19,30 +19,6 @@ UDetectionComponent::UDetectionComponent()
 	}
 }
 
-
-// Called when the game starts
-void UDetectionComponent::BeginPlay()
-{
-	Super::BeginPlay();
-
-	// ...
-	
-}
-
-
-// Called every frame
-void UDetectionComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
-{
-	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
-
-	// ...
-}
-
-void UDetectionComponent::OnStartFeedback()
-{
-
-}
-
 void UDetectionComponent::UpdateFeedback(float Progress)
 {
 	float Normalized = Progress / 100.f;

@@ -49,7 +49,7 @@ void AShovelTool::Tick(float DeltaTime)
 
 }
 
-void AShovelTool::PlayFeedback(FVector ImpactLocation)
+void AShovelTool::UpdateFeedback(FVector ImpactLocation)
 {
 	if (!bIsDigging) return;
 

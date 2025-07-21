@@ -7,6 +7,7 @@
 #include "LHM/Excavation/ExcavationManager.h"
 #include "Kismet/GameplayStatics.h"
 #include "EngineUtils.h"
+#include "LHM/Excavation/BrushTool.h"
 
 // Sets default values
 ARelicsBase::ARelicsBase()
@@ -79,7 +80,7 @@ void ARelicsBase::Tick(float DeltaTime)
 
 }
 
-void ARelicsBase::ReduceDustOpacity(const FVector& BrushLocation, float Amount)
+void ARelicsBase::ReduceDustOpacity(const FVector& BrushLocation, float Amount, ABrushTool& BrushRef)
 {
     UDecalComponent* Closest = nullptr;
     float MinDist = MAX_flt;
@@ -103,6 +104,10 @@ void ARelicsBase::ReduceDustOpacity(const FVector& BrushLocation, float Amount)
     MID->GetScalarParameterValue(FMaterialParameterInfo(OpacityParameterName), Opacity);
     Opacity = FMath::Clamp(Opacity - Amount, 0.0f, 1.0f);
     MID->SetScalarParameterValue(OpacityParameterName, Opacity);
+    
+    // 이펙트 업데이트
+    ABrushTool* Brush = Cast<ABrushTool>(&BrushRef);
+    if (Brush) Brush->UpdateFeedback(Opacity);
 
     UE_LOG(LogTemp, Log, TEXT("[Debug] Decal Opacity value: %f"), Opacity);
 
@@ -114,6 +119,7 @@ void ARelicsBase::ReduceDustOpacity(const FVector& BrushLocation, float Amount)
         DecalToMeshMap.Remove(Closest);
 
         CheckAllDelcalsRemoved();
+		if (Brush) Brush->StopFeedback();
     }
 }
 

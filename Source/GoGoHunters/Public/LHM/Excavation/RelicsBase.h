@@ -73,7 +73,7 @@ public:
 	UPROPERTY(EditAnywhere, Category="Relics")
 	int32 RelicTag = -1;
 
-	void ReduceDustOpacity(const FVector& BrushLocation, float Amount);
+	void ReduceDustOpacity(const FVector& BrushLocation, float Amount, class ABrushTool& BrushRef);
 
 	void CheckAllDelcalsRemoved();
 };
