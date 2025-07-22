@@ -922,27 +922,6 @@ void AMH_VRPlayer::HandleUIInteraction(const FInputActionInstance& IA_Instance)
     }
 }
 
-void AMH_VRPlayer::TryUIInteraction(const FInputActionInstance& IA_Instance)
-{
-	// UI 상호작용 시도 (트리거 누를 때)
-	HandleUIInteraction(IA_Instance);
-}
-
-void AMH_VRPlayer::EndUIInteraction(const FInputActionInstance& IA_Instance)
-{
-	// UI 상호작용 종료 (트리거 놓을 때)
-	if (bIsUIInteractionActive)
-	{
-		// WidgetInteraction으로 마우스 버튼 해제
-		if (ActiveWidgetInteraction)
-		{
-			ActiveWidgetInteraction->ReleasePointerKey(EKeys::LeftMouseButton);
-		}
-
-		DisableWidgetInteraction();
-	}
-}
-
 bool AMH_VRPlayer::IsPointingAtUI(UMotionControllerComponent* MotionController, UWidgetComponent*& OutWidgetComponent)
 {
 	if (!MotionController) return false;
