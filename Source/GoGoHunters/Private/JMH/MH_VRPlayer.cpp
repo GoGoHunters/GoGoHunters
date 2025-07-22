@@ -796,8 +796,7 @@ void AMH_VRPlayer::TryGrab(const struct FInputActionValue& Value)
 
 	if (FocusedGrabbableActor->IsA(ACRelicBase::StaticClass())) // 그랩 대상이 유물이면, 피직스를 켜준다
 	{
-		if (UPrimitiveComponent* PrimComp = Cast<UPrimitiveComponent>(HitComp))
-			PrimComp->SetSimulatePhysics(true);
+		HitComp->SetSimulatePhysics(true);
 	}
 	
 	if (!HitComp || !HitComp->IsSimulatingPhysics()) return;
