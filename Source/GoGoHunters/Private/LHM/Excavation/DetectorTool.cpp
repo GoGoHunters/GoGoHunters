@@ -71,10 +71,7 @@ void ADetectorTool::SetIsDetecting(bool _bIsDetecting)
 {
 	bIsDetecting = _bIsDetecting;
 
-	if (!bIsDetecting)
-	{
-		StopDetection();
-	}
+	if (!bIsDetecting) StopDetection();
 }
 
 void ADetectorTool::StopDetection()

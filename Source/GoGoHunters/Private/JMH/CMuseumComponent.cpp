@@ -1,5 +1,7 @@
 #include "JMH/CMuseumComponent.h"
 
+#include "EngineUtils.h"
+#include "Algo/Sort.h"
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
 #include "MotionControllerComponent.h"
@@ -9,6 +11,7 @@
 #include "LHJ/CRelicBase.h"
 #include "Utilities/CHelpers.h"
 #include "base/GI_Base.h"
+#include "JMH/MH_GrabComp.h"
 #include "LHJ/CMuseumPlaceArea.h"
 #include "LHJ/CRelicCollectionWidgetActor.h"
 
@@ -51,11 +54,20 @@ void UCMuseumComponent::BeginPlay()
 				SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
 
 				ACRelicBase* RelicActor = GetWorld()->SpawnActor<ACRelicBase>(Local_RelicDetailData->RelicActorClass, Data.PlacedTransform, SpawnParams);
-				if (RelicActor) RelicActor->InitializeAsset(Data, *Local_RelicDetailData);
+				if (RelicActor)
+				{
+					RelicActor->InitializeAsset(Data, *Local_RelicDetailData);
+					RelicActor->Tags.Add("Grabable");
+				}
 
 				if (Data.PlaceArea) Data.PlaceArea->PlaceRelicAt(Data.PlacedTransform.GetLocation());
 			}
 		}
+	}
+
+	if (OwnerPlayer)
+	{
+		GrabComponent = OwnerPlayer->GetComponentByClass<UMH_GrabComp>();
 	}
 }
 
@@ -93,7 +105,7 @@ void UCMuseumComponent::PreviewMode()
 	if (bHit)
 	{
 		PlaceArea = Cast<ACMuseumPlaceArea>(outHit.GetActor());
-
+		
 		// PlaceArea에 닿았으면, 가장 가까운 GridCell의 Center로 스냅
 		if (PlaceArea)
 		{
@@ -116,8 +128,17 @@ void UCMuseumComponent::PreviewMode()
 			BuildTransform.SetRotation(FRotator::ZeroRotator.Quaternion());
 			
 			Relic->SetActorTransform(BuildTransform);
-			Relic->SetRelicMaterial(RelicAcceptMaterial);
-			bCanPlace = true;
+
+			if (!PlaceArea->CanPlaceRelicAt(outHit.Location))
+			{
+				Relic->SetRelicMaterial(RelicRejectedMaterial);
+				bCanPlace = false;
+			}
+			else
+			{
+				Relic->SetRelicMaterial(RelicAcceptMaterial);
+				bCanPlace = true;				
+			}
 		}
 	}
 	else
@@ -161,7 +182,7 @@ void UCMuseumComponent::SwitchState()
 		OwnerPlayer->RWidgetInteractionComponent->bEnableHitTesting = true;
 		OwnerPlayer->RWidgetInteractionComponent->bShowDebug = true;
 		OwnerPlayer->RelicCollectionWidgetActor->ReloadRelicList();
-		GrabRelicEnd();
+		GrabComponent->RelicUnGrab();
 		break;
 	}
 }
@@ -213,6 +234,7 @@ void UCMuseumComponent::PlaceRelic()
 	{
 		placeActor->InitializeAsset(RelicData, RelicDetailData);
 		placeActor->SetRelicMaterial();
+		placeActor->Tags.Add("Grabable");
 		
 		// SaveGame 저장
 		if (UGI_Base* GI = Cast<UGI_Base>(UGameplayStatics::GetGameInstance(GetWorld())))
@@ -234,13 +256,16 @@ void UCMuseumComponent::PlaceRelic()
 
 void UCMuseumComponent::RegisterRelic(const int32& InRelicTag)
 {
+	if (InRelicTag == -1) return;
 	if (UGI_Base* GI = Cast<UGI_Base>(UGameplayStatics::GetGameInstance(GetWorld())))
 	{
-		const FCRelicDetailData* l_RelicDetailData = GI->GetRelicDetailDataByTag(InRelicTag == -1 ? 10001 : InRelicTag);
+		const FCRelicDetailData* l_RelicDetailData = GI->GetRelicDetailDataByTag(InRelicTag);
+
+		if (!l_RelicDetailData) return;
 		
 		FCRelicData NewRelicData;
-		NewRelicData.RelicName = l_RelicDetailData? l_RelicDetailData->RelicName : FText::FromString(TEXT("공룡알"));
-		NewRelicData.RelicTag = l_RelicDetailData ? InRelicTag : 10001;
+		NewRelicData.RelicName = l_RelicDetailData->RelicName;
+		NewRelicData.RelicTag = InRelicTag;
 		NewRelicData.DropDate = FDateTime::Now();
 		NewRelicData.PlacedTransform = FTransform();
 		NewRelicData.IsPlace = false;
@@ -263,6 +288,51 @@ void UCMuseumComponent::PreviewEnd()
 	PlaceArea = nullptr;
 }
 
-void UCMuseumComponent::GrabRelicEnd()
+void UCMuseumComponent::GrabRelicEnd(ACRelicBase* GrabRelic, const FVector& HandComponentLocation)
 {
+	// 1. 범위 내 ACMuseumPlaceArea 찾기
+	TArray<ACMuseumPlaceArea*> NearbyAreas;
+	for (TActorIterator<ACMuseumPlaceArea> It(GetWorld()); It; ++It)
+	{
+		ACMuseumPlaceArea* Area = *It;
+		if (FVector::Dist(Area->GetActorLocation(), HandComponentLocation) <= RePlaceAreaSearchRange)
+		{
+			NearbyAreas.Add(Area);
+		}
+	}
+
+	// 가까운 순서대로 정렬
+	Algo::SortBy(NearbyAreas, [HandComponentLocation](const ACMuseumPlaceArea* Area)
+	{
+		return FVector::Dist(Area->GetActorLocation(), HandComponentLocation);
+	});
+
+	// 2. 빈 칸 찾기 및 등록
+	bool bPlaced = false;
+	for (ACMuseumPlaceArea* Area : NearbyAreas)
+	{
+		FVector EmptySlotLocation = Area->FindEmptySlot(HandComponentLocation);
+		if (EmptySlotLocation != FVector::ZeroVector)
+		{
+			// 3-1. 원래 칸에서 Relic 해제
+			if (GrabRelic->GetPlaceAreaActor())
+			{
+				GrabRelic->GetPlaceAreaActor()->UnregisterRelic(GrabRelic);
+			}
+			// 3-2. 새 칸에 등록
+			Area->PlaceRelicAt(EmptySlotLocation);
+			bPlaced = true;
+			break;
+		}
+	}
+
+	// 4. 빈 칸이 없으면 원래 위치로 이동
+	if (!bPlaced)
+	{
+		GrabRelic->ReturnToOriginalLocation();
+	}
+
+	// 5. 피직스 끄기
+	if (UPrimitiveComponent* PrimComp = Cast<UPrimitiveComponent>(GrabRelic->GetRootComponent()))
+		PrimComp->SetSimulatePhysics(false);	
 }

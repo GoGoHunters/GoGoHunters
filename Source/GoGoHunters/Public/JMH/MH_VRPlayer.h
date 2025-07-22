@@ -290,8 +290,6 @@ private:
 	
 	// UI 상호작용 함수들
 	void HandleUIInteraction(const FInputActionInstance& IA_Instance);
-	void TryUIInteraction(const FInputActionInstance& IA_Instance);
-	void EndUIInteraction(const FInputActionInstance& IA_Instance);
 	
 	// UI 감지 함수
 	bool IsPointingAtUI(UMotionControllerComponent* MotionController, UWidgetComponent*& OutWidgetComponent);

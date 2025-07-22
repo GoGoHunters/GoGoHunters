@@ -43,7 +43,7 @@ public:
 	void SetIsDigging(bool bNewIsDigging) { bIsDigging = bNewIsDigging; }
 
 	UFUNCTION()
-	void PlayFeedback(FVector ImpactLocation);
+	void UpdateFeedback(FVector ImpactLocation);
 	
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="Digging")
 	class UHapticFeedbackEffect_Base* DigHapticEffect;

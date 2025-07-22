@@ -37,3 +37,8 @@ void ACRelicBase::SetRelicMaterial()
 	if(!RelicMaterial) return;
 	RelicMesh->SetMaterial(0, RelicMaterial);
 }
+
+void ACRelicBase::ReturnToOriginalLocation()
+{
+	SetActorLocationAndRotation(RelicData.PlacedTransform.GetLocation(), RelicData.PlacedTransform.GetRotation());
+}
