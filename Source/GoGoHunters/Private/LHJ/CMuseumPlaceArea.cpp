@@ -3,6 +3,7 @@
 #include "Components/BoxComponent.h"
 #include "Utilities/CHelpers.h"
 #include "DrawDebugHelpers.h"
+#include "LHJ/CRelicBase.h"
 
 ACMuseumPlaceArea::ACMuseumPlaceArea()
 {
@@ -77,6 +78,43 @@ void ACMuseumPlaceArea::PlaceRelicAt(const FVector& WorldLocation)
 		if (FVector::Dist2D(Cell.Center, WorldLocation) < CellSize * 0.5f)
 		{
 			Cell.bOccupied = true;
+			break;
+		}
+	}
+}
+
+FVector ACMuseumPlaceArea::FindEmptySlot(const FVector& FromLocation) const
+{
+	float MinDist = TNumericLimits<float>::Max();
+	const FGridCell* ClosestCell = nullptr;
+
+	for (const FGridCell& Cell : GridCells)
+	{
+		if (!Cell.bOccupied)
+		{
+			float Dist = FVector::Dist2D(Cell.Center, FromLocation);
+			if (Dist < MinDist)
+			{
+				MinDist = Dist;
+				ClosestCell = &Cell;
+			}
+		}
+	}
+
+	if (ClosestCell)
+		return ClosestCell->Center;
+	return FVector::ZeroVector;
+}
+
+void ACMuseumPlaceArea::UnregisterRelic(const ACRelicBase* Relic)
+{
+	if (!Relic) return;
+
+	for (FGridCell& Cell : GridCells)
+	{
+		if (FVector::Dist2D(Cell.Center, Relic->GetActorLocation()) < CellSize * 0.5f)
+		{
+			Cell.bOccupied = false;
 			break;
 		}
 	}

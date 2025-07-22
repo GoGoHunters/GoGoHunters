@@ -15,6 +15,9 @@ public:
 	void SetRelicMaterial(UMaterialInterface* NewRelicMaterial);
 	void InitializeAsset(const FCRelicData& InRelicData, const FCRelicDetailData& InRelicDetailData);
 	void SetRelicMaterial();
+	void ReturnToOriginalLocation();
+
+	ACMuseumPlaceArea* GetPlaceAreaActor() { return RelicData.PlaceArea; }
 	
 protected:
 	UPROPERTY(EditAnywhere)
@@ -28,5 +31,4 @@ protected:
 	ACRelicBase();
 	virtual void BeginPlay() override;
 	virtual void Tick(float DeltaTime) override;
-
 };

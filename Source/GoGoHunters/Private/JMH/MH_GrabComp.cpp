@@ -1,30 +1,21 @@
-// Fill out your copyright notice in the Description page of Project Settings.
-
-
 #include "JMH/MH_GrabComp.h"
 
-// Sets default values for this component's properties
+#include "JMH/CMuseumComponent.h"
+#include "JMH/MH_VRPlayer.h"
+#include "LHJ/CRelicBase.h"
+
 UMH_GrabComp::UMH_GrabComp()
 {
-	// Set this component to be initialized when the game starts, and to be ticked every frame.  You can turn these features
-	// off to improve performance if you don't need them.
 	PrimaryComponentTick.bCanEverTick = true;
-
-	// ...
 }
 
-
-// Called when the game starts
 void UMH_GrabComp::BeginPlay()
 {
 	Super::BeginPlay();
-
-	// ...
-	
+	OwnerPlayer = Cast<AMH_VRPlayer>(GetOwner());
+	if (OwnerPlayer) MuseumComponent = OwnerPlayer->GetComponentByClass<UCMuseumComponent>();
 }
 
-
-// Called every frame
 void UMH_GrabComp::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
@@ -74,13 +65,28 @@ void UMH_GrabComp::TryUnGrab()
 {
 	if (!bIsGrabbing || !GrabbedComponent) return;
 
-	GrabbedComponent->DetachFromComponent(FDetachmentTransformRules::KeepWorldTransform);
-	GrabbedComponent->SetSimulatePhysics(true);
-	GrabbedComponent->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+	ReleaseGrabbedComponent();
+	RelicUnGrab();
+
 	GrabbedComponent = nullptr;
 	bIsGrabbing = false;
 
 	UE_LOG(LogTemp, Warning, TEXT("[GrabComp] Grab 해제됨"));
+}
+
+void UMH_GrabComp::RelicUnGrab()
+{
+	if (GrabbedComponent && GrabbedComponent->IsA(ACRelicBase::StaticClass()) && MuseumComponent)
+	{
+		MuseumComponent->GrabRelicEnd(Cast<ACRelicBase>(GrabbedComponent), HandComponent->GetComponentLocation());
+	}
+}
+
+void UMH_GrabComp::ReleaseGrabbedComponent()
+{
+	GrabbedComponent->DetachFromComponent(FDetachmentTransformRules::KeepWorldTransform);
+	GrabbedComponent->SetSimulatePhysics(true);
+	GrabbedComponent->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);	
 }
 
 void UMH_GrabComp::RotateGrabbedObject(const FVector2D& Input)
