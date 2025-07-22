@@ -17,7 +17,7 @@ ARelicsBase::ARelicsBase()
 
     RootComponent = CreateDefaultSubobject<USceneComponent>(TEXT("RootScene"));
 
-    for (int i = 0; i < 5; ++i)
+    for (int i = 0; i < 8; ++i)
     {
         FString MeshName = FString::Printf(TEXT("RelicMesh_%d"), i + 1);
         UStaticMeshComponent* RelicMesh = CreateDefaultSubobject<UStaticMeshComponent>(*MeshName);
@@ -26,13 +26,14 @@ ARelicsBase::ARelicsBase()
         RelicMesh->SetGenerateOverlapEvents(true);
         RelicsMeshes.Add(RelicMesh);
 
-        int DecalCount = (i == 0) ? 3 : 1;
+        int DecalCount = (i == 0) ? 2 : 1;
 
         for (int j = 0; j < DecalCount; ++j)
         {
             FString DecalName = FString::Printf(TEXT("DustDecal_%d_%d"), i + 1, j + 1);
             UDecalComponent* Decal = CreateDefaultSubobject<UDecalComponent>(*DecalName);
             Decal->SetupAttachment(RelicMesh);
+			Decal->DecalSize = FVector(10.0f, 10.0f, 10.0f);
             DustDecals.Add(Decal);
             DecalToMeshMap.Add(Decal, RelicMesh);
         }
