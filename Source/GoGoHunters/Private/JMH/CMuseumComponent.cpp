@@ -105,7 +105,7 @@ void UCMuseumComponent::PreviewMode()
 	if (bHit)
 	{
 		PlaceArea = Cast<ACMuseumPlaceArea>(outHit.GetActor());
-
+		
 		// PlaceArea에 닿았으면, 가장 가까운 GridCell의 Center로 스냅
 		if (PlaceArea)
 		{
@@ -128,8 +128,17 @@ void UCMuseumComponent::PreviewMode()
 			BuildTransform.SetRotation(FRotator::ZeroRotator.Quaternion());
 			
 			Relic->SetActorTransform(BuildTransform);
-			Relic->SetRelicMaterial(RelicAcceptMaterial);
-			bCanPlace = true;
+
+			if (!PlaceArea->CanPlaceRelicAt(outHit.Location))
+			{
+				Relic->SetRelicMaterial(RelicRejectedMaterial);
+				bCanPlace = false;
+			}
+			else
+			{
+				Relic->SetRelicMaterial(RelicAcceptMaterial);
+				bCanPlace = true;				
+			}
 		}
 	}
 	else

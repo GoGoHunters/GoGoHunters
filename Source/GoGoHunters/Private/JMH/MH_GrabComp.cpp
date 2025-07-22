@@ -76,7 +76,7 @@ void UMH_GrabComp::TryUnGrab()
 
 void UMH_GrabComp::RelicUnGrab()
 {
-	if (GrabbedComponent->IsA(ACRelicBase::StaticClass()) && MuseumComponent)
+	if (GrabbedComponent && GrabbedComponent->IsA(ACRelicBase::StaticClass()) && MuseumComponent)
 	{
 		MuseumComponent->GrabRelicEnd(Cast<ACRelicBase>(GrabbedComponent), HandComponent->GetComponentLocation());
 	}

@@ -22,15 +22,17 @@ class GOGOHUNTERS_API ACMuseumPlaceArea : public AActor
 	GENERATED_BODY()
 
 public:
-	// 유물 설치
-	void PlaceRelicAt(const FVector& WorldLocation);
-
-	// GridCells 접근용 Getter
-	const TArray<FGridCell>& GetGridCells() const { return GridCells; }
-
 	// 모든 셀에 동일하게 적용할 유물 스케일
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Grid")
 	FVector CellUniformScale = FVector(1.f);
+
+	// 유물 설치
+	void PlaceRelicAt(const FVector& WorldLocation);
+	
+	// GridCells 접근용 Getter
+	const TArray<FGridCell>& GetGridCells() const { return GridCells; }
+	// 유물 설치 가능 여부
+	bool CanPlaceRelicAt(const FVector& WorldLocation) const;
 
 	FVector FindEmptySlot(const FVector& FromLocation) const;
 	void UnregisterRelic(const class ACRelicBase* Relic);
@@ -59,9 +61,6 @@ private:
 
 	void CreateGrid();
 	void DrawGridDebug() const;
-
-	// 유물 설치 가능 여부
-	bool CanPlaceRelicAt(const FVector& WorldLocation) const;
 
 	// 디버그용 그리드 표시 토글
 	void SetGridDebugVisible(bool bVisible);
