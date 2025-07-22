@@ -1,5 +1,3 @@
-// Fill out your copyright notice in the Description page of Project Settings.
-
 #pragma once
 
 #include "CoreMinimal.h"
@@ -13,6 +11,9 @@
  * - 이 컴포넌트는 단순히 Grab / Release / Rotate 기능만 수행
  * - BeginPlay에서 손 위치를 지정하는 HandComponent를 외부에서 할당해야 함
  */
+
+class AMH_VRPlayer;
+class UCMuseumComponent;
 
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
 class GOGOHUNTERS_API UMH_GrabComp : public UActorComponent
@@ -33,10 +34,17 @@ public:
 
 	bool TryGrab(UPrimitiveComponent* TargetComp);
 	void TryUnGrab();
+	void RelicUnGrab();
+	void ReleaseGrabbedComponent();
 
 	UPROPERTY(EditAnywhere, Category="Grab")
 	float GrabPullSpeed = 5.0f;
 
+	UPROPERTY()
+	TObjectPtr<AMH_VRPlayer> OwnerPlayer = nullptr;
+	UPROPERTY()
+	TObjectPtr<UCMuseumComponent> MuseumComponent = nullptr;
+	
 	//손 위치
 	UPROPERTY()
 	USceneComponent* HandComponent = nullptr;
