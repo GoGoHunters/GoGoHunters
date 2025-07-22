@@ -97,7 +97,7 @@ AMH_VRPlayer::AMH_VRPlayer()
 		RWidgetInteractionComponent->bEnableHitTesting = false; // UI 상호작용을 위해 활성화
 		RWidgetInteractionComponent->bShowDebug = false;
 		RWidgetInteractionComponent->InteractionSource = EWidgetInteractionSource::World;
-		RWidgetInteractionComponent->TraceChannel = ECC_Visibility;
+		RWidgetInteractionComponent->TraceChannel = ECC_GameTraceChannel8;
 		RWidgetInteractionComponent->PointerIndex = 0;
 		RWidgetInteractionComponent->VirtualUserIndex = 0;
 		
@@ -105,7 +105,7 @@ AMH_VRPlayer::AMH_VRPlayer()
 		LWidgetInteractionComponent->bEnableHitTesting = false; // UI 상호작용을 위해 활성화
 		LWidgetInteractionComponent->bShowDebug = false;
 		LWidgetInteractionComponent->InteractionSource = EWidgetInteractionSource::World;
-		LWidgetInteractionComponent->TraceChannel = ECC_Visibility;
+		LWidgetInteractionComponent->TraceChannel = ECC_GameTraceChannel8;
 		LWidgetInteractionComponent->PointerIndex = 1;
 		LWidgetInteractionComponent->VirtualUserIndex = 1;
 	}
@@ -428,6 +428,8 @@ void AMH_VRPlayer::TriggerInteractCompleted()
 		if (ActiveWidgetInteraction)
 		{
 			ActiveWidgetInteraction->ReleasePointerKey(EKeys::LeftMouseButton);
+			ActiveWidgetInteraction->bEnableHitTesting = false;
+			ActiveWidgetInteraction->bShowDebug = false;
 		}
 
 		if (!MuseumComponent || *MuseumComponent->GetMuseumState() != EMuseumState::Decorate)
@@ -909,6 +911,8 @@ void AMH_VRPlayer::HandleUIInteraction(const FInputActionInstance& IA_Instance)
 	
 	if (!MotionController || !WidgetInteraction) return;
 
+	WidgetInteraction->bShowDebug = true;
+	WidgetInteraction->bEnableHitTesting = true;
     UWidgetComponent* HitWidgetComponent = nullptr;
     if (IsPointingAtUI(MotionController, HitWidgetComponent))
     {
@@ -967,7 +971,7 @@ bool AMH_VRPlayer::IsPointingAtUI(UMotionControllerComponent* MotionController, 
 
 	// UI 전용 레이캐스트 (WidgetComponent 찾기)
 	TArray<FHitResult> HitResults;
-	if (GetWorld()->LineTraceMultiByChannel(HitResults, Start, End, ECC_Visibility, QueryParams))
+	if (GetWorld()->LineTraceMultiByChannel(HitResults, Start, End, ECC_GameTraceChannel8, QueryParams))
 	{
 		for (const FHitResult& Hit : HitResults)
 		{
