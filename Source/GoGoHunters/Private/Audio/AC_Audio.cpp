@@ -31,6 +31,8 @@ void UAC_Audio::BeginPlay()
 		ProceduralSoundWave->bLooping = false;
 		ProceduralSoundWave->bProcedural = true;
 
+		OnAudioFinished.AddDynamic(this, &UAC_Audio::OnAudioPlaybackFinished);
+
 		// UAudioComponent¿¡ ProceduralSoundWave ÇÒ´ç
 		SetSound(ProceduralSoundWave);
 		UE_LOG(LogTemp, Log, TEXT("MyProceduralAudioComponent: USoundWaveProcedural initialized and assigned."));
@@ -172,4 +174,11 @@ void UAC_Audio::PlayAudioFromBytes(const TArray<uint8>& AudioBytes)
 	{
 		UE_LOG(LogTemp, Warning, TEXT("MyProceduralAudioComponent: No PCM data found to play after WAV header parsing."));
 	}
+}
+
+void UAC_Audio::OnAudioPlaybackFinished()
+{
+	UE_LOG(LogTemp, Log, TEXT("MyProceduralAudioComponent: Audio playback finished!"));
+
+	OnAudioPlayFinishedEvent.Broadcast();
 }

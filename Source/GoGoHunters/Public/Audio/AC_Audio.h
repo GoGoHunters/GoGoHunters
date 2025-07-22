@@ -8,6 +8,8 @@
 #include "Components/AudioComponent.h"
 #include "AC_Audio.generated.h"
 
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnPlayFinish);
+
 
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent), Blueprintable)
 class GOGOHUNTERS_API UAC_Audio : public UAudioComponent
@@ -29,6 +31,11 @@ private:
 
 	AActor *Owner;
 
+
+	UFUNCTION()
+	void OnAudioPlaybackFinished();
+
+
 protected:
 	// Called when the game starts
 	virtual void BeginPlay() override;
@@ -39,5 +46,9 @@ protected:
 public:
 	UFUNCTION(BlueprintCallable, Category = "AudioPlayback")
 	void PlayAudioFromBytes(const TArray<uint8>& AudioBytes);
+
+
+	UPROPERTY(BlueprintAssignable, Category = "AudioPlayback")
+	FOnPlayFinish OnAudioPlayFinishedEvent;
 
 };
