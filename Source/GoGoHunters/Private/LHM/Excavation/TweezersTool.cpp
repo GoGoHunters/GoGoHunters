@@ -20,13 +20,15 @@ ATweezersTool::ATweezersTool()
 	{
 		TweezersMeshL->SetStaticMesh(MeshAssets.Object);
 		TweezersMeshL->SetupAttachment(RootComponent);
-		TweezersMeshL->SetRelativeLocation(FVector(25, -2, -70)); // (X=25.000000,Y=-2.000000,Z=10.000000)
+		TweezersMeshL->SetRelativeLocation(FVector(25, -2, 0)); // (X=25.000000,Y=-2.000000,Z=10.000000)
 		TweezersMeshL->SetRelativeRotation(FRotator(0, -5, 0)); // (Pitch=0.000000,Yaw=-5.000000,Roll=-0.000000)
+		TweezersMeshL->SetCollisionResponseToChannel(ECC_Pawn, ECR_Ignore);
 
 		TweezersMeshR->SetStaticMesh(MeshAssets.Object);
 		TweezersMeshR->SetupAttachment(RootComponent);
-		TweezersMeshR->SetRelativeLocation(FVector(25, 2, -70)); // (X=25.000000,Y=2.000000,Z=10.000000)
+		TweezersMeshR->SetRelativeLocation(FVector(25, 2, 0)); // (X=25.000000,Y=2.000000,Z=10.000000)
 		TweezersMeshR->SetRelativeRotation(FRotator(0, 5, 0)); // (Pitch=0.000000,Yaw=5.000000,Roll=-0.000000)
+		TweezersMeshR->SetCollisionResponseToChannel(ECC_Pawn, ECR_Ignore);
 	}
 
 	PickupBox = CreateDefaultSubobject<UBoxComponent>(TEXT("PickupBox"));
@@ -106,16 +108,16 @@ void ATweezersTool::SetIsPickingUp(bool _bIsPickingUp)
 
 	if (bIsPickingUp)
 	{
-		TweezersMeshL->SetRelativeLocation(FVector(25, -1, -70));
+		TweezersMeshL->SetRelativeLocation(FVector(25, -1, 0));
 		TweezersMeshL->SetRelativeRotation(FRotator(0, 0, 0));
-		TweezersMeshR->SetRelativeLocation(FVector(25, 1, -70));
+		TweezersMeshR->SetRelativeLocation(FVector(25, 1, 0));
 		TweezersMeshR->SetRelativeRotation(FRotator(0, 0, 0));
 	}
 	else
 	{
-		TweezersMeshL->SetRelativeLocation(FVector(25, -2, -70));
+		TweezersMeshL->SetRelativeLocation(FVector(25, -2, 0));
 		TweezersMeshL->SetRelativeRotation(FRotator(0, -5, 0));
-		TweezersMeshR->SetRelativeLocation(FVector(25, 2, -70));
+		TweezersMeshR->SetRelativeLocation(FVector(25, 2, 0));
 		TweezersMeshR->SetRelativeRotation(FRotator(0, 5, 0));
 
 		// 유물 놓기

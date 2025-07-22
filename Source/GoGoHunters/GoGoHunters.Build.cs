@@ -18,13 +18,15 @@ public class GoGoHunters : ModuleRules
 			"Niagara",
 			"HTTP", 
 			"WebSockets",
-            "AudioMixer",
-            "AudioCapture",
-            "AudioCaptureCore",
             "SignalProcessing",
             "Json",
             "JsonUtilities",
             "UMG", "Slate", "SlateCore"
         });
-	}
+        PrivateDependencyModuleNames.AddRange(new string[] {
+            "AudioMixer",
+            "AudioCapture",
+            "AudioCaptureCore"
+        });
+    }
 }

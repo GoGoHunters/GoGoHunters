@@ -401,18 +401,22 @@ void AMH_VRPlayer::RotateHeldObject(const struct FInputActionValue& Value)
 
 void AMH_VRPlayer::TriggerInteract(const FInputActionInstance& IA_Instance)
 {
-	// 먼저 월드맵 상호작용 시도
-	TryWorldMapInteraction(IA_Instance);
-	
-	// UI 감지 및 상호작용 처리
-	HandleUIInteraction(IA_Instance);
+    // UI 상호작용
+    HandleUIInteraction(IA_Instance);
 
-	// 유물 설치용 함수 호출
-	if (MuseumComponent)
-	{
-		if (*MuseumComponent->GetMuseumState() == Decorate)
-			MuseumComponent->PlaceRelic();	// 유물 설치
-	}
+    // 도구 상태 체크
+    if(GetPlayerState() == EPlayerVRState::UsingTool 
+	|| GetPlayerState() == EPlayerVRState::Excavating) return;
+
+    // 월드맵 상호작용
+    TryWorldMapInteraction(IA_Instance);
+
+    // 유물 설치
+    if (MuseumComponent)
+    {
+        if (*MuseumComponent->GetMuseumState() == Decorate)
+            MuseumComponent->PlaceRelic();
+    }
 }
 
 void AMH_VRPlayer::TriggerInteractCompleted()
@@ -429,7 +433,7 @@ void AMH_VRPlayer::TriggerInteractCompleted()
 		if (!MuseumComponent || *MuseumComponent->GetMuseumState() != EMuseumState::Decorate)
 			DisableWidgetInteraction();
 	}
-	
+
 	// 월드맵 상호작용 리셋
 	ResetWorldMapInteraction();
 }
@@ -614,8 +618,9 @@ void AMH_VRPlayer::ExcavationTool4()
 
 void AMH_VRPlayer::ExcavationDetectStart()
 {
-	if(GetPlayerState() != EPlayerVRState::UsingTool) return;
-	if(!DetectionTool) return;
+	if (!DetectionTool) return;
+	if (bIsUIInteractionActive) return;
+	if (GetPlayerState() != EPlayerVRState::UsingTool) return;
 
 	DetectionTool->SetIsDetecting(true);
 	SetPlayerState(EPlayerVRState::Excavating);
@@ -623,26 +628,27 @@ void AMH_VRPlayer::ExcavationDetectStart()
 
 void AMH_VRPlayer::ExcavationDetectEnd()
 {
-	if (GetPlayerState() != EPlayerVRState::Excavating) return;
 	if (!DetectionTool) return;
-	
+	if (GetPlayerState() != EPlayerVRState::Excavating) return;
+
 	DetectionTool->SetIsDetecting(false);
 	SetPlayerState(EPlayerVRState::UsingTool);
 }
 
 void AMH_VRPlayer::ExcavationDigStart()
 {
+	if (!ShovelTool) return;
+	if (bIsUIInteractionActive) return;
 	if (GetPlayerState() != EPlayerVRState::UsingTool) return;
-	if(!ShovelTool) return;
-	
+
 	ShovelTool->SetIsDigging(true);
 	SetPlayerState(EPlayerVRState::Excavating);
 }
 
 void AMH_VRPlayer::ExcavationDigEnd()
 {
-	if (GetPlayerState() != EPlayerVRState::Excavating) return;
 	if (!ShovelTool) return;
+	if (GetPlayerState() != EPlayerVRState::Excavating) return;
 
 	ShovelTool->SetIsDigging(false);
 	SetPlayerState(EPlayerVRState::UsingTool);
@@ -650,17 +656,18 @@ void AMH_VRPlayer::ExcavationDigEnd()
 
 void AMH_VRPlayer::ExcavationBrushStart()
 {
-	if (GetPlayerState() != EPlayerVRState::UsingTool) return;
 	if (!BrushTool) return;
-	
+	if (bIsUIInteractionActive) return;
+	if (GetPlayerState() != EPlayerVRState::UsingTool) return;
+
 	BrushTool->SetIsBrushing(true);
 	SetPlayerState(EPlayerVRState::Excavating);
 }
 
 void AMH_VRPlayer::ExcavationBrushEnd()
 {
-	if (GetPlayerState() != EPlayerVRState::Excavating) return;
 	if (!BrushTool) return;
+	if (GetPlayerState() != EPlayerVRState::Excavating) return;
 
 	BrushTool->SetIsBrushing(false);
 	SetPlayerState(EPlayerVRState::UsingTool);
@@ -668,17 +675,18 @@ void AMH_VRPlayer::ExcavationBrushEnd()
 
 void AMH_VRPlayer::ExcavationCollectStart()
 {
-	if (GetPlayerState() != EPlayerVRState::UsingTool) return;
 	if (!TweezersTool) return;
-	
+	if (bIsUIInteractionActive) return;
+	if (GetPlayerState() != EPlayerVRState::UsingTool) return;
+
 	TweezersTool->SetIsPickingUp(true);
 	SetPlayerState(EPlayerVRState::Excavating);
 }
 
 void AMH_VRPlayer::ExcavationCollectEnd()
 {
-	if (GetPlayerState() != EPlayerVRState::Excavating) return;
 	if (!TweezersTool) return;
+	if (GetPlayerState() != EPlayerVRState::Excavating) return;
 
 	TweezersTool->SetIsPickingUp(false);
 	SetPlayerState(EPlayerVRState::UsingTool);
@@ -726,6 +734,10 @@ void AMH_VRPlayer::UpdateInteractionLine()
 		FHitResult Hit;
 		FCollisionQueryParams Params;
 		Params.AddIgnoredActor(this);
+		if (DetectionTool) Params.AddIgnoredActor(DetectionTool);
+		if (ShovelTool) Params.AddIgnoredActor(ShovelTool);
+		if (BrushTool) Params.AddIgnoredActor(BrushTool);
+		if (TweezersTool) Params.AddIgnoredActor(TweezersTool);
 
 		if (GetWorld()->LineTraceSingleByChannel(Hit, LastPos, Pos, ECC_Visibility, Params))
 		{
@@ -774,6 +786,7 @@ void AMH_VRPlayer::UpdateInteractionLine()
 
 void AMH_VRPlayer::TryGrab(const struct FInputActionValue& Value)
 {
+	if (GetPlayerState() == EPlayerVRState::UsingTool || GetPlayerState() == EPlayerVRState::Excavating) return;
 	if (!FocusedGrabbableActor) return;
 
 	UPrimitiveComponent* HitComp = Cast<UPrimitiveComponent>(
@@ -799,6 +812,7 @@ void AMH_VRPlayer::TryGrab(const struct FInputActionValue& Value)
 
 void AMH_VRPlayer::TryUnGrab(const struct FInputActionValue& Value)
 {
+	if (GetPlayerState() == EPlayerVRState::UsingTool || GetPlayerState() == EPlayerVRState::Excavating) return;
 	if (GrabComponent)
 	{
 		GrabComponent->TryUnGrab();
@@ -866,14 +880,14 @@ void AMH_VRPlayer::ResetWorldMapInteraction()
 		CachedWorldMap->ResetPrevOutline();
 	}
 }
-
+  
 // UI 상호작용 핵심 함수들
 void AMH_VRPlayer::HandleUIInteraction(const FInputActionInstance& IA_Instance)
 {
-	// 어떤 손에서 입력이 왔는지 확인
 	UMotionControllerComponent* MotionController = nullptr;
 	UWidgetInteractionComponent* WidgetInteraction = nullptr;
 
+	// 입력 액션 종류와 무관하게 손/위젯 매칭
 	if (IA_Instance.GetSourceAction() == IA_MHInteract)
 	{
 		MotionController = RHandController;
@@ -884,33 +898,36 @@ void AMH_VRPlayer::HandleUIInteraction(const FInputActionInstance& IA_Instance)
 		MotionController = LHandController;
 		WidgetInteraction = LWidgetInteractionComponent;
 	}
-
+	else if (IA_Instance.GetSourceAction() == IA_ExcavationDetect
+			 || IA_Instance.GetSourceAction() == IA_ExcavationDig
+			 || IA_Instance.GetSourceAction() == IA_ExcavationBrush
+			 || IA_Instance.GetSourceAction() == IA_ExcavationCollect)
+	{
+		MotionController = RHandController;
+		WidgetInteraction = RWidgetInteractionComponent;
+	}
+	
 	if (!MotionController || !WidgetInteraction) return;
 
-	// UI를 가리키고 있는지 확인
-	UWidgetComponent* HitWidgetComponent = nullptr;
-	if (IsPointingAtUI(MotionController, HitWidgetComponent))
-	{
-		// UI 상호작용 시작
-		if (!bIsUIInteractionActive)
-		{
-			EnableWidgetInteraction(MotionController);
-			CurrentFocusedUI = HitWidgetComponent;
-			bIsUIInteractionActive = true;
-		}
-
-		// WidgetInteraction으로 클릭 이벤트 전송
+    UWidgetComponent* HitWidgetComponent = nullptr;
+    if (IsPointingAtUI(MotionController, HitWidgetComponent))
+    {
+        if (!bIsUIInteractionActive)
+        {
+            EnableWidgetInteraction(MotionController);
+            CurrentFocusedUI = HitWidgetComponent;
+            bIsUIInteractionActive = true;
+        }
 		WidgetInteraction->PressPointerKey(EKeys::LeftMouseButton);
-	}
-	else
-	{
-		// UI를 가리키지 않으면 UI 상호작용 종료
-		if (bIsUIInteractionActive)
-		{
-			if (MuseumComponent && *MuseumComponent->GetMuseumState() == EMuseumState::Decorate) return;
-			DisableWidgetInteraction();
-		}
-	}
+    }
+    else
+    {
+        if (bIsUIInteractionActive)
+        {
+            if (MuseumComponent && *MuseumComponent->GetMuseumState() == EMuseumState::Decorate) return;
+            DisableWidgetInteraction();
+        }
+    }
 }
 
 void AMH_VRPlayer::TryUIInteraction(const FInputActionInstance& IA_Instance)
@@ -943,6 +960,10 @@ bool AMH_VRPlayer::IsPointingAtUI(UMotionControllerComponent* MotionController, 
 
 	FCollisionQueryParams QueryParams;
 	QueryParams.AddIgnoredActor(this);
+	if (DetectionTool) QueryParams.AddIgnoredActor(DetectionTool);
+	if (ShovelTool) QueryParams.AddIgnoredActor(ShovelTool);
+	if (BrushTool) QueryParams.AddIgnoredActor(BrushTool);
+	if (TweezersTool) QueryParams.AddIgnoredActor(TweezersTool);
 
 	// UI 전용 레이캐스트 (WidgetComponent 찾기)
 	TArray<FHitResult> HitResults;

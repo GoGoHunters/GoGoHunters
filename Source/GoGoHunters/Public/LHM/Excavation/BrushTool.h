@@ -30,6 +30,18 @@ public:
 
 private:
 	void CheckBrushSwipe(float DeltaTime);
+	
+public:
+	void UpdateFeedback(float Intensity);
+	void StopFeedback();
+
+protected:
+	void PlayVibration(float Intensity);
+	void UpdateVisualFeedback(float Intensity);
+	void PlaySoundFeedback(float Intensity);
+	
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="Effects")
+	class UHapticFeedbackEffect_Base* HapticEffect;
 
 public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
@@ -52,6 +64,6 @@ public:
 	FVector PreviousLocation;
 	float SwipeSpeed = 0.0f;
 
-	void SetIsBrushing(bool _bIsBrushing) { bIsBrushing = _bIsBrushing; }
+	void SetIsBrushing(bool _bIsBrushing);
 	bool bIsBrushing = false;
 };

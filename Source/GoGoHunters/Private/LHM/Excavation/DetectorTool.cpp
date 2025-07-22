@@ -22,11 +22,12 @@ ADetectorTool::ADetectorTool()
 
 	RootComponent = CreateDefaultSubobject<USceneComponent>(TEXT("RootScene"));
 	DetectorMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("DetectorMesh"));
-	static ConstructorHelpers::FObjectFinder<UStaticMesh> MeshAsset(TEXT("/Game/LHM/Meshes/SM_DetectionTool.SM_DetectionTool"));
+	static ConstructorHelpers::FObjectFinder<UStaticMesh> MeshAsset(TEXT("/Game/JMH/Mesh/04_Assets/Tools/Device0212.Device0212"));
 	if (MeshAsset.Succeeded())
 	{
 		DetectorMesh->SetStaticMesh(MeshAsset.Object);
 		DetectorMesh->SetupAttachment(RootComponent);
+		DetectorMesh->SetCollisionResponseToChannel(ECC_Pawn, ECR_Ignore);
 	}
 
 	DetectionComp = CreateDefaultSubobject<UDetectionComponent>(TEXT("DetectionComponent"));
@@ -70,10 +71,7 @@ void ADetectorTool::SetIsDetecting(bool _bIsDetecting)
 {
 	bIsDetecting = _bIsDetecting;
 
-	if (!bIsDetecting)
-	{
-		StopDetection();
-	}
+	if (!bIsDetecting) StopDetection();
 }
 
 void ADetectorTool::StopDetection()
@@ -103,8 +101,7 @@ void ADetectorTool::UpdateDetection(float DeltaTime)
 	for (TActorIterator<ARelicsBase> It(GetWorld()); It; ++It)
 	{
 		if (!It->Marker) continue;
-		if (!It->Marker->IsHidden()) // 이미 탐지 완료된 유물은 건너뜀
-			continue;
+		if (!It->Marker->IsHidden()) continue;
 
 		float Dist = FVector::Dist(It->GetActorLocation(), GetActorLocation());
 		if (Dist < ClosestDist)
@@ -129,8 +126,7 @@ void ADetectorTool::UpdateDetection(float DeltaTime)
 
 // 3. 진행도 로직
 	float Distance = FVector::Dist(GetActorLocation(), Relics->GetActorLocation());
-	const float MinDetectDistance = 500; // 테스트용
-	//const float MinDetectDistance = 300;
+	const float MinDetectDistance = 400;
 	const float MaxDetectDistance = 1500.f;
 	const float FillSpeed = 50.f;
 
