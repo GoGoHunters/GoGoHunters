@@ -232,6 +232,7 @@ void UCMuseumComponent::PlaceRelic()
 	auto placeActor = GetWorld()->SpawnActor<ACRelicBase>(RelicDetailData.RelicActorClass, BuildTransform, SpawnParams);
 	if (placeActor)
 	{
+		PlaceArea->PlaceRelicAt(BuildTransform.GetLocation());
 		placeActor->InitializeAsset(RelicData, RelicDetailData);
 		placeActor->SetRelicMaterial();
 		placeActor->Tags.Add("Grabable");
@@ -321,6 +322,7 @@ void UCMuseumComponent::GrabRelicEnd(ACRelicBase* GrabRelic, const FVector& Hand
 			}
 			// 3-2. 새 칸에 등록
 			Area->PlaceRelicAt(EmptySlotLocation);
+			Area->SetPlaceRelicAtLocation(GrabRelic, EmptySlotLocation);
 			bPlaced = true;
 			break;
 		}

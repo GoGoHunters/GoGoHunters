@@ -16,8 +16,9 @@ public:
 	void InitializeAsset(const FCRelicData& InRelicData, const FCRelicDetailData& InRelicDetailData);
 	void SetRelicMaterial();
 	void ReturnToOriginalLocation();
-
+	
 	ACMuseumPlaceArea* GetPlaceAreaActor() { return RelicData.PlaceArea; }
+	FVector GetRelicPlaceLocation() const { return RelicData.PlacedTransform.GetLocation(); }
 	
 protected:
 	UPROPERTY(EditAnywhere)

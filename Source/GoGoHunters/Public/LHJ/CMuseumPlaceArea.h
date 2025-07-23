@@ -4,6 +4,7 @@
 #include "GameFramework/Actor.h"
 #include "CMuseumPlaceArea.generated.h"
 
+class ACRelicBase;
 class UBoxComponent;
 
 USTRUCT()
@@ -27,6 +28,7 @@ public:
 	FVector CellUniformScale = FVector(1.f);
 
 	// 유물 설치
+	void SetPlaceRelicAtLocation(ACRelicBase* Relic, const FVector& WorldLocation);
 	void PlaceRelicAt(const FVector& WorldLocation);
 	
 	// GridCells 접근용 Getter
@@ -35,7 +37,7 @@ public:
 	bool CanPlaceRelicAt(const FVector& WorldLocation) const;
 
 	FVector FindEmptySlot(const FVector& FromLocation) const;
-	void UnregisterRelic(const class ACRelicBase* Relic);
+	void UnregisterRelic(const ACRelicBase* Relic);
 
 private:
 	UPROPERTY()
@@ -64,4 +66,6 @@ private:
 
 	// 디버그용 그리드 표시 토글
 	void SetGridDebugVisible(bool bVisible);
+
+	bool GetCell(const FVector& WorldLocation, FGridCell& outCell);
 };
