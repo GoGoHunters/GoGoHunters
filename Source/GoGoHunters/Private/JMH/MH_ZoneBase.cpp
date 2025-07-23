@@ -3,6 +3,7 @@
 
 #include "JMH/MH_ZoneBase.h"
 
+#include "Components/BoxComponent.h"
 #include "Components/SphereComponent.h"
 #include "JMH/MH_VRPlayer.h"
 
@@ -13,14 +14,11 @@ AMH_ZoneBase::AMH_ZoneBase()
 	PrimaryActorTick.bCanEverTick = true;
 
 	// 콜리전 판정용 스피어
-	CollisionSphere = CreateDefaultSubobject<USphereComponent>(TEXT("CollisionSphere"));
-	RootComponent = CollisionSphere;
-
-	CollisionSphere->InitSphereRadius(400.f);
-	CollisionSphere->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
-	CollisionSphere->SetCollisionObjectType(ECC_WorldDynamic);
-	CollisionSphere->SetCollisionResponseToAllChannels(ECR_Ignore);
-	CollisionSphere->SetCollisionResponseToChannel(ECC_Visibility, ECR_Block);
+	CollisionBox = CreateDefaultSubobject<UBoxComponent>(TEXT("CollisionSphere"));
+	RootComponent = CollisionBox;
+	
+	CollisionBox->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
+	CollisionBox->SetCollisionResponseToAllChannels(ECR_Ignore);
 
 	// 시각적 표시용 메쉬
 	ZoneVisual = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("ZoneVisual"));
@@ -32,7 +30,7 @@ AMH_ZoneBase::AMH_ZoneBase()
 void AMH_ZoneBase::BeginPlay()
 {
 	Super::BeginPlay();
-	CollisionSphere->OnComponentBeginOverlap.AddDynamic(this, &AMH_ZoneBase::OnZoneOverlapBegin);
+	CollisionBox->OnComponentBeginOverlap.AddDynamic(this, &AMH_ZoneBase::OnZoneOverlapBegin);
 }
 
 // Called every frame
@@ -49,7 +47,7 @@ void AMH_ZoneBase::OnPlayerInteracted_Implementation(AActor* Player)
 	}
 
 	static const TMap<FName, TFunction<void(AMH_ZoneBase*, AActor*)>> ZoneFunctionMap = {
-		{"Globe", [](AMH_ZoneBase* Z, AActor* P) { Z->HandleGlobeInteraction(P); }},
+		{"Map", [](AMH_ZoneBase* Z, AActor* P) { Z->HandleMapInteraction(P); }},
 		{"Restore", [](AMH_ZoneBase* Z, AActor* P) { Z->HandleRestoreInteraction(P); }},
 		{"Museum", [](AMH_ZoneBase* Z, AActor* P) { Z->HandleMyMuseumInteraction(P); }},
 		{"Record", [](AMH_ZoneBase* Z, AActor* P) { Z->HandleRecordInteraction(P); }},
@@ -79,9 +77,9 @@ void AMH_ZoneBase::OnZoneOverlapBegin(UPrimitiveComponent* OverlappedComp, AActo
 	}
 }
 
-void AMH_ZoneBase::HandleGlobeInteraction(AActor* Player)
+void AMH_ZoneBase::HandleMapInteraction(AActor* Player)
 {
-	GEngine->AddOnScreenDebugMessage(-1, 2.f, FColor::Cyan, TEXT("[Globe] 탐험지역 UI 열림"));
+	GEngine->AddOnScreenDebugMessage(-1, 2.f, FColor::Cyan, TEXT("[Map] 탐험지역 UI 열림"));
 	// TODO: 탐험 UI 위젯 열기
 }
 

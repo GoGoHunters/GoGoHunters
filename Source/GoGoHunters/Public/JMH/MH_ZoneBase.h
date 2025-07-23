@@ -40,7 +40,7 @@ protected:
 
 	// 콜리전 판정용 스피어 컴포넌트
 	UPROPERTY(VisibleAnywhere)
-	class USphereComponent* CollisionSphere;
+	class UBoxComponent* CollisionBox;
 
 private:
 	UFUNCTION()
@@ -56,7 +56,7 @@ private:
 public:
 	// 존 실행용 내부 함수들
 	UFUNCTION()
-	void HandleGlobeInteraction(AActor* Player);
+	void HandleMapInteraction(AActor* Player);
 	UFUNCTION()
 	void HandleRestoreInteraction(AActor* Player);
 	UFUNCTION()
