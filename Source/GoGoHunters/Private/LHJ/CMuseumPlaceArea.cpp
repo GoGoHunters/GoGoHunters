@@ -71,6 +71,21 @@ bool ACMuseumPlaceArea::CanPlaceRelicAt(const FVector& WorldLocation) const
 	return false;
 }
 
+void ACMuseumPlaceArea::SetPlaceRelicAtLocation(ACRelicBase* Relic, const FVector& WorldLocation)
+{
+	if (!Relic) return;
+	Relic->SetActorLocation(WorldLocation);
+	
+	for (FGridCell& Cell : GridCells)
+	{
+		if (FVector::Dist2D(Cell.Center, WorldLocation) < CellSize * 0.5f)
+		{
+			Relic->SetActorScale3D(Cell.Scale);
+			break;
+		}
+	}
+}
+
 void ACMuseumPlaceArea::PlaceRelicAt(const FVector& WorldLocation)
 {
 	for (FGridCell& Cell : GridCells)
@@ -112,7 +127,7 @@ void ACMuseumPlaceArea::UnregisterRelic(const ACRelicBase* Relic)
 
 	for (FGridCell& Cell : GridCells)
 	{
-		if (FVector::Dist2D(Cell.Center, Relic->GetActorLocation()) < CellSize * 0.5f)
+		if (FVector::Dist2D(Cell.Center, Relic->GetRelicPlaceLocation()) < CellSize * 0.5f)
 		{
 			Cell.bOccupied = false;
 			break;
