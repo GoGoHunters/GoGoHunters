@@ -97,8 +97,8 @@ public:
 
 	UPROPERTY()
 	AActor* FocusedGrabbableActor;
-
-
+	UPROPERTY()
+	TObjectPtr<AActor> GrabRelicActor;
 public:
 	
 	//IA////////////////////////////////////////////////////////
