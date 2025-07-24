@@ -81,4 +81,7 @@ private:
 public:
 	UFUNCTION()
 	void SpawnCollectionBox();
+
+    // 현재 진행 중인 땅의 파괴도(0~50)를 반환
+    bool GetCurrentDigProgress(float& OutProgress) const;
 };

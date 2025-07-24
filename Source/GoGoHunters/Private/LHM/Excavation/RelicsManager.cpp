@@ -216,3 +216,14 @@ void ARelicsManager::SpawnCollectionBox()
 	}
 }
 
+bool ARelicsManager::GetCurrentDigProgress(float& OutProgress) const
+{
+    if (GroundLayers.IsValidIndex(CurrentLayerIndex) && GroundLayers[CurrentLayerIndex])
+    {
+        OutProgress = GroundLayers[CurrentLayerIndex]->CalculateDestructionFromRenderTarget();
+        return true;
+    }
+    OutProgress = 0.0f;
+    return false;
+}
+
