@@ -28,6 +28,7 @@ ADetectorTool::ADetectorTool()
 		DetectorMesh->SetStaticMesh(MeshAsset.Object);
 		DetectorMesh->SetupAttachment(RootComponent);
 		DetectorMesh->SetCollisionResponseToChannel(ECC_Pawn, ECR_Ignore);
+		DetectorMesh->bReceivesDecals = false;
 	}
 
 	DetectionComp = CreateDefaultSubobject<UDetectionComponent>(TEXT("DetectionComponent"));

@@ -22,8 +22,8 @@ AShovelTool::AShovelTool()
 	{
 		ShovelMesh->SetStaticMesh(ShovelMeshAsset.Object);
 		ShovelMesh->SetupAttachment(RootComponent);
-		//ShovelMesh->SetRelativeLocation(FVector(90, 0, 0)); // (X=80.000000,Y=0.000000,Z=0.000000)
 		ShovelMesh->SetCollisionResponseToChannel(ECC_Pawn, ECR_Ignore);
+		ShovelMesh->bReceivesDecals = false;
 	}
 
 	SplatPoint = CreateDefaultSubobject<USceneComponent>(TEXT("SplatPoint"));
