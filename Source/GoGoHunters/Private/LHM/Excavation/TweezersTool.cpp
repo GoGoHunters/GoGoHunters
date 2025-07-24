@@ -23,12 +23,14 @@ ATweezersTool::ATweezersTool()
 		TweezersMeshL->SetRelativeLocation(FVector(25, -2, 0)); // (X=25.000000,Y=-2.000000,Z=10.000000)
 		TweezersMeshL->SetRelativeRotation(FRotator(0, -5, 0)); // (Pitch=0.000000,Yaw=-5.000000,Roll=-0.000000)
 		TweezersMeshL->SetCollisionResponseToChannel(ECC_Pawn, ECR_Ignore);
+		TweezersMeshL->bReceivesDecals = false;
 
 		TweezersMeshR->SetStaticMesh(MeshAssets.Object);
 		TweezersMeshR->SetupAttachment(RootComponent);
 		TweezersMeshR->SetRelativeLocation(FVector(25, 2, 0)); // (X=25.000000,Y=2.000000,Z=10.000000)
 		TweezersMeshR->SetRelativeRotation(FRotator(0, 5, 0)); // (Pitch=0.000000,Yaw=5.000000,Roll=-0.000000)
 		TweezersMeshR->SetCollisionResponseToChannel(ECC_Pawn, ECR_Ignore);
+		TweezersMeshL->bReceivesDecals = false;
 	}
 
 	PickupBox = CreateDefaultSubobject<UBoxComponent>(TEXT("PickupBox"));
