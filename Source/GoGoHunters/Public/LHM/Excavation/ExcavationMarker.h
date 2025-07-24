@@ -31,8 +31,5 @@ protected:
     class UNiagaraSystem* PulseEffect;
 
     UPROPERTY(EditAnywhere)
-	class UStaticMeshComponent* FlagMesh;
-
-    UPROPERTY(EditAnywhere)
 	class UMaterialInstanceDynamic* OutlineMat;
 };
