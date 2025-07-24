@@ -120,6 +120,8 @@ void ARelicsBase::ReduceDustOpacity(const FVector& BrushLocation, float Amount, 
         DecalMIDs.Remove(Closest);
         DecalToMeshMap.Remove(Closest);
 
+		UGameplayStatics::PlaySound2D(GetWorld(), DecalRemovalSFX);
+
         CheckAllDelcalsRemoved();
 		if (Brush) Brush->StopFeedback();
     }
