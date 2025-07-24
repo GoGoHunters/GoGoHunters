@@ -54,19 +54,6 @@ AMH_VRPlayer::AMH_VRPlayer()
 	//그랩 컴프
 	GrabComponent = CreateDefaultSubobject<UMH_GrabComp>(TEXT("GrabComponent"));
 
-	//Attachment 나중에 RootComp로 바꿔야함 /수정
-	L_Hand = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("L_Hand"));
-	L_Hand->SetupAttachment(VRCamera);
-	R_Hand = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("R_Hand"));
-	R_Hand->SetupAttachment(VRCamera);;
-
-	LHandSKM = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("LHandSKM"));
-	LHandSKM->SetupAttachment(LHandController);
-	LHandSKM->SetRelativeRotation(FRotator(-90.f, -90.f, 0.f));
-	RHandSKM = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("RHandSKM"));
-	RHandSKM->SetupAttachment(RHandController);
-	RHandSKM->SetRelativeRotation(FRotator(90.f, -90.f, 0.f));
-
 	CHelpers::CreateComponent<USpringArmComponent>(this, &RelicCollectionSpringArm, "RelicCollectionSpringArm", VRCamera);
 	RelicCollectionSpringArm->SetRelativeRotation(FRotator(0.f, 180.f, 0.f));
 	RelicCollectionSpringArm->SocketOffset = FVector(0.f, 40.f, 0.f);
@@ -74,19 +61,6 @@ AMH_VRPlayer::AMH_VRPlayer()
 	CHelpers::CreateComponent<UChildActorComponent>(this, &RelicCollectionWidget, "RelicCollectionWidget", RelicCollectionSpringArm);
 	RelicCollectionWidget->SetRelativeRotation(FRotator(0, 160, 0));
 	RelicCollectionWidget->SetHiddenInGame(true);
-
-	// 메시 로딩
-	static ConstructorHelpers::FObjectFinder<USkeletalMesh> LHandMeshAsset(TEXT("/Game/Characters/MannequinsXR/Meshes/SKM_MannyXR_left.SKM_MannyXR_left"));
-	if (LHandMeshAsset.Succeeded())
-	{
-		LHandSKM->SetSkeletalMesh(LHandMeshAsset.Object);
-	}
-
-	static ConstructorHelpers::FObjectFinder<USkeletalMesh> RHandMeshAsset(TEXT("/Game/Characters/MannequinsXR/Meshes/SKM_MannyXR_right.SKM_MannyXR_right"));
-	if (RHandMeshAsset.Succeeded())
-	{
-		RHandSKM->SetSkeletalMesh(RHandMeshAsset.Object);
-	}
 
 	//텔레포트 컴프
 	TeleportComponent = CreateDefaultSubobject<UMH_TeleportComp>(TEXT("TeleportComponent"));
@@ -134,23 +108,23 @@ void AMH_VRPlayer::BeginPlay()
 	}
 	else
 	{
-	// Test : VR 모드가 아니면 Scene Hand사용
+		// Test : VR 모드가 아니면 Scene Hand사용
 		//Test 카메라 바라보는 방향으로 손 같이 움직이도록 손 VR 카메라에 Attach
-		GrabComponent->SetHandComponent(R_Hand);
-		TeleportComponent->SetHandComponent(R_Hand);
-
-		RHandSKM->DetachFromComponent(FDetachmentTransformRules::KeepWorldTransform);
-		RHandSKM->UnregisterComponent();
-		RHandSKM->SetupAttachment(R_Hand);
-		RHandSKM->RegisterComponent();
-		RHandSKM->SetRelativeRotation(FRotator(90.f, -90.f, 0.f));
-		RHandSKM->SetRelativeLocation(FVector::ZeroVector);
-		LHandSKM->DetachFromComponent(FDetachmentTransformRules::KeepWorldTransform);
-		LHandSKM->UnregisterComponent();
-		LHandSKM->SetupAttachment(L_Hand);
-		LHandSKM->RegisterComponent();
-		LHandSKM->SetRelativeLocation(FVector::ZeroVector);
-		LHandSKM->SetRelativeRotation(FRotator(-90.f, -90.f, 0.f));
+		// GrabComponent->SetHandComponent(R_Hand);
+		// TeleportComponent->SetHandComponent(R_Hand);
+		//
+		// RHandSKM->DetachFromComponent(FDetachmentTransformRules::KeepWorldTransform);
+		// RHandSKM->UnregisterComponent();
+		// RHandSKM->SetupAttachment(R_Hand);
+		// RHandSKM->RegisterComponent();
+		// RHandSKM->SetRelativeRotation(FRotator(90.f, -90.f, 0.f));
+		// RHandSKM->SetRelativeLocation(FVector::ZeroVector);
+		// LHandSKM->DetachFromComponent(FDetachmentTransformRules::KeepWorldTransform);
+		// LHandSKM->UnregisterComponent();
+		// LHandSKM->SetupAttachment(L_Hand);
+		// LHandSKM->RegisterComponent();
+		// LHandSKM->SetRelativeLocation(FVector::ZeroVector);
+		// LHandSKM->SetRelativeRotation(FRotator(-90.f, -90.f, 0.f));
 	}
 	TeleportComponent->SetTeleportVisual(TeleportCircleA, TeleportUIComponent);
 
@@ -711,8 +685,8 @@ void AMH_VRPlayer::UpdateInteractionLine()
 	}
 	else
 	{
-		Start = R_Hand->GetComponentLocation();
-		Velocity = R_Hand->GetForwardVector() * 1000.f * TeleportDistanceFactor; // 강도는 상황에 맞게 조절
+		Start = RHandController->GetComponentLocation();
+		Velocity = RHandController->GetForwardVector() * 1000.f * TeleportDistanceFactor; // 강도는 상황에 맞게 조절
 	}
 
 	FVector Pos = Start;
