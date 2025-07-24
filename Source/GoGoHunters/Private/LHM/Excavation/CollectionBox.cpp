@@ -15,16 +15,6 @@ ACollectionBox::ACollectionBox()
 	PrimaryActorTick.bCanEverTick = true;
 
 	RootComponent = CreateDefaultSubobject<USceneComponent>(TEXT("RootScene"));
-	CollectionBox = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("CollectionBox"));
-	static ConstructorHelpers::FObjectFinder<UStaticMesh> MeshAsset(TEXT("/Game/LHM/Meshes/SM_CollectionBox.SM_CollectionBox"));
-	if (MeshAsset.Succeeded())
-	{
-		CollectionBox->SetStaticMesh(MeshAsset.Object);
-		CollectionBox->SetupAttachment(RootComponent);
-		CollectionBox->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
-		CollectionBox->SetCollisionObjectType(ECC_WorldStatic);
-		CollectionBox->SetCollisionResponseToAllChannels(ECR_Block);
-	}
 
 	TriggerVolume = CreateDefaultSubobject<UBoxComponent>(TEXT("TriggerVolume"));
 	TriggerVolume->SetupAttachment(RootComponent);
