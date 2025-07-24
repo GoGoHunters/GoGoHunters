@@ -55,9 +55,6 @@ protected:
 	UPROPERTY(EditAnywhere)
 	UStaticMeshComponent* ExcavationLand_02;
 
-	UPROPERTY(EditAnywhere)
-	UStaticMeshComponent* ExcavationSite;
-
 private:
 	UPROPERTY(EditDefaultsOnly)
 	TSubclassOf<class ARelicsGround> RelicsGroundClass;
