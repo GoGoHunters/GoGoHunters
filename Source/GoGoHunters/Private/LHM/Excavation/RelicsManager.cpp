@@ -36,6 +36,10 @@ ARelicsManager::ARelicsManager()
 	ExcavationSite->SetCollisionObjectType(ECC_WorldStatic);
 	ExcavationSite->SetCollisionResponseToAllChannels(ECR_Block);
 
+	ExcavationLand_01->bReceivesDecals = false;
+	ExcavationLand_02->bReceivesDecals = false;
+	ExcavationSite->bReceivesDecals = false;
+
 	RelicsChild = CreateDefaultSubobject<UChildActorComponent>(TEXT("Relics"));
 	RelicsChild->SetupAttachment(RootComponent);
 	RelicsChild->SetChildActorClass(RelicsClass);

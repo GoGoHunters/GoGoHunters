@@ -20,9 +20,8 @@ ABrushTool::ABrushTool()
 	{
 		BrushMesh->SetStaticMesh(MeshAsset.Object);
 		BrushMesh->SetupAttachment(RootComponent);
-		//BrushMesh->SetRelativeLocation(FVector(10, 0, 0)); // (X=10.000000,Y=-0.000000,Z=-0.000000)
-		//BrushMesh->SetRelativeRotation(FRotator(90, 0, 180)); // (Pitch=90.000000,Yaw=0.000000,Roll=180.000000)
 		BrushMesh->SetCollisionResponseToChannel(ECC_Pawn, ECR_Ignore);
+		BrushMesh->bReceivesDecals = false;
 	}
 
 	BoxMesh = CreateDefaultSubobject<UBoxComponent>(TEXT("BoxMesh"));
