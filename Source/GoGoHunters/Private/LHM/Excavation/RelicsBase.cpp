@@ -8,6 +8,7 @@
 #include "Kismet/GameplayStatics.h"
 #include "EngineUtils.h"
 #include "LHM/Excavation/BrushTool.h"
+#include "LHM/UI/BrushingUI.h"
 
 // Sets default values
 ARelicsBase::ARelicsBase()
@@ -101,18 +102,23 @@ void ARelicsBase::ReduceDustOpacity(const FVector& BrushLocation, float Amount, 
 
     if (!Closest) return;
 
+    // 데칼 투명도 설정
     UMaterialInstanceDynamic* MID = DecalMIDs[Closest];
     float Opacity;
     MID->GetScalarParameterValue(FMaterialParameterInfo(OpacityParameterName), Opacity);
     Opacity = FMath::Clamp(Opacity - Amount, 0.0f, 1.0f);
     MID->SetScalarParameterValue(OpacityParameterName, Opacity);
     
+    // UI 업데이트
+	if (BrushingUI) BrushingUI->UpdateDecalProgress(Closest, Opacity);
+
     // 이펙트 업데이트
     ABrushTool* Brush = Cast<ABrushTool>(&BrushRef);
     if (Brush) Brush->UpdateFeedback(Opacity);
 
-    UE_LOG(LogTemp, Log, TEXT("[Debug] Decal Opacity value: %f"), Opacity);
+    //UE_LOG(LogTemp, Log, TEXT("[Debug] Decal Opacity value: %f"), Opacity);
 
+    // 데칼 제거
     if (Opacity <= 0.0f)
     {
         Closest->DestroyComponent();
@@ -139,5 +145,47 @@ void ARelicsBase::CheckAllDelcalsRemoved()
             break;
         }
     }
+}
+
+void ARelicsBase::SetBrushingUI(class UBrushingUI* InBrushingUI)
+{
+    BrushingUI = InBrushingUI;
+    if (BrushingUI)
+    {
+        BrushingUI->CreateDecalWidgets(DustDecals);
+        // 초기 오파시티로 UI 갱신
+        for (UDecalComponent* Decal : DustDecals)
+        {
+            if (Decal && DecalMIDs.Contains(Decal))
+            {
+                float Opacity = 1.0f;
+                DecalMIDs[Decal]->GetScalarParameterValue(FMaterialParameterInfo(OpacityParameterName), Opacity);
+                BrushingUI->UpdateDecalProgress(Decal, Opacity);
+            }
+        }
+    }
+}
+
+UStaticMeshComponent* ARelicsBase::GetRelicMeshByDecal(UDecalComponent* Decal) const
+{
+    const UDecalComponent* const* Found = DustDecals.FindByPredicate(
+        [Decal](const UDecalComponent* D) { return D == Decal; });
+    return Found ? DecalToMeshMap.FindRef(Decal) : nullptr;
+}
+
+bool ARelicsBase::HasValidMID(UDecalComponent* Decal) const
+{
+    return Decal && DecalMIDs.Contains(Decal);
+}
+
+float ARelicsBase::GetDecalOpacity(UDecalComponent* Decal) const
+{
+    if (HasValidMID(Decal))
+    {
+        float Opacity = 1.0f;
+        DecalMIDs[Decal]->GetScalarParameterValue(FMaterialParameterInfo(OpacityParameterName), Opacity);
+        return Opacity;
+    }
+    return 1.0f;
 }
 
