@@ -101,31 +101,33 @@ void AMH_VRPlayer::BeginPlay()
 		}
 	}
 
-	if (bUseVR)
-	{
-		GrabComponent->SetHandComponent(RHandController);
-		TeleportComponent->SetHandComponent(RHandController);
-	}
-	else
-	{
-		// Test : VR 모드가 아니면 Scene Hand사용
-		//Test 카메라 바라보는 방향으로 손 같이 움직이도록 손 VR 카메라에 Attach
-		// GrabComponent->SetHandComponent(R_Hand);
-		// TeleportComponent->SetHandComponent(R_Hand);
-		//
-		// RHandSKM->DetachFromComponent(FDetachmentTransformRules::KeepWorldTransform);
-		// RHandSKM->UnregisterComponent();
-		// RHandSKM->SetupAttachment(R_Hand);
-		// RHandSKM->RegisterComponent();
-		// RHandSKM->SetRelativeRotation(FRotator(90.f, -90.f, 0.f));
-		// RHandSKM->SetRelativeLocation(FVector::ZeroVector);
-		// LHandSKM->DetachFromComponent(FDetachmentTransformRules::KeepWorldTransform);
-		// LHandSKM->UnregisterComponent();
-		// LHandSKM->SetupAttachment(L_Hand);
-		// LHandSKM->RegisterComponent();
-		// LHandSKM->SetRelativeLocation(FVector::ZeroVector);
-		// LHandSKM->SetRelativeRotation(FRotator(-90.f, -90.f, 0.f));
-	}
+	GrabComponent->SetHandComponent(RHandController);
+	TeleportComponent->SetHandComponent(RHandController);
+	// if (bUseVR)
+	// {
+	// 	GrabComponent->SetHandComponent(RHandController);
+	// 	TeleportComponent->SetHandComponent(RHandController);
+	// }
+	// else
+	// {
+	// 	// Test : VR 모드가 아니면 Scene Hand사용
+	// 	//Test 카메라 바라보는 방향으로 손 같이 움직이도록 손 VR 카메라에 Attach
+	// 	// GrabComponent->SetHandComponent(R_Hand);
+	// 	// TeleportComponent->SetHandComponent(R_Hand);
+	// 	//
+	// 	// RHandSKM->DetachFromComponent(FDetachmentTransformRules::KeepWorldTransform);
+	// 	// RHandSKM->UnregisterComponent();
+	// 	// RHandSKM->SetupAttachment(R_Hand);
+	// 	// RHandSKM->RegisterComponent();
+	// 	// RHandSKM->SetRelativeRotation(FRotator(90.f, -90.f, 0.f));
+	// 	// RHandSKM->SetRelativeLocation(FVector::ZeroVector);
+	// 	// LHandSKM->DetachFromComponent(FDetachmentTransformRules::KeepWorldTransform);
+	// 	// LHandSKM->UnregisterComponent();
+	// 	// LHandSKM->SetupAttachment(L_Hand);
+	// 	// LHandSKM->RegisterComponent();
+	// 	// LHandSKM->SetRelativeLocation(FVector::ZeroVector);
+	// 	// LHandSKM->SetRelativeRotation(FRotator(-90.f, -90.f, 0.f));
+	// }
 	TeleportComponent->SetTeleportVisual(TeleportCircleA, TeleportUIComponent);
 
 	TeleportUIComponent->SetVisibility(false);
