@@ -79,4 +79,16 @@ public:
 	void ReduceDustOpacity(const FVector& BrushLocation, float Amount, class ABrushTool& BrushRef);
 
 	void CheckAllDelcalsRemoved();
+
+// BrushingUI
+public:
+	void SetBrushingUI(class UBrushingUI* InBrushingUI);
+
+	UStaticMeshComponent* GetRelicMeshByDecal(UDecalComponent* Decal) const;
+	bool HasValidMID(UDecalComponent* Decal) const;
+	float GetDecalOpacity(UDecalComponent* Decal) const;
+
+protected:
+	UPROPERTY()
+	class UBrushingUI* BrushingUI;
 };

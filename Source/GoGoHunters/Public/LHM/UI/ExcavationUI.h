@@ -7,8 +7,6 @@
 #include "LHM/Excavation/ExcavationManager.h"
 #include "ExcavationUI.generated.h"
 
-class UDiggingUI;
-
 /**
  * 
  */
@@ -29,7 +27,8 @@ public:
 	UFUNCTION()
 	void OnExcavationPhaseChanged(EExcavationPhase NewPhase);
 
-    UDiggingUI* GetDiggingUI() const { return DiggingUI; }
+	class UDiggingUI* GetDiggingUI() const { return DiggingUI; }
+	class UBrushingUI* GetBrushingUI() const { return BrushingUI; }
 
 protected:
 	// 버튼 위젯
@@ -47,6 +46,9 @@ protected:
 
     UPROPERTY(meta = (BindWidget))
     class UDiggingUI* DiggingUI;
+	
+    UPROPERTY(meta = (BindWidget))
+    class UBrushingUI* BrushingUI;
 
 	// 바인딩 함수
 	UFUNCTION()

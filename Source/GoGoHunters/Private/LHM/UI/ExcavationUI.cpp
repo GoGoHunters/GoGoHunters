@@ -3,11 +3,12 @@
 
 #include "LHM/UI/ExcavationUI.h"
 #include "Kismet/GameplayStatics.h"
+#include "EngineUtils.h"
 #include "Components/Button.h"
 #include "JMH/MH_VRPlayer.h"
 #include "LHM/Excavation/ExcavationManager.h"
-#include "EngineUtils.h"
 #include "LHM/UI/DiggingUI.h"
+#include "LHM/UI/BrushingUI.h"
 
 void UExcavationUI::NativeConstruct()
 {
@@ -21,15 +22,15 @@ void UExcavationUI::NativeConstruct()
 	if (Btn_Tool3) Btn_Tool3->OnClicked.AddDynamic(this, &UExcavationUI::OnClick_BrushTool);
 	if (Btn_Tool4) Btn_Tool4->OnClicked.AddDynamic(this, &UExcavationUI::OnClick_TweezerTool);
 
-	// DiggingUI를 ExcavationManager에 등록
-	if (ExcavationManager && GetDiggingUI())
+	// UI Tool 버튼 초기화
+	// DiggingUI/BrushingUI ExcavationManager에 등록
+	if (ExcavationManager)
 	{
-		ExcavationManager->SetDiggingUI(GetDiggingUI());
-	}
+		OnExcavationPhaseChanged(ExcavationManager->GetCurrentPhase());
 
-	// 초기 UI 업데이트
-	if (ExcavationManager) OnExcavationPhaseChanged(ExcavationManager->GetCurrentPhase());
-	if (DiggingUI) DiggingUI->SetVisibility(ESlateVisibility::Hidden);
+		if (GetDiggingUI()) ExcavationManager->SetDiggingUI(GetDiggingUI());
+		if (GetBrushingUI()) ExcavationManager->SetBrushingUI(GetBrushingUI());
+	}
 }
 
 void UExcavationUI::NativeDestruct()
