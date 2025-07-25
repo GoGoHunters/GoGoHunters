@@ -70,18 +70,6 @@ public:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
 	UWidgetInteractionComponent* RWidgetInteractionComponent;
 
-	//손일단 VR 카메라에 Root 붙여 놓음 이동해야함 (수정)
-	UPROPERTY(VisibleAnywhere)
-	class USceneComponent* L_Hand;
-	UPROPERTY(VisibleAnywhere)
-	class USceneComponent* R_Hand;
-
-	//스켈레탈 메쉬 컴프
-	UPROPERTY(VisibleAnywhere)
-	class USkeletalMeshComponent* LHandSKM;
-	UPROPERTY(VisibleAnywhere)
-	class USkeletalMeshComponent* RHandSKM;
-
 	// 현재 플레이어의 상태
 	UPROPERTY(BlueprintReadWrite, Category = "State")
 	EPlayerVRState CurrentState = EPlayerVRState::Idle;

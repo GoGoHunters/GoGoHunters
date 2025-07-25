@@ -15,16 +15,6 @@ ACollectionBox::ACollectionBox()
 	PrimaryActorTick.bCanEverTick = true;
 
 	RootComponent = CreateDefaultSubobject<USceneComponent>(TEXT("RootScene"));
-	CollectionBox = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("CollectionBox"));
-	static ConstructorHelpers::FObjectFinder<UStaticMesh> MeshAsset(TEXT("/Game/LHM/Meshes/SM_CollectionBox.SM_CollectionBox"));
-	if (MeshAsset.Succeeded())
-	{
-		CollectionBox->SetStaticMesh(MeshAsset.Object);
-		CollectionBox->SetupAttachment(RootComponent);
-		CollectionBox->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
-		CollectionBox->SetCollisionObjectType(ECC_WorldStatic);
-		CollectionBox->SetCollisionResponseToAllChannels(ECR_Block);
-	}
 
 	TriggerVolume = CreateDefaultSubobject<UBoxComponent>(TEXT("TriggerVolume"));
 	TriggerVolume->SetupAttachment(RootComponent);
@@ -61,12 +51,6 @@ void ACollectionBox::OnOverlapBegin(UPrimitiveComponent* Overlapped, AActor* Oth
 		{
 			// 수거 처리: Detach + 물리/충돌 제거
 			Mesh->DetachFromComponent(FDetachmentTransformRules::KeepWorldTransform);
-			/*FTimerHandle TimerHandle;
-			GetWorldTimerManager().SetTimer(TimerHandle, [Mesh]()
-			{
-				Mesh->SetSimulatePhysics(false);
-				Mesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
-			}, 0.01f, false);*/
 
 			// 이펙트/사운드/텍스트
 			UGameplayStatics::PlaySound2D(GetWorld(), CollectionSFX); // 수거 효과음

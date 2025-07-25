@@ -80,4 +80,13 @@ protected:
 	// 단계별 사용 가능한 도구 설정
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Excavation")
 	TArray<bool> ToolAvailabilityByPhase;
+
+
+// 발굴 UI 업데이트를 위한 DiggingUI 참조
+public:
+	void SetDiggingUI(class UDiggingUI* InDiggingUI) { DiggingUI = InDiggingUI; }
+	void UpdateDiggingProgress(float Progress);
+protected:
+    UPROPERTY()
+    class UDiggingUI* DiggingUI;
 };

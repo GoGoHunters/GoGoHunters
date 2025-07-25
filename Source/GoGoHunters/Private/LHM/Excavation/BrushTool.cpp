@@ -60,7 +60,6 @@ void ABrushTool::OnBeginOverlap(UPrimitiveComponent* Overlapped, AActor* OtherAc
 	if (ARelicsBase* Relic = Cast<ARelicsBase>(OtherActor))
 	{
 		CurrentOverlappingRelic = Relic;
-		UE_LOG(LogTemp, Log, TEXT("[BrushTool] Overlapped with Relic: %s"), *Relic->GetName());
 	}
 }
 
