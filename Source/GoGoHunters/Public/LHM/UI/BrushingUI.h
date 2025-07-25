@@ -29,6 +29,9 @@ public:
 protected:
     virtual void BeginDestroy() override;
 
+public:
+	TMap<UStaticMeshComponent*, UDecalProgressUI*> GetMeshToWidgetMap() const { return MeshToWidgetMap; }
+
 private:
     TMap<UStaticMeshComponent*, UDecalProgressUI*> MeshToWidgetMap;
     TMap<UStaticMeshComponent*, TArray<UDecalComponent*>*> MeshToDecalsMap;

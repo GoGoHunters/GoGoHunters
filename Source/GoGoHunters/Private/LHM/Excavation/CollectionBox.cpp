@@ -7,6 +7,8 @@
 #include "Kismet/GameplayStatics.h"
 #include "LHM/Excavation/ExcavationManager.h"
 #include "EngineUtils.h"
+#include "LHM/UI/BrushingUI.h"
+#include "LHM/UI/DecalProgressUI.h"
 
 // Sets default values
 ACollectionBox::ACollectionBox()
@@ -30,7 +32,7 @@ void ACollectionBox::BeginPlay()
 	Super::BeginPlay();
 
 	TriggerVolume->OnComponentBeginOverlap.AddDynamic(this, &ACollectionBox::OnOverlapBegin);
-
+	TriggerVolume->OnComponentEndOverlap.AddDynamic(this, &ACollectionBox::OnOverlapEnd);
 }
 
 // Called every frame
@@ -54,10 +56,46 @@ void ACollectionBox::OnOverlapBegin(UPrimitiveComponent* Overlapped, AActor* Oth
 
 			// 이펙트/사운드/텍스트
 			UGameplayStatics::PlaySound2D(GetWorld(), CollectionSFX); // 수거 효과음
+			CollectedMeshes.Add(Mesh);
+
 			UE_LOG(LogTemp, Log, TEXT("[CollectionBox] 유물 수거됨: %s"), *Relic->GetName());
 
-			CollectedMeshes.Add(Mesh);
+			// 위젯 표시 업데이트
+			if (Relic->GetBrushingUI() && Relic->GetBrushingUI()->GetMeshToWidgetMap().Contains(Mesh))
+			{
+				if (UDecalProgressUI* Widget = Relic->GetBrushingUI()->GetMeshToWidgetMap()[Mesh])
+				{
+					Widget->SetCollectedImage(true);
+				}
+			}
+
 			CheckAllCollected();
+			break;
+		}
+	}
+}
+
+void ACollectionBox::OnOverlapEnd(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
+{
+	ARelicsBase* Relic = Cast<ARelicsBase>(OtherActor);
+	if (!Relic) return;
+
+	for (UStaticMeshComponent* Mesh : Relic->RelicsMeshes)
+	{
+		if (OtherComp == Mesh)
+		{
+			// 수거 목록에서 제거
+			CollectedMeshes.Remove(Mesh);
+
+			// UI 되돌리기
+			if (Relic->GetBrushingUI() && Relic->GetBrushingUI()->GetMeshToWidgetMap().Contains(Mesh))
+			{
+				if (UDecalProgressUI* Widget = Relic->GetBrushingUI()->GetMeshToWidgetMap()[Mesh])
+				{
+					Widget->SetCollectedImage(false);
+				}
+			}
+
 			break;
 		}
 	}
@@ -87,6 +125,6 @@ void ACollectionBox::CheckAllCollected()
 
 void ACollectionBox::PlayBoxCloseAnimation()
 {
-	// 포장 애니메이션 재생
+	
 }
 

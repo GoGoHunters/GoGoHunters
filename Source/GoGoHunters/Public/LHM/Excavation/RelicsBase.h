@@ -83,6 +83,7 @@ public:
 // BrushingUI
 public:
 	void SetBrushingUI(class UBrushingUI* InBrushingUI);
+	UBrushingUI* GetBrushingUI() const { return BrushingUI; }
 
 	UStaticMeshComponent* GetRelicMeshByDecal(UDecalComponent* Decal) const;
 	bool HasValidMID(UDecalComponent* Decal) const;
