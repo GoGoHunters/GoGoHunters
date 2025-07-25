@@ -28,9 +28,6 @@ public:
 
 public:
 	UPROPERTY(VisibleAnywhere)
-	class UStaticMeshComponent* CollectionBox;
-
-	UPROPERTY(VisibleAnywhere)
 	class UBoxComponent* TriggerVolume;
 
 	UPROPERTY(EditAnywhere)

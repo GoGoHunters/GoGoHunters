@@ -57,5 +57,4 @@ public:
 	
 	UPROPERTY()
 	UTextureRenderTarget2D* HeightFieldRT;
-
 };

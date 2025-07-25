@@ -8,6 +8,7 @@
 #include "JMH/CMuseumComponent.h"
 #include "base/GI_Base.h"
 #include "LHM/Excavation/RelicsBase.h"
+#include "LHM/UI/DiggingUI.h"
 
 // Sets default values
 AExcavationManager::AExcavationManager()
@@ -42,6 +43,17 @@ void AExcavationManager::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
+    // Digging 단계일 때만 진행률 UI 업데이트
+    if (CurrentPhase == EExcavationPhase::Digging && CurrentActiveManager)
+    {
+        float DigProgress = 0.0f;
+        if (CurrentActiveManager->GetCurrentDigProgress(DigProgress))
+        {
+            // 0~50 → 0~100% 변환
+            float ProgressPercent = FMath::Clamp(DigProgress / 50.0f * 100.0f, 0.0f, 100.0f);
+            UpdateDiggingProgress(ProgressPercent);
+        }
+    }
 }
 
 void AExcavationManager::NotifyDetectionCompleted(class ARelicsManager* FromManager)
@@ -50,6 +62,8 @@ void AExcavationManager::NotifyDetectionCompleted(class ARelicsManager* FromMana
 
 	CurrentActiveManager = FromManager;
 	FromManager->StartExcavation();
+
+	if (DiggingUI) DiggingUI->SetVisibility(ESlateVisibility::Visible);
 
 	UE_LOG(LogTemp, Log, TEXT("[ExcavationManager] 유물 발견! 땅 파기 단계로 전환: %s"), *FromManager->GetName());
 
@@ -60,6 +74,8 @@ void AExcavationManager::NotifyDetectionCompleted(class ARelicsManager* FromMana
 void AExcavationManager::NotifyExcavationCompleted(class ARelicsManager* FromManager)
 {
 	if (!IsValid(FromManager)) return;
+
+	if (DiggingUI) DiggingUI->SetVisibility(ESlateVisibility::Hidden);
 
 	UE_LOG(LogTemp, Log, TEXT("[ExcavationManager] 땅 파기 완료! 붓질 단계로 전환: %s"), *FromManager->GetName());
 	
@@ -173,3 +189,7 @@ bool AExcavationManager::IsToolAvailableForPhase(int32 ToolIndex) const
 	return false;
 }
 
+void AExcavationManager::UpdateDiggingProgress(float Progress)
+{
+    if (DiggingUI) DiggingUI->UpdateUI(Progress);
+}

@@ -69,7 +69,10 @@ public:
 	UPROPERTY(EditAnywhere)
 	float CurrentOpacity = 1.0f;
 
-	// 유물 태그 정보
+	UPROPERTY(EditAnywhere)
+	class USoundBase* DecalRemovalSFX;
+
+// 유물 태그 정보
 	UPROPERTY(EditAnywhere, Category="Relics")
 	int32 RelicTag = -1;
 
