@@ -45,6 +45,8 @@ void ARelicsGround::TriggerOnGroundDug(FVector ImpactLocation)
 {
 	OnGroundDug.Broadcast(ImpactLocation);
 
+	if (Shovel_Ref) Shovel_Ref->SetIsDigging(false);
+
 	// 파괴량 측정은 한 프레임 지연 후
 	FTimerHandle TimerHandle;
 	GetWorldTimerManager().SetTimer(TimerHandle, this, &ARelicsGround::UpdateDigProgress, 0.1f, false);
@@ -74,6 +76,6 @@ float ARelicsGround::CalculateDestructionFromRenderTarget()
 	float AvgR = static_cast<float>(TotalR) / Pixels.Num(); // 0~255
 	float DestructionPercent = AvgR / 255.f;
 
-	UE_LOG(LogTemp, Log, TEXT("[RelicsGround] 파괴도: %.2f%%"), DestructionPercent * 100.f);
+	//UE_LOG(LogTemp, Log, TEXT("[RelicsGround] 파괴도: %.2f%%"), DestructionPercent * 100.f);
 	return DestructionPercent * 100.f;
 }

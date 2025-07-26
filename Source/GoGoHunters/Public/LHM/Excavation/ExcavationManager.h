@@ -85,8 +85,14 @@ protected:
 // 발굴 UI 업데이트를 위한 DiggingUI 참조
 public:
 	void SetDiggingUI(class UDiggingUI* InDiggingUI) { DiggingUI = InDiggingUI; }
-	void UpdateDiggingProgress(float Progress);
+	void UpdateDiggingProgress();
+
+	void SetBrushingUI(class UBrushingUI* InBrushingUI) { BrushingUI = InBrushingUI; }
+
 protected:
     UPROPERTY()
     class UDiggingUI* DiggingUI;
+	
+    UPROPERTY()
+    class UBrushingUI* BrushingUI;
 };
