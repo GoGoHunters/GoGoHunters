@@ -88,6 +88,8 @@ private:
 	void SwitchState();
 
 	UFUNCTION()
+	void ToggleMenu();
+	UFUNCTION()
 	void OnMenuButtonClicked();
 
 	void PreviewMode();

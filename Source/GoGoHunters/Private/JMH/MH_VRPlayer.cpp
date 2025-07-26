@@ -823,6 +823,10 @@ void AMH_VRPlayer::TestLookUp(const FInputActionValue& Value)
 	}
 }
 
+void AMH_VRPlayer::ToggleMenu_Implementation()
+{
+}
+
 void AMH_VRPlayer::TryWorldMapInteraction(const FInputActionInstance& IA_Instance)
 {
 	UMotionControllerComponent* MotionController = nullptr;
