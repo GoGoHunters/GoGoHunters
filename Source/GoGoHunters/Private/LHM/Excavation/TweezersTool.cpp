@@ -15,20 +15,21 @@ ATweezersTool::ATweezersTool()
 
 	TweezersMeshL = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("TweezersMeshL"));
 	TweezersMeshR = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("TweezersMeshR"));
-	static ConstructorHelpers::FObjectFinder<UStaticMesh> MeshAssets(TEXT("/Game/LHM/Meshes/SM_Tweezerses.SM_Tweezerses"));
-	if (MeshAssets.Succeeded())
+	static ConstructorHelpers::FObjectFinder<UStaticMesh> LMeshAsset(TEXT("/Game/JMH/Mesh/04_Assets/Tools/Tools02_1.Tools02_1"));
+	static ConstructorHelpers::FObjectFinder<UStaticMesh> RMeshAsset(TEXT("/Game/JMH/Mesh/04_Assets/Tools/Tools02_2.Tools02_2"));
+	if (LMeshAsset.Succeeded() && RMeshAsset.Succeeded())
 	{
-		TweezersMeshL->SetStaticMesh(MeshAssets.Object);
+		TweezersMeshL->SetStaticMesh(LMeshAsset.Object);
 		TweezersMeshL->SetupAttachment(RootComponent);
-		TweezersMeshL->SetRelativeLocation(FVector(25, -2, 0)); // (X=25.000000,Y=-2.000000,Z=10.000000)
-		TweezersMeshL->SetRelativeRotation(FRotator(0, -5, 0)); // (Pitch=0.000000,Yaw=-5.000000,Roll=-0.000000)
+		TweezersMeshL->SetRelativeLocation(FVector(20, 0, 0));
+		TweezersMeshL->SetRelativeRotation(FRotator(0, -90, 0));
 		TweezersMeshL->SetCollisionResponseToChannel(ECC_Pawn, ECR_Ignore);
 		TweezersMeshL->bReceivesDecals = false;
 
-		TweezersMeshR->SetStaticMesh(MeshAssets.Object);
+		TweezersMeshR->SetStaticMesh(RMeshAsset.Object);
 		TweezersMeshR->SetupAttachment(RootComponent);
-		TweezersMeshR->SetRelativeLocation(FVector(25, 2, 0)); // (X=25.000000,Y=2.000000,Z=10.000000)
-		TweezersMeshR->SetRelativeRotation(FRotator(0, 5, 0)); // (Pitch=0.000000,Yaw=5.000000,Roll=-0.000000)
+		TweezersMeshR->SetRelativeLocation(FVector(20, 0, 0));
+		TweezersMeshR->SetRelativeRotation(FRotator(0, -90, 0));
 		TweezersMeshR->SetCollisionResponseToChannel(ECC_Pawn, ECR_Ignore);
 		TweezersMeshL->bReceivesDecals = false;
 	}
@@ -106,21 +107,19 @@ void ATweezersTool::SetIsPickingUp(bool _bIsPickingUp)
 {
 	bIsPickingUp = _bIsPickingUp;
 
-	UE_LOG(LogTemp, Log, TEXT("[TweezersTool] SetIsPickingUp: %s"), bIsPickingUp ? TEXT("True") : TEXT("False"));
-
 	if (bIsPickingUp)
 	{
-		TweezersMeshL->SetRelativeLocation(FVector(25, -1, 0));
-		TweezersMeshL->SetRelativeRotation(FRotator(0, 0, 0));
-		TweezersMeshR->SetRelativeLocation(FVector(25, 1, 0));
-		TweezersMeshR->SetRelativeRotation(FRotator(0, 0, 0));
+		TweezersMeshL->SetRelativeLocation(FVector(20, 0, 0));
+		TweezersMeshL->SetRelativeRotation(FRotator(0, -82, 0));
+		TweezersMeshR->SetRelativeLocation(FVector(20, 0, 0));
+		TweezersMeshR->SetRelativeRotation(FRotator(0, -97, 0));
 	}
 	else
 	{
-		TweezersMeshL->SetRelativeLocation(FVector(25, -2, 0));
-		TweezersMeshL->SetRelativeRotation(FRotator(0, -5, 0));
-		TweezersMeshR->SetRelativeLocation(FVector(25, 2, 0));
-		TweezersMeshR->SetRelativeRotation(FRotator(0, 5, 0));
+		TweezersMeshL->SetRelativeLocation(FVector(20, 0, 0));
+		TweezersMeshL->SetRelativeRotation(FRotator(0, -90, 0));
+		TweezersMeshR->SetRelativeLocation(FVector(20, 0, 0));
+		TweezersMeshR->SetRelativeRotation(FRotator(0, -90, 0));
 
 		// 유물 놓기
 		if (PickedRelic)
