@@ -45,12 +45,17 @@ void ARelicsBase::PostInitializeComponents()
 {
     Super::PostInitializeComponents();
 
+	TotalInitialOpacity = 0.f;
+	TotalRemainingOpacity = 0.f;
+
     for (UDecalComponent* Decal : DustDecals)
     {
         UMaterialInstanceDynamic* MID = UMaterialInstanceDynamic::Create(Decal->GetMaterial(0), this);
         Decal->SetMaterial(0, MID);
         MID->SetScalarParameterValue(OpacityParameterName, CurrentOpacity);
         DecalMIDs.Add(Decal, MID);
+        TotalInitialOpacity += 1.0f;
+        TotalRemainingOpacity += 1.0f;
     }
 }
 
@@ -102,24 +107,34 @@ void ARelicsBase::ReduceDustOpacity(const FVector& BrushLocation, float Amount, 
 
     if (!Closest) return;
 
-    // 데칼 투명도 설정
+    // 데칼 투명도 설정 및 BrushingUI 업데이트
     UMaterialInstanceDynamic* MID = DecalMIDs[Closest];
-    float Opacity;
-    MID->GetScalarParameterValue(FMaterialParameterInfo(OpacityParameterName), Opacity);
-    Opacity = FMath::Clamp(Opacity - Amount, 0.0f, 1.0f);
-    MID->SetScalarParameterValue(OpacityParameterName, Opacity);
+    float Current;
+    MID->GetScalarParameterValue(FMaterialParameterInfo(OpacityParameterName), Current);
+    //Opacity = FMath::Clamp(Opacity - Amount, 0.0f, 1.0f);
+    float NewOpacity = FMath::Clamp(Current - Amount, 0.0f, 1.0f);
+    MID->SetScalarParameterValue(OpacityParameterName, NewOpacity);
+	//if (BrushingUI) BrushingUI->UpdateDecalProgress(Closest, Opacity);
     
-    // UI 업데이트
-	if (BrushingUI) BrushingUI->UpdateDecalProgress(Closest, Opacity);
+    // 제거된 양만큼 남은 총합 감소
+    TotalRemainingOpacity -= (Current - NewOpacity);
+    TotalRemainingOpacity = FMath::Clamp(TotalRemainingOpacity, 0.0f, TotalInitialOpacity);
+
+    // BrushingUI에 전체 진행률 업데이트
+    if (BrushingUI && TotalInitialOpacity > 0.0f)
+    {
+        float Progress = TotalRemainingOpacity / TotalInitialOpacity;
+        BrushingUI->UpdateProgress(Progress);
+    }
 
     // 이펙트 업데이트
     ABrushTool* Brush = Cast<ABrushTool>(&BrushRef);
-    if (Brush) Brush->UpdateFeedback(Opacity);
+    if (Brush) Brush->UpdateFeedback(Current);
 
     //UE_LOG(LogTemp, Log, TEXT("[Debug] Decal Opacity value: %f"), Opacity);
 
     // 데칼 제거
-    if (Opacity <= 0.0f)
+    if (Current <= 0.0f)
     {
         Closest->DestroyComponent();
         DustDecals.Remove(Closest);
@@ -150,20 +165,20 @@ void ARelicsBase::CheckAllDelcalsRemoved()
 void ARelicsBase::SetBrushingUI(class UBrushingUI* InBrushingUI)
 {
     BrushingUI = InBrushingUI;
-    if (BrushingUI)
-    {
-        BrushingUI->CreateDecalWidgets(DustDecals);
-        // 초기 오파시티로 UI 갱신
-        for (UDecalComponent* Decal : DustDecals)
-        {
-            if (Decal && DecalMIDs.Contains(Decal))
-            {
-                float Opacity = 1.0f;
-                DecalMIDs[Decal]->GetScalarParameterValue(FMaterialParameterInfo(OpacityParameterName), Opacity);
-                BrushingUI->UpdateDecalProgress(Decal, Opacity);
-            }
-        }
-    }
+    //if (BrushingUI)
+    //{
+    //    BrushingUI->CreateDecalWidgets(DustDecals);
+    //    // 초기 오파시티로 UI 갱신
+    //    for (UDecalComponent* Decal : DustDecals)
+    //    {
+    //        if (Decal && DecalMIDs.Contains(Decal))
+    //        {
+    //            float Opacity = 1.0f;
+    //            DecalMIDs[Decal]->GetScalarParameterValue(FMaterialParameterInfo(OpacityParameterName), Opacity);
+    //            BrushingUI->UpdateDecalProgress(Decal, Opacity);
+    //        }
+    //    }
+    //}
 }
 
 UStaticMeshComponent* ARelicsBase::GetRelicMeshByDecal(UDecalComponent* Decal) const

@@ -60,13 +60,17 @@ void ACollectionBox::OnOverlapBegin(UPrimitiveComponent* Overlapped, AActor* Oth
 
 			UE_LOG(LogTemp, Log, TEXT("[CollectionBox] 유물 수거됨: %s"), *Relic->GetName());
 
-			// 위젯 표시 업데이트
-			if (Relic->GetBrushingUI() && Relic->GetBrushingUI()->GetMeshToWidgetMap().Contains(Mesh))
+			// UI 업데이트
+			/*if (Relic->GetBrushingUI() && Relic->GetBrushingUI()->GetMeshToWidgetMap().Contains(Mesh))
 			{
 				if (UDecalProgressUI* Widget = Relic->GetBrushingUI()->GetMeshToWidgetMap()[Mesh])
 				{
 					Widget->SetCollectedImage(true);
 				}
+			}*/
+			if (Relic->GetBrushingUI())
+			{
+				Relic->GetBrushingUI()->SetCollectedImage(true);
 			}
 
 			CheckAllCollected();
@@ -88,12 +92,16 @@ void ACollectionBox::OnOverlapEnd(UPrimitiveComponent* OverlappedComp, AActor* O
 			CollectedMeshes.Remove(Mesh);
 
 			// UI 되돌리기
-			if (Relic->GetBrushingUI() && Relic->GetBrushingUI()->GetMeshToWidgetMap().Contains(Mesh))
+			/*if (Relic->GetBrushingUI() && Relic->GetBrushingUI()->GetMeshToWidgetMap().Contains(Mesh))
 			{
 				if (UDecalProgressUI* Widget = Relic->GetBrushingUI()->GetMeshToWidgetMap()[Mesh])
 				{
 					Widget->SetCollectedImage(false);
 				}
+			}*/
+			if (Relic->GetBrushingUI())
+			{
+				Relic->GetBrushingUI()->SetCollectedImage(false);
 			}
 
 			break;

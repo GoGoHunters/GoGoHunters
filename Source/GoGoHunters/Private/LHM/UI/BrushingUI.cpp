@@ -4,12 +4,78 @@
 #include "LHM/UI/BrushingUI.h"
 #include "Components/ProgressBar.h"
 #include "Components/TextBlock.h"
+#include "Components/Image.h"
 #include "Components/HorizontalBox.h"
 #include "Components/VerticalBox.h"
 #include "Components/HorizontalBoxSlot.h"
+#include "Components/DecalComponent.h"
 #include "LHM/UI/DecalProgressUI.h"
 #include "LHM/Excavation/RelicsBase.h"
-#include "Components/DecalComponent.h"
+
+void UBrushingUI::NativeConstruct()
+{
+    CollectedImgs =
+    { 
+        Img_Collected_1, 
+        Img_Collected_2, 
+        Img_Collected_3, 
+        Img_Collected_4,
+        Img_Collected_5,
+        Img_Collected_6, 
+        Img_Collected_7, 
+        Img_Collected_8 
+    };
+
+    for (UImage* Img : CollectedImgs)
+    {
+        if (Img) Img->SetVisibility(ESlateVisibility::Hidden);
+	}
+}
+
+void UBrushingUI::UpdateProgress(float Opacity)
+{
+    if (!ProgressBar || !Txt_Percent) return;
+
+	float Progress = FMath::Clamp(1.0f - Opacity, 0.0f, 1.0f);
+    int32 Percent = FMath::RoundToInt(Progress * 100.0f);
+
+    ProgressBar->SetPercent(Progress);
+    Txt_Percent->SetText(FText::Format(FText::FromString(TEXT("먼지 제거 진행률 {0}%")), FText::AsNumber(Percent)));
+}
+
+void UBrushingUI::SetCollectedImage(bool bCollected)
+{
+    if (CollectedImgs.Num() == 0) return;
+
+	int32 CollectedImgsNum = CollectedImgs.Num();
+
+    if (bCollected)
+	{
+        //for (UImage* Img : CollectedImgs)
+        for (int32 i = 0; i < CollectedImgs.Num(); ++i)
+        {
+			UImage* Img = CollectedImgs[i];
+            if (!Img) continue;
+            if (Img->Visibility == ESlateVisibility::Visible) continue;
+            Img->SetVisibility(ESlateVisibility::Visible);
+            Txt_Percent->SetText(FText::Format(FText::FromString(TEXT("수집 진행률 {0}/{1}")), FText::AsNumber(i+1), FText::AsNumber(CollectedImgsNum)));
+            break;
+		}
+    }
+    else
+    {
+        for (int32 i = CollectedImgs.Num() - 1; i >= 0; --i)
+        {
+            UImage* Img = CollectedImgs[i];
+            if (Img && Img->Visibility == ESlateVisibility::Visible)
+            {
+                Img->SetVisibility(ESlateVisibility::Hidden);
+                Txt_Percent->SetText(FText::Format(FText::FromString(TEXT("수집 진행률 {0}/{1}")), FText::AsNumber(i), FText::AsNumber(CollectedImgsNum)));
+                break;
+            }
+        }
+    }
+}
 
 void UBrushingUI::CreateDecalWidgets(const TArray<UDecalComponent*>& Decals)
 {
@@ -59,7 +125,6 @@ void UBrushingUI::CreateDecalWidgets(const TArray<UDecalComponent*>& Decals)
 
 void UBrushingUI::UpdateDecalProgress(UDecalComponent* UpdatedDecal, float Opacity)
 {
-
     ARelicsBase* Relic = Cast<ARelicsBase>(UpdatedDecal->GetOwner());
     if (!Relic) return;
 
