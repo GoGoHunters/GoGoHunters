@@ -9,6 +9,7 @@
 #include "base/GI_Base.h"
 #include "LHM/Excavation/RelicsBase.h"
 #include "LHM/UI/DiggingUI.h"
+#include "LHM/UI/BrushingUI.h"
 
 // Sets default values
 AExcavationManager::AExcavationManager()
@@ -44,15 +45,9 @@ void AExcavationManager::Tick(float DeltaTime)
 	Super::Tick(DeltaTime);
 
     // Digging 단계일 때만 진행률 UI 업데이트
-    if (CurrentPhase == EExcavationPhase::Digging && CurrentActiveManager)
+    if (CurrentPhase == EExcavationPhase::Digging)
     {
-        float DigProgress = 0.0f;
-        if (CurrentActiveManager->GetCurrentDigProgress(DigProgress))
-        {
-            // 0~50 → 0~100% 변환
-            float ProgressPercent = FMath::Clamp(DigProgress / 50.0f * 100.0f, 0.0f, 100.0f);
-            UpdateDiggingProgress(ProgressPercent);
-        }
+		UpdateDiggingProgress();
     }
 }
 
@@ -63,7 +58,7 @@ void AExcavationManager::NotifyDetectionCompleted(class ARelicsManager* FromMana
 	CurrentActiveManager = FromManager;
 	FromManager->StartExcavation();
 
-	if (DiggingUI) DiggingUI->SetVisibility(ESlateVisibility::Visible);
+	//if (DiggingUI) DiggingUI->SetVisibility(ESlateVisibility::Visible);
 
 	UE_LOG(LogTemp, Log, TEXT("[ExcavationManager] 유물 발견! 땅 파기 단계로 전환: %s"), *FromManager->GetName());
 
@@ -75,7 +70,7 @@ void AExcavationManager::NotifyExcavationCompleted(class ARelicsManager* FromMan
 {
 	if (!IsValid(FromManager)) return;
 
-	if (DiggingUI) DiggingUI->SetVisibility(ESlateVisibility::Hidden);
+	//if (DiggingUI) DiggingUI->SetVisibility(ESlateVisibility::Hidden);
 
 	UE_LOG(LogTemp, Log, TEXT("[ExcavationManager] 땅 파기 완료! 붓질 단계로 전환: %s"), *FromManager->GetName());
 	
@@ -176,6 +171,15 @@ void AExcavationManager::SetCurrentPhase(EExcavationPhase NewPhase)
 		break;
 	}
 
+	// Brushing 단계 진입 시점에 BrushingUI를 RelicsBase에 연결
+	if (CurrentPhase == EExcavationPhase::Brushing)
+	{
+		if (BrushingUI && CurrentActiveManager && CurrentActiveManager->GetRelics())
+		{
+			CurrentActiveManager->GetRelics()->SetBrushingUI(BrushingUI);
+		}
+	}
+
 	UE_LOG(LogTemp, Log, TEXT("[ExcavationManager] 발굴 단계 변경: %d"), (int32)CurrentPhase);
 	OnExcavationPhaseChanged.Broadcast(CurrentPhase);
 }
@@ -189,7 +193,16 @@ bool AExcavationManager::IsToolAvailableForPhase(int32 ToolIndex) const
 	return false;
 }
 
-void AExcavationManager::UpdateDiggingProgress(float Progress)
+void AExcavationManager::UpdateDiggingProgress()
 {
-    if (DiggingUI) DiggingUI->UpdateUI(Progress);
+	if (!CurrentActiveManager) return;
+	if (!DiggingUI) return;
+	
+	float DigProgress = 0.0f;
+	if (CurrentActiveManager->GetCurrentDigProgress(DigProgress))
+	{
+		// 0~50 → 0~100% 변환
+		float ProgressPercent = FMath::Clamp(DigProgress / 50.0f * 100.0f, 0.0f, 100.0f);
+		DiggingUI->UpdateUI(ProgressPercent);
+	}
 }

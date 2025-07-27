@@ -31,8 +31,8 @@ AShovelTool::AShovelTool()
 	SplatPoint->SetRelativeLocation(FVector(15, 0, 10)); // (X=15.000000,Y=0.000000,Z=10.000000)
 
 	bIsDigging = false;
-	DiggingRate = 0.1f; // 0.1초마다 한 번씩 데미지 적용
-	TimeSinceLastDig = 0.0f;
+	//DiggingRate = 0.1f; // 0.1초마다 한 번씩 데미지 적용
+	//TimeSinceLastDig = 0.0f;
 }
 
 // Called when the game starts or when spawned
