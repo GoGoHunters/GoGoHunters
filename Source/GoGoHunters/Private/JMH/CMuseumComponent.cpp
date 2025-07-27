@@ -84,7 +84,8 @@ void UCMuseumComponent::TickComponent(float DeltaTime, ELevelTick TickType,
 
 void UCMuseumComponent::SetupPlayerInputComponent(UEnhancedInputComponent* EnhancedInput)
 {
-	EnhancedInput->BindAction(IA_Menu, ETriggerEvent::Started, this, &UCMuseumComponent::OnMenuButtonClicked);
+	// EnhancedInput->BindAction(IA_Menu, ETriggerEvent::Started, this, &UCMuseumComponent::OnMenuButtonClicked);
+	EnhancedInput->BindAction(IA_Menu, ETriggerEvent::Started, this, &UCMuseumComponent::ToggleMenu);
 }
 
 void UCMuseumComponent::OnMenuButtonClicked()
@@ -185,6 +186,12 @@ void UCMuseumComponent::SwitchState()
 		GrabComponent->RelicUnGrab();
 		break;
 	}
+}
+
+void UCMuseumComponent::ToggleMenu()
+{
+	if (!OwnerPlayer) return;
+	OwnerPlayer->ToggleMenu();
 }
 
 void UCMuseumComponent::PlayPreviewMode(const FCRelicData& InRelicData, const FCRelicDetailData& InRelicDetailData)
