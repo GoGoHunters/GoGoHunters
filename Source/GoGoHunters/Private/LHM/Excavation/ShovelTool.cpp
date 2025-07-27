@@ -8,6 +8,8 @@
 #include "LHM/Excavation/RelicsGround.h"
 #include "Kismet/GameplayStatics.h"
 #include "EngineUtils.h"
+#include "JMH/MH_VRPlayer.h"
+#include "MotionControllerComponent.h"
 
 // Sets default values
 AShovelTool::AShovelTool()
@@ -47,6 +49,35 @@ void AShovelTool::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
+	if (bIsDigging)
+	{
+		AMH_VRPlayer* VRPlayer = Cast<AMH_VRPlayer>(this->GetAttachParentActor());
+		if (VRPlayer)
+		{
+			UMotionControllerComponent* HandController = VRPlayer->RHandController;
+
+			if (!bWasDiggingLastFrame)
+			{
+				PreviousLocation = HandController->GetComponentLocation();
+				bWasDiggingLastFrame = true;
+				return; // 첫 프레임은 계산 생략
+			}
+
+			FVector CurrentLocation = HandController->GetComponentLocation();
+			float Speed = (CurrentLocation - PreviousLocation).Size() / DeltaTime;
+			PreviousLocation = CurrentLocation;
+
+			float SwingThreshold = 100.0f;
+			bCanTriggerDigTrace = Speed > SwingThreshold;
+
+			//UE_LOG(LogTemp, Log, TEXT("%f / %f"), Speed, SwingThreshold);
+		}
+	}
+	else
+	{
+		bWasDiggingLastFrame = false;
+		bCanTriggerDigTrace = false;
+	}
 }
 
 void AShovelTool::UpdateFeedback(FVector ImpactLocation)
