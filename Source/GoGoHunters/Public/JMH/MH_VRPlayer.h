@@ -259,6 +259,9 @@ public:
 
 	UPROPERTY()
 	TObjectPtr<ACRelicCollectionWidgetActor> RelicCollectionWidgetActor;
+
+	UFUNCTION(BlueprintNativeEvent)
+	void ToggleMenu();
 	
 private:
 	UPROPERTY()
