@@ -246,6 +246,7 @@ void UAC_Record::HandleAudioEnvelopeValue(const float Volume)
         if (isRecording)
             return;
         isRecording = true;
+        OnRecordingStateChanged.Broadcast(true);
 
         // StartRecordFile();
         StartRecordingVoice();
@@ -260,6 +261,7 @@ void UAC_Record::HandleAudioEnvelopeValue(const float Volume)
             StopRecordingVoice();
             historyCount += 1;
             isRecording = false;
+            OnRecordingStateChanged.Broadcast(false);
         }
     }
 }
@@ -297,10 +299,23 @@ void UAC_Record::StopRecordingVoice()
 {
     if (!isRecording)
         return;
-
     ProcessAndBroadcastCapturedData(CurrentSampleRate, CurrentNumChannels);
+    
+    EndRecordingVoice();
 }
 
+void UAC_Record::EndRecordingVoice()
+{
+    TArray<uint8> WavHeader = WavHeaderUtils::CreateWavHeader(0, 0, 0, 0);
+    if (OnMicrophoneDataCaptured.IsBound())
+    {
+        AsyncTask(ENamedThreads::GameThread, [this, WavHeader]() {
+            if (OnMicrophoneDataCaptured.IsBound())
+                OnMicrophoneDataCaptured.Broadcast(WavHeader);
+            });
+    }
+}
+    
 namespace WavHeaderUtils
 {
     TArray<uint8> CreateWavHeader(int32 SampleRate, int32 NumChannels, int32 BitsPerSample, int32 PCMDataSize)

@@ -92,6 +92,22 @@ void UU_WebSocketManager::WebSocketSendByteData(const TArray<uint8>& DataToSend)
     }
 }
 
+void UU_WebSocketManager::SendEndOfDataSignal()
+{
+    if (WebSocket.IsValid() && WebSocket->IsConnected())
+    {
+        TArray<uint8> EndSignal;
+        EndSignal.Add(0xFE);
+
+        WebSocket->Send(EndSignal.GetData(), EndSignal.Num(), true);
+        UE_LOG(LogTemp, Warning, TEXT("Sent EndOfDataSignal (0xFE) via WebSocket."));
+    }
+    else
+    {
+        UE_LOG(LogTemp, Error, TEXT("WebSocket not connected. Cannot send EndOfDataSignal."));
+    }
+}
+
 bool UU_WebSocketManager::IsConnected() const
 {
     return WebSocket.IsValid() && WebSocket->IsConnected();
