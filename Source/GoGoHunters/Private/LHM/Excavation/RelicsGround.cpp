@@ -45,7 +45,11 @@ void ARelicsGround::TriggerOnGroundDug(FVector ImpactLocation)
 {
 	OnGroundDug.Broadcast(ImpactLocation);
 
-	if (Shovel_Ref) Shovel_Ref->SetIsDigging(false);
+	if (Shovel_Ref)
+	{
+		Shovel_Ref->SetIsDigging(false);
+		Shovel_Ref->bCanTriggerDigTrace = false;
+	}
 
 	// 파괴량 측정은 한 프레임 지연 후
 	FTimerHandle TimerHandle;

@@ -32,11 +32,17 @@ public:
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Digging")
     bool bIsDigging;
 
-    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Digging")
-    float DiggingRate; // 초당 삽질 적용 빈도 (0.1초마다 한 번)
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Digging")
+	bool bCanTriggerDigTrace = false;
 
-    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Digging")
-    float TimeSinceLastDig; // 마지막으로 삽질 데미지를 적용한 이후 경과 시간
+	bool bWasDiggingLastFrame = false;
+	FVector PreviousLocation;
+
+    //UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Digging")
+    //float DiggingRate; // 초당 삽질 적용 빈도 (0.1초마다 한 번)
+
+    //UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Digging")
+    //float TimeSinceLastDig; // 마지막으로 삽질 데미지를 적용한 이후 경과 시간
 
 public:
     UFUNCTION(BlueprintCallable, Category = "Digging")
