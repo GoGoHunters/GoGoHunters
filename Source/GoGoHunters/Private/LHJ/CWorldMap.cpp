@@ -32,7 +32,10 @@ void ACWorldMap::BeginPlay()
 {
 	Super::BeginPlay();
 	if (ContinentWidget && ContinentWidget->GetChildActor())
+	{
 		ContinentWidgetActor = Cast<ACContinentWidgetActor>(ContinentWidget->GetChildActor());
+		ContinentWidgetActor->SetOuterActor(this);
+	}
 
 	if (ContinentDataTable)
 	{
@@ -107,6 +110,11 @@ void ACWorldMap::ResetPrevOutline()
 			DynMat->SetVectorParameterValue("BC", FLinearColor(0.15f, 0.25f, 1.0f));
 		PrevOutlinedComp = nullptr;
 	}
+}
+
+void ACWorldMap::SetContinentVisibleHidden()
+{
+	if (ContinentWidget && ContinentWidget->IsVisible()) ContinentWidget->SetVisibility(false);
 }
 
 const FCContinentData ACWorldMap::GetContinentData(const FString& ContinentName)
