@@ -70,7 +70,7 @@ void UGI_Base::TransitionToLevel(const FString& TargetLevelName)
 	bIsLoadingLevel = true;
 	
 	// Transition Level로 이동
-	UGameplayStatics::OpenLevel(GetWorld(), TEXT("LV_MH_Loading"));
+	UGameplayStatics::OpenLevel(GetWorld(), TEXT("LV_MH_Loading_Test"));
 	
 	UE_LOG(LogTemp, Log, TEXT("Transitioning to level: %s"), *TargetLevelName);
 }
