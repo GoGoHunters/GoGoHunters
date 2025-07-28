@@ -6,6 +6,7 @@
 
 class UWidgetComponent;
 class UCContinentWidget;
+class ACWorldMap;
 struct FCContinentData;
 
 UCLASS()
@@ -15,6 +16,8 @@ class GOGOHUNTERS_API ACContinentWidgetActor : public AActor
 	
 public:
 	void SetContinentData(const FCContinentData& ContinentData);
+	void SetContinentVisibleHidden();
+	void SetOuterActor(ACWorldMap* InOwner);
 
 private:
 	ACContinentWidgetActor();
@@ -26,4 +29,6 @@ private:
 	UWidgetComponent* WidgetComponent;
 	UPROPERTY()
 	TObjectPtr<UCContinentWidget> ContinentWidget;
+	UPROPERTY()
+	TObjectPtr<ACWorldMap> OuterOwner;
 };

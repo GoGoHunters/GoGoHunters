@@ -16,6 +16,7 @@ class GOGOHUNTERS_API ACWorldMap : public AActor
 public:
 	void EnableCompOutline(UStaticMeshComponent* Comp);
 	void ResetPrevOutline();
+	void SetContinentVisibleHidden();
 	
 private:
 	UPROPERTY(EditDefaultsOnly)

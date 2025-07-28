@@ -8,6 +8,7 @@
 class USizeBox;
 class UTextBlock;
 class UButton;
+class ACContinentWidgetActor;
 
 /**
  * 
@@ -19,6 +20,7 @@ class GOGOHUNTERS_API UCContinentWidget : public UUserWidget
 
 public:
 	void SetContinentData(const FCContinentData& ContinentData);
+	void SetOuterActor(ACContinentWidgetActor* InOwner);
 	
 private:
 	UPROPERTY(EditDefaultsOnly, meta=(BindWidget))
@@ -30,6 +32,8 @@ private:
 	UPROPERTY(EditDefaultsOnly, meta=(BindWidget))
 	TObjectPtr<UButton> Btn_Exit;
 	UPROPERTY(EditDefaultsOnly, meta=(BindWidget))
+	TObjectPtr<UButton> Btn_Exit_NotUseJoin;
+	UPROPERTY(EditDefaultsOnly, meta=(BindWidget))
 	TObjectPtr<USizeBox> SB_Join;
 	UPROPERTY(EditDefaultsOnly, meta=(BindWidget))
 	TObjectPtr<USizeBox> SB_Exit;
@@ -38,7 +42,13 @@ private:
 
 	FCContinentData CurrentContinentData; // 현재 대륙 데이터 저장
 
+	UPROPERTY()
+	TObjectPtr<ACContinentWidgetActor> OuterOwner;
+
 	virtual void NativeConstruct() override;
+	
 	UFUNCTION()
 	void OnJoinButtonClicked();
+	UFUNCTION()
+	void OnExitButtonClicked();
 };

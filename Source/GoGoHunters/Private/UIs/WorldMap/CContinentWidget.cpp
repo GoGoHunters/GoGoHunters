@@ -6,16 +6,20 @@
 #include "LHJ/CContinentData.h"
 #include "Engine/World.h"
 #include "base/GI_Base.h"
+#include "Components/WidgetComponent.h"
+#include "LHJ/CContinentWidgetActor.h"
 
 void UCContinentWidget::NativeConstruct()
 {
-	Super::NativeConstruct();
+	Super::NativeConstruct();	
 	
-	// Join 버튼 클릭 이벤트 바인딩
+	// 버튼 클릭 이벤트 바인딩
 	if (Btn_Join)
-	{
 		Btn_Join->OnClicked.AddDynamic(this, &UCContinentWidget::OnJoinButtonClicked);
-	}
+	if (Btn_Exit)
+		Btn_Exit->OnClicked.AddDynamic(this, &UCContinentWidget::OnExitButtonClicked);
+	if (Btn_Exit_NotUseJoin)
+		Btn_Exit_NotUseJoin->OnClicked.AddDynamic(this, &UCContinentWidget::OnExitButtonClicked);
 }
 
 void UCContinentWidget::SetContinentData(const FCContinentData& ContinentData)
@@ -59,6 +63,12 @@ void UCContinentWidget::SetContinentData(const FCContinentData& ContinentData)
 	}
 }
 
+void UCContinentWidget::SetOuterActor(ACContinentWidgetActor* InOwner)
+{
+	if (!InOwner) return;
+	OuterOwner = InOwner;
+}
+
 void UCContinentWidget::OnJoinButtonClicked()
 {
 	// GameInstance를 통해 레벨 전환
@@ -74,4 +84,10 @@ void UCContinentWidget::OnJoinButtonClicked()
 			UE_LOG(LogTemp, Warning, TEXT("Target level name is empty for continent: %s"), *CurrentContinentData.ContinentName);
 		}
 	}
+}
+
+void UCContinentWidget::OnExitButtonClicked()
+{
+	if (!OuterOwner) return;
+	OuterOwner->SetContinentVisibleHidden();
 }
