@@ -36,7 +36,7 @@ ARelicsManager::ARelicsManager()
 	RelicsChild = CreateDefaultSubobject<UChildActorComponent>(TEXT("Relics"));
 	RelicsChild->SetupAttachment(RootComponent);
 	RelicsChild->SetChildActorClass(RelicsClass);
-	RelicsChild->SetRelativeLocation(FVector(0, 0, 65));
+	//RelicsChild->SetRelativeLocation(FVector(0, 0, 65));
 
 	static ConstructorHelpers::FClassFinder<ARelicsGround> GroundClassFinder(TEXT("/Game/LHM/BP/Excavation/BP_RelicsGround"));
 	if (GroundClassFinder.Succeeded())
@@ -54,16 +54,16 @@ ARelicsManager::ARelicsManager()
 		}*/
 
 		GroundChild1 = CreateDefaultSubobject<UChildActorComponent>(TEXT("GroundLayer_1"));
-		//GroundChild2 = CreateDefaultSubobject<UChildActorComponent>(TEXT("GroundLayer_2"));
+		GroundChild2 = CreateDefaultSubobject<UChildActorComponent>(TEXT("GroundLayer_2"));
 		//GroundChild3 = CreateDefaultSubobject<UChildActorComponent>(TEXT("GroundLayer_3"));
 		GroundChild1->SetupAttachment(RootComponent);
-		//GroundChild2->SetupAttachment(RootComponent);
+		GroundChild2->SetupAttachment(RootComponent);
 		//GroundChild3->SetupAttachment(RootComponent);
 		GroundChild1->SetChildActorClass(RelicsGroundClass);
-		//GroundChild2->SetChildActorClass(RelicsGroundClass);
+		GroundChild2->SetChildActorClass(RelicsGroundClass);
 		//GroundChild3->SetChildActorClass(RelicsGroundClass);
 		GroundChildActors.Add(GroundChild1);
-		//GroundChildActors.Add(GroundChild2);
+		GroundChildActors.Add(GroundChild2);
 		//GroundChildActors.Add(GroundChild3);
 	}
 	else
@@ -110,18 +110,18 @@ void ARelicsManager::BeginPlay()
 	if (GroundChild1 /*&& GroundChild2 && GroundChild3*/)
 	{
 		Ground1 = Cast<ARelicsGround>(GroundChild1->GetChildActor());
-		//Ground2 = Cast<ARelicsGround>(GroundChild2->GetChildActor());
+		Ground2 = Cast<ARelicsGround>(GroundChild2->GetChildActor());
 		//Ground3 = Cast<ARelicsGround>(GroundChild3->GetChildActor());
 
 		GroundLayers.Add(Ground1);
-		//GroundLayers.Add(Ground2);
+		GroundLayers.Add(Ground2);
 		//GroundLayers.Add(Ground3);
 
 		Ground1->SetActorHiddenInGame(true); // 시작 시 숨김
-		//Ground2->SetActorHiddenInGame(true); // 시작 시 숨김
+		Ground2->SetActorHiddenInGame(true); // 시작 시 숨김
 		//Ground3->SetActorHiddenInGame(true); // 시작 시 숨김
 		Ground1->SetRelicsManager(this);
-		//Ground2->SetRelicsManager(this);
+		Ground2->SetRelicsManager(this);
 		//Ground3->SetRelicsManager(this);
 	}
 
