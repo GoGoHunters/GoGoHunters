@@ -56,7 +56,7 @@ void UBrushingUI::SetCollectedImage(bool bCollected)
         {
 			UImage* Img = CollectedImgs[i];
             if (!Img) continue;
-            if (Img->Visibility == ESlateVisibility::Visible) continue;
+            if (Img->GetVisibility() == ESlateVisibility::Visible) continue;
             Img->SetVisibility(ESlateVisibility::Visible);
             Txt_Percent->SetText(FText::Format(FText::FromString(TEXT("수집 진행률 {0}/{1}")), FText::AsNumber(i+1), FText::AsNumber(CollectedImgsNum)));
             break;
@@ -67,7 +67,7 @@ void UBrushingUI::SetCollectedImage(bool bCollected)
         for (int32 i = CollectedImgs.Num() - 1; i >= 0; --i)
         {
             UImage* Img = CollectedImgs[i];
-            if (Img && Img->Visibility == ESlateVisibility::Visible)
+            if (Img && Img->GetVisibility() == ESlateVisibility::Visible)
             {
                 Img->SetVisibility(ESlateVisibility::Hidden);
                 Txt_Percent->SetText(FText::Format(FText::FromString(TEXT("수집 진행률 {0}/{1}")), FText::AsNumber(i), FText::AsNumber(CollectedImgsNum)));
