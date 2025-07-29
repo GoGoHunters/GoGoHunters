@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
@@ -13,6 +13,9 @@ public:
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable)
 	void SwitchActiveWidget(const int32 InDesiredUiIdx);
 	
+	UFUNCTION(BlueprintImplementableEvent, Category = "UI Event")
+    void K2_PlayPopupUiAnim(bool IsTurnOff);
+
 private:
 	ACUiActor();
 	virtual void BeginPlay() override;

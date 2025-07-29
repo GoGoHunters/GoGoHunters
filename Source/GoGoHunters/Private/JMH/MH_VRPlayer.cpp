@@ -152,20 +152,6 @@ void AMH_VRPlayer::BeginPlay()
 		{
 			RelicsGroundRefs.Add(*It);
 		}
-		
-		FActorSpawnParameters SpawnParams;
-		SpawnParams.Owner = this;
-
-		// ExcavationUI 
-		if (ExcavationUIActorClass = LoadClass<AExcavationWidgetActor>(nullptr, TEXT("/Game/LHM/BP/Excavation/BP_ExcavationWidgetActor.BP_ExcavationWidgetActor_C")))
-		{
-			ExcavationUIActor = GetWorld()->SpawnActor<AExcavationWidgetActor>(ExcavationUIActorClass, FVector::ZeroVector, FRotator::ZeroRotator, SpawnParams);
-			if (ExcavationUIActor)
-			{
-				USceneComponent* HandSocket = LHandController;
-				ExcavationUIActor->AttachToComponent(HandSocket, FAttachmentTransformRules::SnapToTargetNotIncludingScale, NAME_None);
-			}
-		}
 	}
 #pragma endregion 발굴 레벨에서만 초기화
 

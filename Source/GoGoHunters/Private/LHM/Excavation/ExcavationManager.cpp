@@ -10,6 +10,7 @@
 #include "LHM/Excavation/RelicsBase.h"
 #include "LHM/UI/DiggingUI.h"
 #include "LHM/UI/BrushingUI.h"
+#include "UIs/CUiActor.h"
 
 // Sets default values
 AExcavationManager::AExcavationManager()
@@ -58,7 +59,8 @@ void AExcavationManager::NotifyDetectionCompleted(class ARelicsManager* FromMana
 	CurrentActiveManager = FromManager;
 	FromManager->StartExcavation();
 
-	//if (DiggingUI) DiggingUI->SetVisibility(ESlateVisibility::Visible);
+	if (DiggingUI) DiggingUI->SetVisibility(ESlateVisibility::Visible);
+	PlayPopupUiAnim(false);
 
 	UE_LOG(LogTemp, Log, TEXT("[ExcavationManager] 유물 발견! 땅 파기 단계로 전환: %s"), *FromManager->GetName());
 
@@ -70,7 +72,8 @@ void AExcavationManager::NotifyExcavationCompleted(class ARelicsManager* FromMan
 {
 	if (!IsValid(FromManager)) return;
 
-	//if (DiggingUI) DiggingUI->SetVisibility(ESlateVisibility::Hidden);
+	if (DiggingUI) DiggingUI->SetVisibility(ESlateVisibility::Hidden);
+	if (BrushingUI) BrushingUI->SetVisibility(ESlateVisibility::Visible);
 
 	UE_LOG(LogTemp, Log, TEXT("[ExcavationManager] 땅 파기 완료! 붓질 단계로 전환: %s"), *FromManager->GetName());
 	
@@ -93,6 +96,9 @@ void AExcavationManager::NotifyDustingCompleted(class ARelicsManager* FromManage
 void AExcavationManager::NotifyCollectionCompleted(class ARelicsManager* FromManager)
 {
 	if (!IsValid(FromManager)) return;
+
+	if (BrushingUI) BrushingUI->SetVisibility(ESlateVisibility::Hidden);
+	PlayPopupUiAnim(true);
 
 	UE_LOG(LogTemp, Log, TEXT("[ExcavationManager] 수거 완료! 발굴 완료: %s"), *FromManager->GetName());
 
@@ -191,6 +197,21 @@ bool AExcavationManager::IsToolAvailableForPhase(int32 ToolIndex) const
 		return ToolAvailabilityByPhase[ToolIndex];
 	}
 	return false;
+}
+
+void AExcavationManager::PlayPopupUiAnim(bool IsTunrOff)
+{
+	TArray<AActor*> FoundActors;
+	UGameplayStatics::GetAllActorsOfClass(GetWorld(), ACUiActor::StaticClass(), FoundActors);
+
+	if (FoundActors.Num() > 0)
+	{
+		if (ACUiActor* UiActor = Cast<ACUiActor>(FoundActors[0]))
+		{
+			if (IsTunrOff) UiActor->K2_PlayPopupUiAnim(true);
+			else UiActor->K2_PlayPopupUiAnim(false);
+		}
+	}
 }
 
 void AExcavationManager::UpdateDiggingProgress()

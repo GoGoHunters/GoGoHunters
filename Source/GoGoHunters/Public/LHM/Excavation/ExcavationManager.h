@@ -81,8 +81,11 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Excavation")
 	TArray<bool> ToolAvailabilityByPhase;
 
+// UI Popup Settings
+public:
+	void PlayPopupUiAnim(bool IsTunrOff);
 
-// 발굴 UI 업데이트를 위한 DiggingUI 참조
+// 발굴 UI 업데이트를 위한 DiggingUI/BrushingUI 참조
 public:
 	void SetDiggingUI(class UDiggingUI* InDiggingUI) { DiggingUI = InDiggingUI; }
 	void UpdateDiggingProgress();
