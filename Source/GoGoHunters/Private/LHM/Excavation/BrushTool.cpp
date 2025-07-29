@@ -14,11 +14,11 @@ ABrushTool::ABrushTool()
 	PrimaryActorTick.bCanEverTick = true;
 
 	RootComponent = CreateDefaultSubobject<USceneComponent>(TEXT("RootScene"));
-	BrushMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("BrushMesh"));
-	static ConstructorHelpers::FObjectFinder<UStaticMesh> MeshAsset(TEXT("/Game/JMH/Mesh/04_Assets/Tools/Brush021.Brush021"));
+	BrushMesh = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("BrushMesh"));
+	static ConstructorHelpers::FObjectFinder<USkeletalMesh> MeshAsset(TEXT("/Game/JMH/Anim/Brush/Brush_Anim01.Brush_Anim01"));
 	if (MeshAsset.Succeeded())
 	{
-		BrushMesh->SetStaticMesh(MeshAsset.Object);
+		BrushMesh->SetSkeletalMesh(MeshAsset.Object);
 		BrushMesh->SetupAttachment(RootComponent);
 		BrushMesh->SetCollisionResponseToChannel(ECC_Pawn, ECR_Ignore);
 		BrushMesh->bReceivesDecals = false;
@@ -26,8 +26,8 @@ ABrushTool::ABrushTool()
 
 	BoxMesh = CreateDefaultSubobject<UBoxComponent>(TEXT("BoxMesh"));
 	BoxMesh->SetupAttachment(BrushMesh);
-	BoxMesh->SetBoxExtent(FVector(8, 3, 5)); // (X=8.000000,Y=3.000000,Z=5.000000)
-	BoxMesh->SetRelativeLocation(FVector(0, 0, 18)); // (X=0.000000,Y=0.000000,Z=18.000000)
+	BoxMesh->SetBoxExtent(FVector(16, 25, 12)); // (X=16.000000,Y=25.000000,Z=12.000000)
+	BoxMesh->SetRelativeLocation(FVector(70, 0, 8)); // (X=70.000000,Y=-0.000000,Z=8.000000)
 	BoxMesh->SetGenerateOverlapEvents(true);
 	BoxMesh->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
 	BoxMesh->SetCollisionObjectType(ECC_WorldDynamic);
