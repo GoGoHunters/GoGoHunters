@@ -45,7 +45,7 @@ protected:
 
 public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
-	class UStaticMeshComponent* BrushMesh;
+	class USkeletalMeshComponent* BrushMesh;
 	
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	class UBoxComponent* BoxMesh;
