@@ -13,7 +13,7 @@ void UDiggingUI::UpdateUI(float Progress)
 
 void UDiggingUI::UpdateStatusText(float Progress)
 {
-    int32 DisplayPercent = (Progress >= 0.99f) ? 100 : (int32)(Progress * 100.0f);
+    int32 DisplayPercent = (Progress >= 100.0f) ? 100 : (int32)(Progress * 100.0f);
     FString Status = FString::Printf(TEXT("발굴 진행률: %d%%"), DisplayPercent);
     StatusText->SetText(FText::FromString(Status));
 }

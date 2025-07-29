@@ -200,7 +200,7 @@ void ARelicsManager::SpawnCollectionBox()
 	if (IsValid(CollectionBox)) return;
 	if (!CollectionBoxClass) return;
 
-	FVector SpawnLocation = FVector(2090, 2740, -490); // (X=2090.000000,Y=2740.000000,Z=-490.000000)
+	FVector SpawnLocation = FVector(1660, 2680, -610); // (X=1660.000000,Y=2680.000000,Z=-610.000000)
 	FRotator SpawnRotation = FRotator::ZeroRotator;
 
 	FActorSpawnParameters Params;
@@ -218,12 +218,32 @@ void ARelicsManager::SpawnCollectionBox()
 
 bool ARelicsManager::GetCurrentDigProgress(float& OutProgress) const
 {
-    if (GroundLayers.IsValidIndex(CurrentLayerIndex) && GroundLayers[CurrentLayerIndex])
-    {
-        OutProgress = GroundLayers[CurrentLayerIndex]->CalculateDestructionFromRenderTarget();
-        return true;
-    }
-    OutProgress = 0.0f;
-    return false;
+	int32 TotalLayers = GroundLayers.Num();
+	
+	if (TotalLayers == 0)
+	{
+		OutProgress = 0.0f;
+		return false;
+	}
+	
+	float TotalProgress = 0.0f;
+
+	for(int32 i = 0; i < TotalLayers; ++i)
+	{
+		ARelicsGround* Ground = GroundLayers[i];
+		if(!IsValid(Ground)) // Destroy된 레이어는 파괴 완료로 간주
+		{
+			TotalProgress += 1.0f;
+		}
+		else
+		{
+			float Destruction = Ground->CalculateDestructionFromRenderTarget();
+			float Normalized = FMath::Clamp(Destruction / 0.5f, 0.0f, 1.0f); // 50% 기준으로 정규화
+			TotalProgress += Normalized;
+		}
+	}
+
+	OutProgress = TotalProgress / static_cast<float>(TotalLayers); // 전체 평균
+	return true;
 }
 
