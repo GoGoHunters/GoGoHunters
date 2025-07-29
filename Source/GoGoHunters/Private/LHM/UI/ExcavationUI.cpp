@@ -7,8 +7,6 @@
 #include "Components/Button.h"
 #include "JMH/MH_VRPlayer.h"
 #include "LHM/Excavation/ExcavationManager.h"
-#include "LHM/UI/DiggingUI.h"
-#include "LHM/UI/BrushingUI.h"
 
 void UExcavationUI::NativeConstruct()
 {
@@ -23,13 +21,9 @@ void UExcavationUI::NativeConstruct()
 	if (Btn_Tool4) Btn_Tool4->OnClicked.AddDynamic(this, &UExcavationUI::OnClick_TweezerTool);
 
 	// UI Tool 버튼 초기화
-	// DiggingUI/BrushingUI ExcavationManager에 등록
 	if (ExcavationManager)
 	{
 		OnExcavationPhaseChanged(ExcavationManager->GetCurrentPhase());
-
-		if (GetDiggingUI()) ExcavationManager->SetDiggingUI(GetDiggingUI());
-		if (GetBrushingUI()) ExcavationManager->SetBrushingUI(GetBrushingUI());
 	}
 }
 
