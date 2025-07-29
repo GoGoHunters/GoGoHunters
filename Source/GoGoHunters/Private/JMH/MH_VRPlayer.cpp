@@ -145,8 +145,7 @@ void AMH_VRPlayer::BeginPlay()
 	CurrentLevel.RemoveFromStart(GetWorld()->StreamingLevelsPrefix); // 레벨 이름 앞에 접두사 _ 제거
 
 	UE_LOG(LogTemp, Log, TEXT("Current Level: %s"), *CurrentLevel);
-	//if (CurrentLevel == "LV_HM_Excavation") // 테스트용 레벨
-	if (CurrentLevel == "LV_TestExcavation")
+	if (CurrentLevel == "LV_TestExcavation" || CurrentLevel == "LV_TestLobby")
 	{
 		// 월드에 있는 모든 ARelicsGround를 찾아 저장
 		for (TActorIterator<ARelicsGround> It(GetWorld()); It; ++It)
