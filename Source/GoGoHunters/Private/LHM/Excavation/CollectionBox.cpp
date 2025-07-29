@@ -133,6 +133,6 @@ void ACollectionBox::CheckAllCollected()
 
 void ACollectionBox::PlayBoxCloseAnimation()
 {
-	
+	K2_CloseLid();
 }
 
