@@ -98,64 +98,88 @@ void UExcavationUI::SetToolButtonEnabled(int32 ToolIndex, bool bEnabled)
 void UExcavationUI::OnClick_DetectionTool()
 {
 	UE_LOG(LogTemp, Warning, TEXT("[ExcavationUI] OnClick_DetectionTool"));
-	if (!ExcavationManager) return;
-	
-	// 현재 단계에서 탐지 도구 사용 가능한지 확인
-	if (ExcavationManager->IsToolAvailableForPhase(0))
+
+	FString CurrentLevel = GetWorld()->GetMapName();
+	CurrentLevel.RemoveFromStart(GetWorld()->StreamingLevelsPrefix);
+	if (CurrentLevel == "LV_TestExcavation")
 	{
-		if(VRPlayer) VRPlayer->ExcavationTool1();
+		if (ExcavationManager && ExcavationManager->IsToolAvailableForPhase(0))
+		{
+			if (VRPlayer) VRPlayer->ExcavationTool1();
+		}
 	}
 	else
 	{
-		UE_LOG(LogTemp, Warning, TEXT("[ExcavationUI] 현재 단계에서 탐지 도구를 사용할 수 없습니다."));
+		if (VRPlayer) VRPlayer->ExcavationTool1();
 	}
 }
 
 void UExcavationUI::OnClick_ShovelTool()
 {
 	UE_LOG(LogTemp, Warning, TEXT("[ExcavationUI] OnClick_ShovelTool"));
-	if (!ExcavationManager) return;
-	
-	// 현재 단계에서 삽 도구 사용 가능한지 확인
-	if (ExcavationManager->IsToolAvailableForPhase(1))
+
+	FString CurrentLevel = GetWorld()->GetMapName();
+	CurrentLevel.RemoveFromStart(GetWorld()->StreamingLevelsPrefix);
+	if (CurrentLevel == "LV_TestExcavation")
 	{
-		if (VRPlayer) VRPlayer->ExcavationTool2();
+		if (ExcavationManager && ExcavationManager->IsToolAvailableForPhase(1))
+		{
+			if (VRPlayer) VRPlayer->ExcavationTool2();
+		}
+		else
+		{
+			UE_LOG(LogTemp, Warning, TEXT("[ExcavationUI] 현재 단계에서 삽 도구를 사용할 수 없습니다."));
+		}
 	}
 	else
 	{
-		UE_LOG(LogTemp, Warning, TEXT("[ExcavationUI] 현재 단계에서 삽 도구를 사용할 수 없습니다."));
+		if (VRPlayer) VRPlayer->ExcavationTool2();
 	}
 }
 
 void UExcavationUI::OnClick_BrushTool()
 {
 	UE_LOG(LogTemp, Warning, TEXT("[ExcavationUI] OnClick_BrushTool"));
-	if (!ExcavationManager) return;
 	
-	// 현재 단계에서 붓 도구 사용 가능한지 확인
-	if (ExcavationManager->IsToolAvailableForPhase(2))
+	FString CurrentLevel = GetWorld()->GetMapName();
+	CurrentLevel.RemoveFromStart(GetWorld()->StreamingLevelsPrefix);
+	if (CurrentLevel == "LV_TestExcavation")
 	{
-		if (VRPlayer) VRPlayer->ExcavationTool3();
+		if (ExcavationManager && ExcavationManager->IsToolAvailableForPhase(2))
+		{
+			if (VRPlayer) VRPlayer->ExcavationTool3();
+		}
+		else
+		{
+			UE_LOG(LogTemp, Warning, TEXT("[ExcavationUI] 현재 단계에서 붓 도구를 사용할 수 없습니다."));
+		}
 	}
 	else
 	{
-		UE_LOG(LogTemp, Warning, TEXT("[ExcavationUI] 현재 단계에서 붓 도구를 사용할 수 없습니다."));
+		if (VRPlayer) VRPlayer->ExcavationTool3();
 	}
 }
 
 void UExcavationUI::OnClick_TweezerTool()
 {
 	UE_LOG(LogTemp, Warning, TEXT("[ExcavationUI] OnClick_TweezerTool"));
-	if (!ExcavationManager) return;
-	
-	// 현재 단계에서 집게 도구 사용 가능한지 확인
-	if (ExcavationManager->IsToolAvailableForPhase(3))
+
+	FString CurrentLevel = GetWorld()->GetMapName();
+	CurrentLevel.RemoveFromStart(GetWorld()->StreamingLevelsPrefix);
+	if (CurrentLevel == "LV_TestExcavation")
 	{
-		if (VRPlayer) VRPlayer->ExcavationTool4();
+		if (ExcavationManager && ExcavationManager->IsToolAvailableForPhase(3))
+		{
+			if (VRPlayer) VRPlayer->ExcavationTool4();
+		}
+		else
+		{
+			UE_LOG(LogTemp, Warning, TEXT("[ExcavationUI] 현재 단계에서 집게 도구를 사용할 수 없습니다."));
+		}
 	}
 	else
 	{
-		UE_LOG(LogTemp, Warning, TEXT("[ExcavationUI] 현재 단계에서 집게 도구를 사용할 수 없습니다."));
+		if (VRPlayer) VRPlayer->ExcavationTool4();
 	}
 }
 
