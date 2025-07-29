@@ -201,8 +201,7 @@ void AExcavationManager::UpdateDiggingProgress()
 	float DigProgress = 0.0f;
 	if (CurrentActiveManager->GetCurrentDigProgress(DigProgress))
 	{
-		// 0~50 → 0~100% 변환
-		float ProgressPercent = FMath::Clamp(DigProgress / 50.0f * 100.0f, 0.0f, 100.0f);
+		float ProgressPercent = FMath::Clamp(DigProgress, 0.0f, 100.0f);
 		DiggingUI->UpdateUI(ProgressPercent);
 	}
 }
