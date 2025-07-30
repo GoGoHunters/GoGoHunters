@@ -10,6 +10,8 @@
 
 void UExcavationUI::NativeConstruct()
 {
+	Super::NativeConstruct();
+	
 	VRPlayer = Cast<AMH_VRPlayer>(UGameplayStatics::GetPlayerCharacter(this, 0));
 	
 	// ExcavationManager 찾기 및 연결

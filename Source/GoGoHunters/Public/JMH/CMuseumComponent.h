@@ -39,6 +39,9 @@ public:
 	UFUNCTION(BlueprintCallable)
 	void RegisterRelic(const int32& InRelicTag = -1);
 	void GrabRelicEnd(ACRelicBase* GrabRelic, const FVector& HandComponentLocation);
+
+	UFUNCTION(BlueprintCallable)
+	void SwitchState();
 	
 private:
 	UPROPERTY(EditDefaultsOnly, Category="Input")
@@ -84,8 +87,6 @@ private:
 	virtual void BeginPlay() override;
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType,
 	                           FActorComponentTickFunction* ThisTickFunction) override;
-
-	void SwitchState();
 
 	UFUNCTION()
 	void ToggleMenu();

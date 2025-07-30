@@ -252,14 +252,6 @@ public:
 	UPROPERTY(EditAnywhere, Category="VR Movement")
 	float SnapTurnAngle = 15.f;
 
-	UPROPERTY(EditDefaultsOnly)
-	USpringArmComponent* RelicCollectionSpringArm;
-	UPROPERTY(EditDefaultsOnly)
-	UChildActorComponent* RelicCollectionWidget;
-
-	UPROPERTY()
-	TObjectPtr<ACRelicCollectionWidgetActor> RelicCollectionWidgetActor;
-
 	UFUNCTION(BlueprintNativeEvent)
 	void ToggleMenu();
 	

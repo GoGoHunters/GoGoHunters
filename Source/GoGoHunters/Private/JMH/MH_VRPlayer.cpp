@@ -54,14 +54,6 @@ AMH_VRPlayer::AMH_VRPlayer()
 	//그랩 컴프
 	GrabComponent = CreateDefaultSubobject<UMH_GrabComp>(TEXT("GrabComponent"));
 
-	CHelpers::CreateComponent<USpringArmComponent>(this, &RelicCollectionSpringArm, "RelicCollectionSpringArm", VRCamera);
-	RelicCollectionSpringArm->SetRelativeRotation(FRotator(0.f, 180.f, 0.f));
-	RelicCollectionSpringArm->SocketOffset = FVector(0.f, 40.f, 0.f);
-	RelicCollectionSpringArm->bEnableCameraLag = true;
-	CHelpers::CreateComponent<UChildActorComponent>(this, &RelicCollectionWidget, "RelicCollectionWidget", RelicCollectionSpringArm);
-	RelicCollectionWidget->SetRelativeRotation(FRotator(0, 160, 0));
-	RelicCollectionWidget->SetHiddenInGame(true);
-
 	//텔레포트 컴프
 	TeleportComponent = CreateDefaultSubobject<UMH_TeleportComp>(TEXT("TeleportComponent"));
 
@@ -103,31 +95,6 @@ void AMH_VRPlayer::BeginPlay()
 
 	GrabComponent->SetHandComponent(RHandController);
 	TeleportComponent->SetHandComponent(RHandController);
-	// if (bUseVR)
-	// {
-	// 	GrabComponent->SetHandComponent(RHandController);
-	// 	TeleportComponent->SetHandComponent(RHandController);
-	// }
-	// else
-	// {
-	// 	// Test : VR 모드가 아니면 Scene Hand사용
-	// 	//Test 카메라 바라보는 방향으로 손 같이 움직이도록 손 VR 카메라에 Attach
-	// 	// GrabComponent->SetHandComponent(R_Hand);
-	// 	// TeleportComponent->SetHandComponent(R_Hand);
-	// 	//
-	// 	// RHandSKM->DetachFromComponent(FDetachmentTransformRules::KeepWorldTransform);
-	// 	// RHandSKM->UnregisterComponent();
-	// 	// RHandSKM->SetupAttachment(R_Hand);
-	// 	// RHandSKM->RegisterComponent();
-	// 	// RHandSKM->SetRelativeRotation(FRotator(90.f, -90.f, 0.f));
-	// 	// RHandSKM->SetRelativeLocation(FVector::ZeroVector);
-	// 	// LHandSKM->DetachFromComponent(FDetachmentTransformRules::KeepWorldTransform);
-	// 	// LHandSKM->UnregisterComponent();
-	// 	// LHandSKM->SetupAttachment(L_Hand);
-	// 	// LHandSKM->RegisterComponent();
-	// 	// LHandSKM->SetRelativeLocation(FVector::ZeroVector);
-	// 	// LHandSKM->SetRelativeRotation(FRotator(-90.f, -90.f, 0.f));
-	// }
 	TeleportComponent->SetTeleportVisual(TeleportCircleA, TeleportUIComponent);
 
 	TeleportUIComponent->SetVisibility(false);
@@ -154,9 +121,6 @@ void AMH_VRPlayer::BeginPlay()
 		}
 	}
 #pragma endregion 발굴 레벨에서만 초기화
-
-	if (RelicCollectionWidget && RelicCollectionWidget->GetChildActor())
-		RelicCollectionWidgetActor = Cast<ACRelicCollectionWidgetActor>(RelicCollectionWidget->GetChildActor());
 }
 
 // Called every frame
@@ -394,8 +358,16 @@ void AMH_VRPlayer::TriggerInteractCompleted()
 			ActiveWidgetInteraction->bShowDebug = false;
 		}
 
-		if (!MuseumComponent || *MuseumComponent->GetMuseumState() != EMuseumState::Decorate)
-			DisableWidgetInteraction();
+#pragma region Museum 레벨에서만 작동
+		FString CurrentLevel = GetWorld()->GetMapName();
+		CurrentLevel.RemoveFromStart(GetWorld()->StreamingLevelsPrefix); // 레벨 이름 앞에 접두사 _ 제거
+
+		if (CurrentLevel.ToLower().Contains("museum"))
+		{
+			if (!MuseumComponent || *MuseumComponent->GetMuseumState() != EMuseumState::Decorate)
+				DisableWidgetInteraction();
+		}
+#pragma endregion
 	}
 
 	// 월드맵 상호작용 리셋
