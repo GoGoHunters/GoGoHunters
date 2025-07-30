@@ -7,9 +7,9 @@ void UCWidgetBase::NativeConstruct()
 {
 	Super::NativeConstruct();
 	if (Btn_A)
-		Btn_A->OnClicked.AddDynamic(this, &ThisClass::OnBtnAClicked);
+		Btn_A->OnClicked.AddDynamic(this, &UCWidgetBase::OnBtnAClicked);
 	if (Btn_B)
-		Btn_B->OnClicked.AddDynamic(this, &ThisClass::OnBtnBClicked);
+		Btn_B->OnClicked.AddDynamic(this, &UCWidgetBase::OnBtnBClicked);
 }
 
 void UCWidgetBase::OnBtnAClicked()

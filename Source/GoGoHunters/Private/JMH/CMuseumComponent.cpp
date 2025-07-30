@@ -163,7 +163,6 @@ void UCMuseumComponent::SwitchState()
 	switch (MuseumState)
 	{
 	case EMuseumState::Display:
-		OwnerPlayer->RelicCollectionWidget->SetHiddenInGame(true);
 		OwnerPlayer->LWidgetInteractionComponent->SetActive(false);
 		OwnerPlayer->LWidgetInteractionComponent->bEnableHitTesting = false;
 		OwnerPlayer->LWidgetInteractionComponent->bShowDebug = false;
@@ -175,14 +174,13 @@ void UCMuseumComponent::SwitchState()
 		PreviewEnd();
 		break;
 	case EMuseumState::Decorate:
-		OwnerPlayer->RelicCollectionWidget->SetHiddenInGame(false);
+		// OwnerPlayer->RelicCollectionWidget->SetHiddenInGame(false);
 		OwnerPlayer->LWidgetInteractionComponent->SetActive(true);
 		OwnerPlayer->LWidgetInteractionComponent->bEnableHitTesting = true;
 		OwnerPlayer->LWidgetInteractionComponent->bShowDebug = true;
 		OwnerPlayer->RWidgetInteractionComponent->SetActive(true);
 		OwnerPlayer->RWidgetInteractionComponent->bEnableHitTesting = true;
 		OwnerPlayer->RWidgetInteractionComponent->bShowDebug = true;
-		OwnerPlayer->RelicCollectionWidgetActor->ReloadRelicList();
 		GrabComponent->RelicUnGrab();
 		break;
 	}
@@ -224,6 +222,8 @@ void UCMuseumComponent::PlayPreviewMode(const FCRelicData& InRelicData, const FC
 	RelicData = InRelicData;
 	RelicDetailData = InRelicDetailData;
 	bIsPreviewMode = true;
+	// TODO
+	// UI 숨기기
 }
 
 void UCMuseumComponent::PlaceRelic()
@@ -257,9 +257,9 @@ void UCMuseumComponent::PlaceRelic()
 		}
 	}
 
-	OwnerPlayer->RelicCollectionWidgetActor->ReloadRelicList();
 	PreviewEnd();
-	SwitchState();
+	// TODO
+	// UI 다시 나오게 하기
 }
 
 void UCMuseumComponent::RegisterRelic(const int32& InRelicTag)
