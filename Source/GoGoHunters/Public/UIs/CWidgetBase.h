@@ -26,8 +26,8 @@ protected:
 	UPROPERTY(BlueprintReadWrite)
 	TObjectPtr<ACUiActor> UiActor;
 
-private:
 	virtual void NativeConstruct() override;
+private:
 	
 	UFUNCTION()
 	void OnBtnAClicked();
