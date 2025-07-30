@@ -25,9 +25,15 @@ public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
+	UFUNCTION()
+	void OnOverlapBegin(UPrimitiveComponent* Overlapped, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& Hit);
+
 public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
 	TArray<class UStaticMeshComponent*> RelicsMeshes;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
+	class UBoxComponent* TriggerVolume;
 
 // RelicsManager 참조
 	UFUNCTION()
