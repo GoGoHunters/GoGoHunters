@@ -9,6 +9,7 @@
 #include "EngineUtils.h"
 #include "LHM/Excavation/BrushTool.h"
 #include "LHM/UI/BrushingUI.h"
+#include "Components/BoxComponent.h"
 
 // Sets default values
 ARelicsBase::ARelicsBase()
@@ -39,6 +40,12 @@ ARelicsBase::ARelicsBase()
             DecalToMeshMap.Add(Decal, RelicMesh);
         }
     }
+
+	TriggerVolume = CreateDefaultSubobject<UBoxComponent>(TEXT("TriggerVolume"));
+	TriggerVolume->SetupAttachment(RootComponent);
+    TriggerVolume->SetBoxExtent(FVector(1000,1000,100));
+    TriggerVolume->SetRelativeLocation(FVector(0,0,-100));
+    TriggerVolume->SetGenerateOverlapEvents(true);
 }
 
 void ARelicsBase::PostInitializeComponents()
@@ -73,12 +80,14 @@ void ARelicsBase::BeginPlay()
         if (Marker)
         {
             Marker->AttachToActor(this, FAttachmentTransformRules::KeepRelativeTransform);
-            Marker->SetActorLocation(GetActorLocation() + FVector(0, 0, 110));
+            Marker->SetActorLocation(GetActorLocation() + FVector(-70, 0, 11)); // (X=-70.000000,Y=0.000000,Z=11.000000)
             Marker->SetActorRotation(GetActorRotation()+FRotator(0,-90,0));
-            Marker->SetActorRelativeScale3D(FVector(2.5f));
+            Marker->SetActorRelativeScale3D(FVector(2.0f));
             Marker->SetActorHiddenInGame(true);
         }
     }
+
+    TriggerVolume->OnComponentBeginOverlap.AddDynamic(this, &ARelicsBase::OnOverlapBegin);
 }
 
 // Called every frame
@@ -86,6 +95,20 @@ void ARelicsBase::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
+}
+
+void ARelicsBase::OnOverlapBegin(UPrimitiveComponent* Overlapped, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& Hit)
+{
+    if(RelicsMeshes.Num() <= 0) return;
+
+    for(auto* relicMesh : RelicsMeshes)
+    {
+        if (OtherComp == relicMesh)
+        {
+			relicMesh->SetWorldLocation(TriggerVolume->GetComponentLocation() + FVector(0, 0, 200));
+            break;
+        }
+	}
 }
 
 void ARelicsBase::ReduceDustOpacity(const FVector& BrushLocation, float Amount, ABrushTool& BrushRef)

@@ -128,25 +128,25 @@ void ADetectorTool::UpdateDetection(float DeltaTime)
 // 3. 진행도 로직
 	float Distance = FVector::Dist(GetActorLocation(), Relics->GetActorLocation());
 	const float MinDetectDistance = 400;
-	const float MaxDetectDistance = 1500.f;
-	const float FillSpeed = 50.f;
+	const float MaxDetectDistance = 2000.f;
+	const float FillSpeed = 30.f;
 
 	if (Distance > MinDetectDistance && Distance <= MaxDetectDistance)
 	{
 		// 70%까지는 거리 기반 즉시 반영
 		float Ratio = 1.f - (Distance - MinDetectDistance) / (MaxDetectDistance - MinDetectDistance);
-		float TargetProgress = FMath::Clamp(Ratio * 70.f, 0.f, 70.f);
+		float TargetProgress = FMath::Clamp(Ratio * 80.f, 0.f, 80.f);
 		DetectionProgress = TargetProgress;
 	}
 	else if (Distance <= MinDetectDistance)
 	{
-		// 30cm 이내로 들어왔으면 진행률이 서서히 차오름 (70~100%)
+		// 40cm 이내로 들어왔으면 진행률이 서서히 차오름 (80~100%)
 		DetectionProgress += FillSpeed * DeltaTime;
-		DetectionProgress = FMath::Clamp(DetectionProgress, 70.f, 100.f);
+		DetectionProgress = FMath::Clamp(DetectionProgress, 80.f, 100.f);
 	}
 	else
 	{
-		// 한계 바깥(>15m)은 0%
+		// 한계 바깥(>20m)은 0%
 		DetectionProgress = 0.f;
 	}
 
