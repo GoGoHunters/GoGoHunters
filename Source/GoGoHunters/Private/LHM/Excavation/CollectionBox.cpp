@@ -53,6 +53,7 @@ void ACollectionBox::OnOverlapBegin(UPrimitiveComponent* Overlapped, AActor* Oth
 		{
 			// 수거 처리: Detach + 물리/충돌 제거
 			Mesh->DetachFromComponent(FDetachmentTransformRules::KeepWorldTransform);
+			Mesh->ComponentTags.Add(FName("Collected"));
 
 			// 이펙트/사운드/텍스트
 			UGameplayStatics::PlaySound2D(GetWorld(), CollectionSFX); // 수거 효과음

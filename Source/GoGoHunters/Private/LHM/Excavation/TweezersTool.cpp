@@ -86,6 +86,8 @@ void ATweezersTool::OnBeginOverlap(UPrimitiveComponent* OverlappedComponent, AAc
 		{
 			if (OtherComp == Mesh)
 			{
+				if (Mesh->ComponentTags.Contains("Collected")) return; // 이미 수거된 유물은 무시
+			
 				RelicCandidate = Relic;
 				CandidateMesh = Mesh;
 				break;
