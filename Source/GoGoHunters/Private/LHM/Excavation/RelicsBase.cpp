@@ -73,9 +73,9 @@ void ARelicsBase::BeginPlay()
         if (Marker)
         {
             Marker->AttachToActor(this, FAttachmentTransformRules::KeepRelativeTransform);
-            Marker->SetActorLocation(GetActorLocation() + FVector(0, 0, 110));
+            Marker->SetActorLocation(GetActorLocation() + FVector(-70, 0, 11)); // (X=-70.000000,Y=0.000000,Z=11.000000)
             Marker->SetActorRotation(GetActorRotation()+FRotator(0,-90,0));
-            Marker->SetActorRelativeScale3D(FVector(2.5f));
+            Marker->SetActorRelativeScale3D(FVector(2.0f));
             Marker->SetActorHiddenInGame(true);
         }
     }
