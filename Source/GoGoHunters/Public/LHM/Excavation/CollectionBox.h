@@ -55,4 +55,7 @@ public:
 
 	UFUNCTION()
 	void PlayBoxCloseAnimation();
+
+	UFUNCTION(BlueprintImplementableEvent)
+    void K2_CloseLid();
 };

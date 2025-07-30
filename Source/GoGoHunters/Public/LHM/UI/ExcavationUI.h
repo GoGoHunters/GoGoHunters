@@ -3,15 +3,15 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "Blueprint/UserWidget.h"
 #include "LHM/Excavation/ExcavationManager.h"
+#include "UIs/CWidgetBase.h"
 #include "ExcavationUI.generated.h"
 
 /**
  * 
  */
 UCLASS()
-class GOGOHUNTERS_API UExcavationUI : public UUserWidget
+class GOGOHUNTERS_API UExcavationUI : public UCWidgetBase
 {
 	GENERATED_BODY()
 	
@@ -27,9 +27,6 @@ public:
 	UFUNCTION()
 	void OnExcavationPhaseChanged(EExcavationPhase NewPhase);
 
-	class UDiggingUI* GetDiggingUI() const { return DiggingUI; }
-	class UBrushingUI* GetBrushingUI() const { return BrushingUI; }
-
 protected:
 	// 버튼 위젯
 	UPROPERTY(meta = (BindWidget))
@@ -43,12 +40,6 @@ protected:
 	
 	UPROPERTY(meta = (BindWidget))
 	class UButton* Btn_Tool4;
-
-    UPROPERTY(meta = (BindWidget))
-    class UDiggingUI* DiggingUI;
-	
-    UPROPERTY(meta = (BindWidget))
-    class UBrushingUI* BrushingUI;
 
 	// 바인딩 함수
 	UFUNCTION()
