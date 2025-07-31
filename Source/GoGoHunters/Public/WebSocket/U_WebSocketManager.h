@@ -68,6 +68,9 @@ public:
     UFUNCTION(BlueprintCallable, Category = "WebSocket")
     void WebSocketSendByteData(const TArray<uint8>& DataToSend);
 
+    UFUNCTION(BlueprintCallable, Category = "WebSocket")
+    void SendEndOfDataSignal();
+
     UFUNCTION(BlueprintPure, Category = "WebSocket")
     bool IsConnected() const;
 
