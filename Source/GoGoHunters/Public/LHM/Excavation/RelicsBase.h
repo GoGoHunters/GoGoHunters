@@ -36,6 +36,7 @@ public:
 	class UBoxComponent* TriggerVolume;
 
 // RelicsManager 참조
+public:
 	UFUNCTION()
 	void SetRelicsManager(class ARelicsManager* NewRelicsManager) { RelicsManager = NewRelicsManager; }
 
@@ -49,8 +50,18 @@ public:
 	// 유물 태그 반환
 	UFUNCTION(BlueprintCallable, Category = "Relics")
 	int32 GetRelicTag() const { return RelicTag; }
+	
+	class AExcavationMarker* GetMarker() const { return Marker; }
+
+	void ActivateMarker();
+
+// 유물 태그 정보
+protected:
+	UPROPERTY(EditAnywhere, Category="Relics")
+	int32 RelicTag = -1;
 
 // 탐지
+protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	TSubclassOf<class AExcavationMarker> MarkerClass;
 
@@ -58,6 +69,10 @@ public:
 	class AExcavationMarker* Marker;
 
 // 붓 데칼
+public:
+	void ReduceDustOpacity(const FVector& BrushLocation, float Amount, class ABrushTool& BrushRef);
+	void CheckAllDelcalsRemoved();
+
 	UPROPERTY(VisibleAnywhere)
 	TArray<class UDecalComponent*> DustDecals;
 
@@ -77,14 +92,6 @@ public:
 
 	UPROPERTY(EditAnywhere)
 	class USoundBase* DecalRemovalSFX;
-
-// 유물 태그 정보
-	UPROPERTY(EditAnywhere, Category="Relics")
-	int32 RelicTag = -1;
-
-	void ReduceDustOpacity(const FVector& BrushLocation, float Amount, class ABrushTool& BrushRef);
-
-	void CheckAllDelcalsRemoved();
 
 // BrushingUI
 public:

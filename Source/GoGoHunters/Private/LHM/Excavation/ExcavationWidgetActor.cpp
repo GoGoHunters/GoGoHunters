@@ -12,7 +12,7 @@ AExcavationWidgetActor::AExcavationWidgetActor()
 
     RootComponent = CreateDefaultSubobject<USceneComponent>(TEXT("RootScene"));
 
-	static ConstructorHelpers::FClassFinder<UUserWidget> WidgetClassFinder(TEXT("/Game/LHM/UI/WBP_ExcavationUI"));
+	static ConstructorHelpers::FClassFinder<UUserWidget> WidgetClassFinder(TEXT("/Game/LHM/UI/WBP_ExcavationPhaseUI"));
 	if (WidgetClassFinder.Succeeded())
 	{
 		WidgetComponent = CreateDefaultSubobject<UWidgetComponent>(TEXT("ExcavationUI"));
@@ -20,6 +20,7 @@ AExcavationWidgetActor::AExcavationWidgetActor()
 		WidgetComponent->SetupAttachment(RootComponent);
 		WidgetComponent->SetWidgetSpace(EWidgetSpace::World);
 		WidgetComponent->SetRelativeScale3D(FVector(0.1));
+		WidgetComponent->SetRelativeRotation(FRotator(0, 180, 0)); // (Pitch=0.000000,Yaw=180.000000,Roll=0.000000)
 		WidgetComponent->SetDrawSize(FVector2D(1920, 1080));
 
 		WidgetComponent->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
