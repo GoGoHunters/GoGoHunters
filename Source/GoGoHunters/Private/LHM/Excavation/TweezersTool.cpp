@@ -39,7 +39,6 @@ ATweezersTool::ATweezersTool()
 
 	PickupPoint = CreateDefaultSubobject<USceneComponent>(TEXT("PickupPoint"));
 	PickupPoint->SetupAttachment(RootComponent);
-	//PickupPoint->SetRelativeLocation(FVector(30.f, 0.f, 10.f));
 }
 
 // Called when the game starts or when spawned
@@ -78,7 +77,7 @@ void ATweezersTool::PickUpRelic()
 
 void ATweezersTool::OnBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
-	if (PickedRelic || !OtherActor || !OtherComp) return;
+	if (/*PickedRelic ||*/ !OtherActor || !OtherComp) return;
 
 	if (ARelicsBase* Relic = Cast<ARelicsBase>(OtherActor))
 	{
