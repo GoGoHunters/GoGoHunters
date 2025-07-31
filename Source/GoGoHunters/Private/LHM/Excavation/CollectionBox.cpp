@@ -122,11 +122,11 @@ void ACollectionBox::CheckAllCollected()
 	if (TotalCount > 0 && CollectedCount == TotalCount)
 	{
 		UE_LOG(LogTemp, Log, TEXT("[CollectionBox] 모든 유물 총 %d개 수거 완료!"), CollectedCount);
-		PlayBoxCloseAnimation();
+		//PlayBoxCloseAnimation();
 
 		for (TActorIterator<AExcavationManager> It(GetWorld()); It; ++It)
 		{
-			It->NotifyCollectionCompleted(RelicsManager);
+			It->NotifyCollectionCompleted(RelicsManager, this);
 			break;
 		}
 	}

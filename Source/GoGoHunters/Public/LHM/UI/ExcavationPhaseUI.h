@@ -1,0 +1,42 @@
+﻿// Fill out your copyright notice in the Description page of Project Settings.
+
+#pragma once
+
+#include "CoreMinimal.h"
+#include "Blueprint/UserWidget.h"
+#include "ExcavationPhaseUI.generated.h"
+
+/**
+ * 
+ */
+UCLASS()
+class GOGOHUNTERS_API UExcavationPhaseUI : public UUserWidget
+{
+	GENERATED_BODY()
+	
+public:
+	virtual void NativeConstruct() override;
+
+	void SetVisibilityFlagTrigger(bool bVisible);
+	void SetVisibilityCloseLid(bool bVisible);
+
+protected:
+	UFUNCTION()
+	void OnClick_FlagTrigger();
+	
+	UPROPERTY(meta = (BindWidget))
+	class UButton* Btn_FlagTrigger;
+
+	UFUNCTION()
+	void OnClick_CloseLid();
+	
+	UPROPERTY(meta = (BindWidget))
+	class UButton* Btn_CloseLid;
+	
+private:
+	// ExcavationManager 찾기 및 연결
+	void FindAndConnectExcavationManager();
+
+	UPROPERTY()
+	class AExcavationManager* ExcavationManager;
+};

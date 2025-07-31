@@ -119,6 +119,24 @@ void AMH_VRPlayer::BeginPlay()
 		{
 			RelicsGroundRefs.Add(*It);
 		}
+
+		FActorSpawnParameters SpawnParams;
+		SpawnParams.Owner = this;
+
+		// Excavation Phase UI 
+		if (ExcavationUIActorClass = LoadClass<AExcavationWidgetActor>(nullptr, TEXT("/Game/LHM/BP/Excavation/BP_ExcavationWidgetActor.BP_ExcavationWidgetActor_C")))
+		{
+			//FVector SpawnLocation = FVector(1000, 0, 0); // (X=100.000000,Y=0.000000,Z=0.000000)
+			FVector SpawnLocation = FVector::ZeroVector;
+			FRotator SpawnRotation = FRotator::ZeroRotator;
+
+			ExcavationUIActor = GetWorld()->SpawnActor<AExcavationWidgetActor>(ExcavationUIActorClass, SpawnLocation, SpawnRotation, SpawnParams);
+			if (ExcavationUIActor)
+			{
+				ExcavationUIActor->AttachToComponent(VRCamera, FAttachmentTransformRules::SnapToTargetNotIncludingScale, NAME_None);
+				UE_LOG(LogTemp, Log, TEXT("ExcavationUIActor Spawn"));
+			}
+		}
 	}
 #pragma endregion 발굴 레벨에서만 초기화
 }
@@ -437,12 +455,15 @@ void AMH_VRPlayer::ExcavationTool2()
 			TweezersTool = nullptr;
 		}
 
-		FActorSpawnParameters SpawnParams;
-		SpawnParams.Owner = this;
-
 		if (ShovelToolClass = LoadClass<AShovelTool>(nullptr, TEXT("/Game/LHM/BP/Excavation/BP_ShovelTool.BP_ShovelTool_C")))
 		{
-			ShovelTool = GetWorld()->SpawnActor<AShovelTool>(ShovelToolClass, FVector::ZeroVector, FRotator::ZeroRotator, SpawnParams);
+			FActorSpawnParameters SpawnParams;
+			SpawnParams.Owner = this;
+
+			FVector SpawnLocation = FVector(-7, 1.5, -7); // (X=-7.000000,Y=1.500000,Z=-7.000000)
+			FRotator SpawnRotation = FRotator(0, 55, 90); // (Pitch=0.000000,Yaw=55.000000,Roll=90.000000)
+
+			ShovelTool = GetWorld()->SpawnActor<AShovelTool>(ShovelToolClass, SpawnLocation, SpawnRotation, SpawnParams);
 			if (ShovelTool)
 			{
 				USceneComponent* HandSocket = RHandController;
