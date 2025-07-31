@@ -28,26 +28,34 @@ public:
 	class UStaticMeshComponent* ShovelMesh;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "ShovelTool")
 	class USceneComponent* SplatPoint;
-	
-    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Digging")
-    bool bIsDigging;
 
-    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Digging")
+	UFUNCTION(BlueprintCallable, Category = "Digging")
+	void SetIsDigging(bool bNewIsDigging) { bIsDigging = bNewIsDigging; }
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Digging")
+	bool bIsDigging;
+
+public:
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Digging")
 	bool bCanTriggerDigTrace = false;
-
 	bool bWasDiggingLastFrame = false;
 	FVector PreviousLocation;
 
-    //UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Digging")
-    //float DiggingRate; // 초당 삽질 적용 빈도 (0.1초마다 한 번)
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Digging")
+	bool bIsShovelLifting = false;
+	bool bWasLiftingLastFrame = false;
+	FVector PreviousSplatLocation;
+    
+	void UpdateDigSwingState(float DeltaTime);
+	UFUNCTION(BlueprintCallable)
+	void EvaluateShovelLiftMotion(float DeltaTime);
 
-    //UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Digging")
-    //float TimeSinceLastDig; // 마지막으로 삽질 데미지를 적용한 이후 경과 시간
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Digging")
+	bool bIsDigHoldState = false;
+	float HoldTimer = 0.0f;
+	const float MaxHoldTime = 3.0f; // 1초 동안 기다림
 
 public:
-    UFUNCTION(BlueprintCallable, Category = "Digging")
-	void SetIsDigging(bool bNewIsDigging) { bIsDigging = bNewIsDigging; }
-
 	UFUNCTION()
 	void UpdateFeedback(FVector ImpactLocation);
 	
