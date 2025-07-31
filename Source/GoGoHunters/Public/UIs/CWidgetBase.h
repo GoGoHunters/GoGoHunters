@@ -6,6 +6,7 @@
 
 class ACUiActor;
 class UButton;
+class UImage;
 /**
  * 
  */
@@ -17,12 +18,16 @@ class GOGOHUNTERS_API UCWidgetBase : public UUserWidget
 public:
 	UFUNCTION(BlueprintCallable)
 	void SetUiActor(ACUiActor* InActor) { UiActor = InActor; }
+	UFUNCTION(BlueprintCallable)
+	void BlindActive(bool bUseBlind);
 
 protected:
 	UPROPERTY(BlueprintReadOnly, meta=(BindWidget))
 	TObjectPtr<UButton> Btn_A;
 	UPROPERTY(BlueprintReadOnly, meta=(BindWidget))
 	TObjectPtr<UButton> Btn_B;
+	UPROPERTY(BlueprintReadOnly, meta=(BindWidget))
+	TObjectPtr<UImage> Img_Blind;
 	UPROPERTY(BlueprintReadWrite)
 	TObjectPtr<ACUiActor> UiActor;
 
