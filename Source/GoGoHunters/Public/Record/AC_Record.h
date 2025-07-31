@@ -19,6 +19,10 @@
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnRecordFileSaved, const FString&, FilePath);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnMicrophoneDataCaptured, const TArray<uint8>&, CapturedAudioBytes);
 
+
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnRecordingStateChanged, bool, bIsRecording);
+
+
 namespace WavHeaderUtils
 {
 	TArray<uint8> CreateWavHeader(int32 SampleRate, int32 NumChannels, int32 BitsPerSample, int32 PCMDataSize);
@@ -71,6 +75,8 @@ private:
 	UFUNCTION()
 	void StopRecordingVoice();
 
+	UFUNCTION()
+	void EndRecordingVoice();
 
 	UFUNCTION()
 	void StartRecordFile();
@@ -109,6 +115,12 @@ public :
 	//FOnRecording OnRecordingEvent;
 	UPROPERTY(BlueprintAssignable, Category = "AudioInput")
 	FOnMicrophoneDataCaptured OnMicrophoneDataCaptured;
+
+
+	UPROPERTY(BlueprintAssignable, Category = "AudioRecording")
+	FOnRecordingStateChanged OnRecordingStateChanged; // 녹음 시작/중지 상태 변경 시 호출
+
+
 };
 
 // https://dev.epicgames.com/documentation/en-us/unreal-engine/API/Runtime/Core/Misc 참조하기 최대 성능
