@@ -30,11 +30,9 @@ AShovelTool::AShovelTool()
 
 	SplatPoint = CreateDefaultSubobject<USceneComponent>(TEXT("SplatPoint"));
 	SplatPoint->SetupAttachment(ShovelMesh);
-	SplatPoint->SetRelativeLocation(FVector(15, 0, 10)); // (X=15.000000,Y=0.000000,Z=10.000000)
+	SplatPoint->SetRelativeLocation(FVector(165.0, 0, 0));
 
 	bIsDigging = false;
-	//DiggingRate = 0.1f; // 0.1초마다 한 번씩 데미지 적용
-	//TimeSinceLastDig = 0.0f;
 }
 
 // Called when the game starts or when spawned
@@ -49,6 +47,22 @@ void AShovelTool::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
+	UpdateDigSwingState(DeltaTime);
+	//EvaluateShovelLiftMotion(DeltaTime);
+
+	if (bIsDigHoldState)
+	{
+		HoldTimer += DeltaTime;
+		EvaluateShovelLiftMotion(DeltaTime);
+	}
+	else
+	{
+		if(HoldTimer > MaxHoldTime) bIsDigHoldState = false;
+	}
+}
+
+void AShovelTool::UpdateDigSwingState(float DeltaTime)
+{
 	if (bIsDigging)
 	{
 		AMH_VRPlayer* VRPlayer = Cast<AMH_VRPlayer>(this->GetAttachParentActor());
@@ -64,20 +78,77 @@ void AShovelTool::Tick(float DeltaTime)
 			}
 
 			FVector CurrentLocation = HandController->GetComponentLocation();
-			float Speed = (CurrentLocation - PreviousLocation).Size() / DeltaTime;
+
+			FVector Velocity = (CurrentLocation - PreviousLocation) / DeltaTime;
 			PreviousLocation = CurrentLocation;
 
-			float SwingThreshold = 100.0f;
-			bCanTriggerDigTrace = Speed > SwingThreshold;
+			FVector NormalizedVelocity = Velocity.GetSafeNormal();
 
-			//UE_LOG(LogTemp, Log, TEXT("%f / %f"), Speed, SwingThreshold);
+			bool bIsMovingDownward = FVector::DotProduct(NormalizedVelocity, FVector::DownVector) > 0.5f;				// -Z 방향
+			bool bIsMovingForward = FVector::DotProduct(NormalizedVelocity, HandController->GetForwardVector()) > 0.5f;	// X 방향
+
+			float SwingThreshold = 100.0f;
+			bool bFastEnough = Velocity.Size() > SwingThreshold;
+			bCanTriggerDigTrace = bFastEnough && bIsMovingDownward && bIsMovingForward;
+
+			UE_LOG(LogTemp, Log, TEXT("Speed: %.1f | DownDot: %.2f | ForwardDot: %.2f"),
+				   Velocity.Size(),
+				   FVector::DotProduct(NormalizedVelocity, FVector::DownVector),
+				   FVector::DotProduct(NormalizedVelocity, VRPlayer->GetActorForwardVector()));
 		}
 	}
 	else
 	{
-		bWasDiggingLastFrame = false;
-		bCanTriggerDigTrace = false;
+		if (bWasDiggingLastFrame)
+		{
+			bWasDiggingLastFrame = false;
+			bCanTriggerDigTrace = false;
+		}
+
+		if (bWasLiftingLastFrame)
+		{
+			bWasLiftingLastFrame = false;
+			bIsShovelLifting = false;
+		}
 	}
+}
+
+void AShovelTool::EvaluateShovelLiftMotion(float DeltaTime)
+{
+	if(!bIsDigging || !bCanTriggerDigTrace || !SplatPoint)
+	{
+		bIsShovelLifting = false;
+		bWasDiggingLastFrame = false;
+		return;
+	}
+
+	if(!bWasLiftingLastFrame)
+	{
+		PreviousSplatLocation = SplatPoint->GetComponentLocation();
+		bWasLiftingLastFrame = true;
+		bIsShovelLifting = false;
+		return; // 첫 프레임은 계산 생략
+	}
+
+	// 위치 기준 속도 계산
+	FVector CurrentLocation = SplatPoint->GetComponentLocation();
+	FVector Velocity = (CurrentLocation - PreviousSplatLocation) / DeltaTime;
+	PreviousSplatLocation = CurrentLocation;
+
+	// 방향 일치 판단
+	float Speed = Velocity.Size();
+	FVector NormalizedVelocity = Velocity.GetSafeNormal();
+	FVector UpDirection = SplatPoint->GetUpVector();
+
+	//float Dot = FVector::DotProduct(NormalizedVelocity, UpDirection);
+	float Dot = NormalizedVelocity.Z;
+
+	// Dot 값이 0.5 이상이고 속도가 100 이상일 때만 리프팅으로 간주
+	bIsShovelLifting = Dot > 0.5f && Speed > 100.0f;
+
+	//UE_LOG(LogTemp, Log, TEXT("[LiftCheck] Dot: %.2f, Speed: %.1f"), Dot, Speed);
+	UE_LOG(LogTemp, Log, TEXT("Speed: %.2f | Dot: %.2f | Velocity: %s | Up: %s"),
+		   Speed, Dot, *NormalizedVelocity.ToString(), *UpDirection.ToString());
 }
 
 void AShovelTool::UpdateFeedback(FVector ImpactLocation)
