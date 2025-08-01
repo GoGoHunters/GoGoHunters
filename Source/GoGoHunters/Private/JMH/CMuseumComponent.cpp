@@ -58,9 +58,8 @@ void UCMuseumComponent::BeginPlay()
 				{
 					RelicActor->InitializeAsset(Data, *Local_RelicDetailData);
 					RelicActor->Tags.Add("Grabable");
+					if (Data.PlaceArea) Data.PlaceArea->PlaceRelicAt(Data.PlacedTransform.GetLocation());
 				}
-
-				if (Data.PlaceArea) Data.PlaceArea->PlaceRelicAt(Data.PlacedTransform.GetLocation());
 			}
 		}
 	}
