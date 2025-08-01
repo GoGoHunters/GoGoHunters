@@ -80,6 +80,7 @@ void ATweezersTool::PickUpRelic()
 	{
 		RelicCandidate = nullptr;
 		CandidateMesh = nullptr;
+		//UE_LOG(LogTemp, Warning, TEXT("[TweezersTool] Blocked pickup: not overlapping!"));
 		return;
 	}
 
