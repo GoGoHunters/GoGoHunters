@@ -76,6 +76,13 @@ void ATweezersTool::PickUpRelic()
 {
 	if (!bIsPickingUp || PickedRelic || !RelicCandidate || !CandidateMesh) return;
 
+	if (!PickupBox->IsOverlappingActor(RelicCandidate))
+	{
+		RelicCandidate = nullptr;
+		CandidateMesh = nullptr;
+		return;
+	}
+
 	// Attach 조건 만족 → 실행
 	CandidateMesh->SetSimulatePhysics(false);
 	CandidateMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
@@ -83,7 +90,7 @@ void ATweezersTool::PickUpRelic()
 
 	PickedRelic = RelicCandidate;
 
-	UE_LOG(LogTemp, Log, TEXT("[TweezersTool] Picked up %s"), *CandidateMesh->GetName());
+	//UE_LOG(LogTemp, Log, TEXT("[TweezersTool] Picked up %s"), *CandidateMesh->GetName());
 
 	// 초기화
 	RelicCandidate = nullptr;
@@ -163,7 +170,7 @@ void ATweezersTool::SetIsPickingUp(bool _bIsPickingUp)
 							Mesh->SetPhysicsLinearVelocity(Direction * Speed);
 						}
 					}
-					UE_LOG(LogTemp, Log, TEXT("[TweezersTool] Dropped relic mesh"));
+					//UE_LOG(LogTemp, Log, TEXT("[TweezersTool] Dropped relic mesh"));
 					break;
 				}
 			}
@@ -179,7 +186,7 @@ void ATweezersTool::SetAttachBase(USceneComponent* InAttachBase)
 	if (AttachBase)
 	{
 		LastAttachLocation = AttachBase->GetComponentLocation();
-		UE_LOG(LogTemp, Warning, TEXT("[TweezersTool] AttachBase set to: %s"), *AttachBase->GetName());
+		//UE_LOG(LogTemp, Warning, TEXT("[TweezersTool] AttachBase set to: %s"), *AttachBase->GetName());
 	}
 }
 
