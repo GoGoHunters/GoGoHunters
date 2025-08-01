@@ -11,6 +11,8 @@
 #include "LHM/UI/DiggingUI.h"
 #include "LHM/UI/BrushingUI.h"
 #include "UIs/CUiActor.h"
+#include "LHM/UI/ExcavationPhaseUI.h"
+#include "LHM/Excavation/CollectionBox.h"
 
 // Sets default values
 AExcavationManager::AExcavationManager()
@@ -55,80 +57,56 @@ void AExcavationManager::Tick(float DeltaTime)
 void AExcavationManager::NotifyDetectionCompleted(class ARelicsManager* FromManager)
 {
 	if (!IsValid(FromManager)) return;
+	if (!PhaseUI) return;
 
 	CurrentActiveManager = FromManager;
 	FromManager->StartExcavation();
 
-	if (DiggingUI) DiggingUI->SetVisibility(ESlateVisibility::Visible);
-	PlayPopupUiAnim(false);
+	// Phase UI 가시화 (깃발 트리거)
+	// Phase UI에서 완료버튼 클릭하면 발굴 단계로 전환
+	PhaseUI->SetVisibilityFlagTrigger(true);
 
-	UE_LOG(LogTemp, Log, TEXT("[ExcavationManager] 유물 발견! 땅 파기 단계로 전환: %s"), *FromManager->GetName());
-
-	// 삽질 단계로 전환
-	SetCurrentPhase(EExcavationPhase::Digging);
+	//// 삽질 단계로 전환
+	//SetCurrentPhase(EExcavationPhase::Digging);
+	//UE_LOG(LogTemp, Log, TEXT("[ExcavationManager] 유물 발견! 땅 파기 단계로 전환: %s"), *FromManager->GetName());
 }
 
 void AExcavationManager::NotifyExcavationCompleted(class ARelicsManager* FromManager)
 {
 	if (!IsValid(FromManager)) return;
+	if(!DiggingUI || !BrushingUI) return;
 
-	if (DiggingUI) DiggingUI->SetVisibility(ESlateVisibility::Hidden);
-	if (BrushingUI) BrushingUI->SetVisibility(ESlateVisibility::Visible);
+	DiggingUI->SetVisibility(ESlateVisibility::Hidden);
+	BrushingUI->SetVisibility(ESlateVisibility::Visible);
 
-	UE_LOG(LogTemp, Log, TEXT("[ExcavationManager] 땅 파기 완료! 붓질 단계로 전환: %s"), *FromManager->GetName());
-	
 	// 붓질 단계로 전환
 	SetCurrentPhase(EExcavationPhase::Brushing);
+	UE_LOG(LogTemp, Log, TEXT("[ExcavationManager] 땅 파기 완료! 붓질 단계로 전환: %s"), *FromManager->GetName());
 }
 
 void AExcavationManager::NotifyDustingCompleted(class ARelicsManager* FromManager)
 {
 	if (!IsValid(FromManager)) return;
 
-	UE_LOG(LogTemp, Log, TEXT("[ExcavationManager] 붓질 완료! 수거 단계로 전환: %s"), *FromManager->GetName());
-
 	FromManager->SpawnCollectionBox(); // 수거박스 생성 요청
 
 	// 수거 단계로 전환
 	SetCurrentPhase(EExcavationPhase::Collection);
+	UE_LOG(LogTemp, Log, TEXT("[ExcavationManager] 붓질 완료! 수거 단계로 전환: %s"), *FromManager->GetName());
 }
 
-void AExcavationManager::NotifyCollectionCompleted(class ARelicsManager* FromManager)
+void AExcavationManager::NotifyCollectionCompleted(class ARelicsManager* FromManager, class ACollectionBox* FromCollectionBox)
 {
 	if (!IsValid(FromManager)) return;
+	if (!IsValid(FromCollectionBox)) return;
+	if (!PhaseUI) return;
 
-	if (BrushingUI) BrushingUI->SetVisibility(ESlateVisibility::Hidden);
-	PlayPopupUiAnim(true);
+	CurrentActiveManager = FromManager;
+	CollectionBox = FromCollectionBox;
 
-	UE_LOG(LogTemp, Log, TEXT("[ExcavationManager] 수거 완료! 발굴 완료: %s"), *FromManager->GetName());
-
-	// 게임 인스턴스에서 유물 등록
-	if (UGI_Base* GI = Cast<UGI_Base>(UGameplayStatics::GetGameInstance(GetWorld())))
-	{
-		// 플레이어의 MuseumComponent를 찾아서 RegisterRelic 호출
-		if (APlayerController* PC = UGameplayStatics::GetPlayerController(GetWorld(), 0))
-		{
-			if (APawn* Pawn = PC->GetPawn())
-			{
-				if (UCMuseumComponent* MuseumComponent = Pawn->FindComponentByClass<UCMuseumComponent>())
-				{
-					// RelicsBase에서 유물 태그 가져오기
-					ARelicsBase* Relics = FromManager->GetRelics();
-					int32 RelicTag = -1;
-					if (Relics)
-					{
-						RelicTag = Relics->GetRelicTag();
-					}
-					
-					MuseumComponent->RegisterRelic(RelicTag);
-					UE_LOG(LogTemp, Log, TEXT("[ExcavationManager] 유물 등록 완료 - 태그: %d"), RelicTag);
-				}
-			}
-		}
-	}
-
-	// 발굴 완료 단계로 전환
-	SetCurrentPhase(EExcavationPhase::Completed);
+	// Phase UI 가시화 (수거함 완료 트리거)
+	// Phase UI에서 완료버튼 클릭하면 수거함 닫기
+	PhaseUI->SetVisibilityCloseLid(true);
 }
 
 void AExcavationManager::SetCurrentPhase(EExcavationPhase NewPhase)
@@ -186,8 +164,8 @@ void AExcavationManager::SetCurrentPhase(EExcavationPhase NewPhase)
 		}
 	}
 
-	UE_LOG(LogTemp, Log, TEXT("[ExcavationManager] 발굴 단계 변경: %d"), (int32)CurrentPhase);
 	OnExcavationPhaseChanged.Broadcast(CurrentPhase);
+	UE_LOG(LogTemp, Log, TEXT("[ExcavationManager] 발굴 단계 변경: %d"), (int32)CurrentPhase);
 }
 
 bool AExcavationManager::IsToolAvailableForPhase(int32 ToolIndex) const
@@ -197,6 +175,65 @@ bool AExcavationManager::IsToolAvailableForPhase(int32 ToolIndex) const
 		return ToolAvailabilityByPhase[ToolIndex];
 	}
 	return false;
+}
+
+void AExcavationManager::ChangeExcavationPhase()
+{
+	if( !CurrentActiveManager || !CurrentActiveManager->GetRelics() ) return;
+	if (!PhaseUI || !DiggingUI) return;
+	
+	CurrentActiveManager->GetRelics()->ActivateMarker();
+
+	// Progress UI 가시화
+	PhaseUI->SetVisibilityFlagTrigger(false);
+	DiggingUI->SetVisibility(ESlateVisibility::Visible);
+	PlayPopupUiAnim(false);
+
+	// 삽질 단계로 전환
+	SetCurrentPhase(EExcavationPhase::Digging);
+}
+
+void AExcavationManager::ChangeCompletedPhase()
+{
+	if (!IsValid(CurrentActiveManager)) return;
+	if (!IsValid(CollectionBox)) return;
+	if (!BrushingUI) return;
+
+	PhaseUI->SetVisibilityCloseLid(false);
+	BrushingUI->SetVisibility(ESlateVisibility::Hidden);
+	PlayPopupUiAnim(true);
+
+	// 수거함 닫기 애니메이션
+	CollectionBox->PlayBoxCloseAnimation();
+
+	// 게임 인스턴스에서 유물 등록
+	if (UGI_Base* GI = Cast<UGI_Base>(UGameplayStatics::GetGameInstance(GetWorld())))
+	{
+		// 플레이어의 MuseumComponent를 찾아서 RegisterRelic 호출
+		if (APlayerController* PC = UGameplayStatics::GetPlayerController(GetWorld(), 0))
+		{
+			if (APawn* Pawn = PC->GetPawn())
+			{
+				if (UCMuseumComponent* MuseumComponent = Pawn->FindComponentByClass<UCMuseumComponent>())
+				{
+					// RelicsBase에서 유물 태그 가져오기
+					ARelicsBase* Relics = CurrentActiveManager->GetRelics();
+					int32 RelicTag = -1;
+					if (Relics)
+					{
+						RelicTag = Relics->GetRelicTag();
+					}
+
+					MuseumComponent->RegisterRelic(RelicTag);
+					UE_LOG(LogTemp, Log, TEXT("[ExcavationManager] 유물 등록 완료 - 태그: %d"), RelicTag);
+				}
+			}
+		}
+	}
+
+	// 발굴 완료 단계로 전환
+	SetCurrentPhase(EExcavationPhase::Completed);
+	UE_LOG(LogTemp, Log, TEXT("[ExcavationManager] 수거 완료! 발굴 완료: %s"), *CurrentActiveManager->GetName());
 }
 
 void AExcavationManager::PlayPopupUiAnim(bool IsTunrOff)

@@ -101,8 +101,8 @@ void ADetectorTool::UpdateDetection(float DeltaTime)
 
 	for (TActorIterator<ARelicsBase> It(GetWorld()); It; ++It)
 	{
-		if (!It->Marker) continue;
-		if (!It->Marker->IsHidden()) continue;
+		if (!It->GetMarker()) continue;
+		if (!It->GetMarker()->IsHidden()) continue;
 
 		float Dist = FVector::Dist(It->GetActorLocation(), GetActorLocation());
 		if (Dist < ClosestDist)
@@ -179,12 +179,12 @@ void ADetectorTool::UpdateDetection(float DeltaTime)
 			}
 		}
 
-		// 마커 표시
-		if (Relics && Relics->Marker)
-		{
-			Relics->Marker->ActivateMarker();
-			Relics = nullptr;
-		}
+		//// 마커 표시
+		//if (Relics && Relics->Marker)
+		//{
+		//	Relics->Marker->ActivateMarker();
+		//	Relics = nullptr;
+		//}
 
 		UE_LOG(LogTemp, Log, TEXT("[DetectorTool] 탐지 완료 및 UI & 탐지 상태 초기화"));
 

@@ -111,6 +111,11 @@ void ARelicsBase::OnOverlapBegin(UPrimitiveComponent* Overlapped, AActor* OtherA
 	}
 }
 
+void ARelicsBase::ActivateMarker()
+{
+	if (Marker) Marker->ActivateMarker();
+}
+
 void ARelicsBase::ReduceDustOpacity(const FVector& BrushLocation, float Amount, ABrushTool& BrushRef)
 {
     UDecalComponent* Closest = nullptr;

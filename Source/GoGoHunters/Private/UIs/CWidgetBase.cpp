@@ -1,6 +1,7 @@
 #include "UIs/CWidgetBase.h"
 
 #include "Components/Button.h"
+#include "Components/Image.h"
 #include "UIs/CUiActor.h"
 
 void UCWidgetBase::NativeConstruct()
@@ -26,4 +27,12 @@ void UCWidgetBase::SwitchUI(const int32 InDesiredUiIdx)
 {
 	if (!UiActor) return;
 	UiActor->SwitchActiveWidget(InDesiredUiIdx);
+}
+
+void UCWidgetBase::BlindActive(bool bUseBlind)
+{
+	if (bUseBlind)
+		Img_Blind->SetVisibility(ESlateVisibility::Visible);
+	else
+		Img_Blind->SetVisibility(ESlateVisibility::HitTestInvisible);
 }

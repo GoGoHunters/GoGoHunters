@@ -48,7 +48,7 @@ public:
 	void NotifyDustingCompleted(class ARelicsManager* Target);
 
 	// 유물 수거 완료
-	void NotifyCollectionCompleted(class ARelicsManager* Target);
+	void NotifyCollectionCompleted(class ARelicsManager* Target, class ACollectionBox* CollectionBox);
 
 	// 현재 발굴 단계 반환
 	UFUNCTION(BlueprintCallable, Category = "Excavation")
@@ -72,6 +72,9 @@ protected:
 
 	UPROPERTY()
 	class ARelicsManager* CurrentActiveManager;
+	
+	UPROPERTY()
+	class ACollectionBox* CollectionBox;
 
 	// 현재 발굴 단계
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Excavation")
@@ -81,18 +84,24 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Excavation")
 	TArray<bool> ToolAvailabilityByPhase;
 
-// UI Popup Settings
 public:
+	void ChangeExcavationPhase();
+	void ChangeCompletedPhase();
 	void PlayPopupUiAnim(bool IsTunrOff);
 
 // 발굴 UI 업데이트를 위한 DiggingUI/BrushingUI 참조
 public:
+	void SetPhaseUI(class UExcavationPhaseUI* InPhaseUI) { PhaseUI = InPhaseUI; }
+
 	void SetDiggingUI(class UDiggingUI* InDiggingUI) { DiggingUI = InDiggingUI; }
 	void UpdateDiggingProgress();
 
 	void SetBrushingUI(class UBrushingUI* InBrushingUI) { BrushingUI = InBrushingUI; }
 
 protected:
+    UPROPERTY()
+    class UExcavationPhaseUI* PhaseUI;
+
     UPROPERTY()
     class UDiggingUI* DiggingUI;
 	
