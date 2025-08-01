@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
 #include "InputAction.h"
+#include "MH_ZoneBase.h"
 #include "MH_VRPlayer.generated.h"
 
 class ACRelicCollectionWidgetActor;
@@ -284,4 +285,7 @@ private:
 	// Museum Component
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, meta=(AllowPrivateAccess))
 	UCMuseumComponent* MuseumComponent;
+
+	UPROPERTY()
+	AMH_ZoneBase* CurrentZone;
 };

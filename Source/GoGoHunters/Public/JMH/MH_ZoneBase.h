@@ -3,6 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "Components/WidgetComponent.h"
 #include "GameFramework/Actor.h"
 #include "MH_ZoneBase.generated.h"
 
@@ -42,6 +43,21 @@ protected:
 	UPROPERTY(VisibleAnywhere)
 	class UBoxComponent* CollisionBox;
 
+	UPROPERTY(EditAnywhere, Category = "Zone")
+	FText PromptText;
+
+	UPROPERTY(EditAnywhere, Category = "Zone")
+	FString TargetLevelName;
+
+	UPROPERTY(EditAnywhere, Category = "Zone")
+	TSubclassOf<class UMH_MessageUI> MessageUIClass;
+
+	UPROPERTY()
+	class UMH_MessageUI* MessageUI;
+
+	UFUNCTION()
+	void ShowZoneMessageUI(FString Message);
+
 private:
 	UFUNCTION()
 	void OnZoneOverlapBegin(
@@ -53,20 +69,35 @@ private:
 		const FHitResult& SweepResult
 	);
 
+	UFUNCTION()
+	void OnZoneOverlapEnd(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
+
+	
+
 public:
 	// 존 실행용 내부 함수들
 	UFUNCTION()
-	void HandleMapInteraction(AActor* Player);
+	void HandleMapInteraction();
 	UFUNCTION()
-	void HandleRestoreInteraction(AActor* Player);
+	void HandleRestoreInteraction();
 	UFUNCTION()
-	void HandleMyMuseumInteraction(AActor* Player);
+	void HandleMyMuseumInteraction();
 	UFUNCTION()
-	void HandleRecordInteraction(AActor* Player);
+	void HandleRecordInteraction();
 	UFUNCTION()
-	void HandleSettingsInteraction(AActor* Player);
+	void HandleSettingsInteraction();
 	UFUNCTION()
-	void HandleExitInteraction(AActor* Player);
+	void HandleExitInteraction();
+	UFUNCTION()
+	void HandleLobbyInteraction();
+	
+
+	UPROPERTY()
+	class AMH_VRPlayer* VRPlayer;
+
+	UPROPERTY(EditDefaultsOnly)
+	UWidgetComponent* MessageWidgetComponent;
+	
 
 	
 };
