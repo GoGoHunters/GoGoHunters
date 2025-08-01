@@ -58,9 +58,8 @@ void UCMuseumComponent::BeginPlay()
 				{
 					RelicActor->InitializeAsset(Data, *Local_RelicDetailData);
 					RelicActor->Tags.Add("Grabable");
+					if (Data.PlaceArea) Data.PlaceArea->PlaceRelicAt(Data.PlacedTransform.GetLocation());
 				}
-
-				if (Data.PlaceArea) Data.PlaceArea->PlaceRelicAt(Data.PlacedTransform.GetLocation());
 			}
 		}
 	}
@@ -158,6 +157,8 @@ void UCMuseumComponent::PreviewMode()
 
 void UCMuseumComponent::SwitchState()
 {
+	if (!UGameplayStatics::GetCurrentLevelName(GetWorld()).Contains(MuseumLevelName)) return;
+	
 	MuseumState = (EMuseumState)((MuseumState + 1) % EMuseumState::Max);
 
 	switch (MuseumState)

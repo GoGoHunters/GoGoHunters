@@ -358,7 +358,7 @@ void AMH_VRPlayer::TriggerInteract(const FInputActionInstance& IA_Instance)
     // 유물 설치
     if (MuseumComponent)
     {
-        if (*MuseumComponent->GetMuseumState() == Decorate)
+        if (MuseumComponent->GetMuseumState() == Decorate)
             MuseumComponent->PlaceRelic();
     }
 }
@@ -376,16 +376,8 @@ void AMH_VRPlayer::TriggerInteractCompleted()
 			ActiveWidgetInteraction->bShowDebug = false;
 		}
 
-#pragma region Museum 레벨에서만 작동
-		FString CurrentLevel = GetWorld()->GetMapName();
-		CurrentLevel.RemoveFromStart(GetWorld()->StreamingLevelsPrefix); // 레벨 이름 앞에 접두사 _ 제거
-
-		if (CurrentLevel.ToLower().Contains("museum"))
-		{
-			if (!MuseumComponent || *MuseumComponent->GetMuseumState() != EMuseumState::Decorate)
-				DisableWidgetInteraction();
-		}
-#pragma endregion
+		if (!(MuseumComponent && MuseumComponent->GetMuseumState() == EMuseumState::Decorate))
+			DisableWidgetInteraction();
 	}
 
 	// 월드맵 상호작용 리셋
@@ -560,6 +552,8 @@ void AMH_VRPlayer::ExcavationTool4()
 			{
 				USceneComponent* HandSocket = RHandController;
 				TweezersTool->AttachToComponent(HandSocket, FAttachmentTransformRules::SnapToTargetNotIncludingScale, NAME_None);
+				
+				TweezersTool->SetAttachBase(HandSocket);
 
 				SetPlayerState(EPlayerVRState::UsingTool);
 			}
@@ -887,7 +881,7 @@ void AMH_VRPlayer::HandleUIInteraction(const FInputActionInstance& IA_Instance)
     {
         if (bIsUIInteractionActive)
         {
-            if (MuseumComponent && *MuseumComponent->GetMuseumState() == EMuseumState::Decorate) return;
+            if (MuseumComponent && MuseumComponent->GetMuseumState() == EMuseumState::Decorate) return;
             DisableWidgetInteraction();
         }
     }
