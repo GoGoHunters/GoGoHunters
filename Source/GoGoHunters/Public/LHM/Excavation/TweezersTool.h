@@ -31,7 +31,12 @@ public:
 
 	UFUNCTION()
 	void OnEndOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
-public:
+
+	void SetIsPickingUp(bool _bIsPickingUp);
+
+	void SetAttachBase(USceneComponent* InAttachBase);
+
+protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	class UStaticMeshComponent* TweezersMeshL;
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
@@ -43,9 +48,16 @@ public:
 	UPROPERTY(VisibleAnywhere)
 	class USceneComponent* PickupPoint;
 
-	void SetIsPickingUp(bool _bIsPickingUp);
 	bool bIsPickingUp = false;
 
+	USceneComponent* AttachBase = nullptr;
+	FVector PreviousAttachLocation;
+	FVector LastAttachLocation;
+	bool bHasJustDropped = false;
+
+	class UMotionControllerComponent* OwnerMC;
+
+private:
 	UPROPERTY()
 	class ARelicsBase* PickedRelic;
 
