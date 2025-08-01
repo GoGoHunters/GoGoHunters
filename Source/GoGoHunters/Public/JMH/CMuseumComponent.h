@@ -30,7 +30,8 @@ class GOGOHUNTERS_API UCMuseumComponent : public UActorComponent
 	GENERATED_BODY()
 
 public:
-	const EMuseumState* GetMuseumState() { return &MuseumState; }
+	UFUNCTION(BlueprintCallable)
+	const EMuseumState GetMuseumState() { return MuseumState; }
 	
 	void SetupPlayerInputComponent(UEnhancedInputComponent* EnhancedInput);
 	void PlayPreviewMode(const FCRelicData& InRelicData, const FCRelicDetailData& InRelicDetailData);

@@ -358,7 +358,7 @@ void AMH_VRPlayer::TriggerInteract(const FInputActionInstance& IA_Instance)
     // 유물 설치
     if (MuseumComponent)
     {
-        if (*MuseumComponent->GetMuseumState() == Decorate)
+        if (MuseumComponent->GetMuseumState() == Decorate)
             MuseumComponent->PlaceRelic();
     }
 }
@@ -382,7 +382,7 @@ void AMH_VRPlayer::TriggerInteractCompleted()
 
 		if (CurrentLevel.ToLower().Contains("museum"))
 		{
-			if (!MuseumComponent || *MuseumComponent->GetMuseumState() != EMuseumState::Decorate)
+			if (!MuseumComponent || MuseumComponent->GetMuseumState() != EMuseumState::Decorate)
 				DisableWidgetInteraction();
 		}
 #pragma endregion
@@ -887,7 +887,7 @@ void AMH_VRPlayer::HandleUIInteraction(const FInputActionInstance& IA_Instance)
     {
         if (bIsUIInteractionActive)
         {
-            if (MuseumComponent && *MuseumComponent->GetMuseumState() == EMuseumState::Decorate) return;
+            if (MuseumComponent && MuseumComponent->GetMuseumState() == EMuseumState::Decorate) return;
             DisableWidgetInteraction();
         }
     }

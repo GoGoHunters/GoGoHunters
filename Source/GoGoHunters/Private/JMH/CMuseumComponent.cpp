@@ -158,6 +158,8 @@ void UCMuseumComponent::PreviewMode()
 
 void UCMuseumComponent::SwitchState()
 {
+	if (!UGameplayStatics::GetCurrentLevelName(GetWorld()).Contains(MuseumLevelName)) return;
+	
 	MuseumState = (EMuseumState)((MuseumState + 1) % EMuseumState::Max);
 
 	switch (MuseumState)
