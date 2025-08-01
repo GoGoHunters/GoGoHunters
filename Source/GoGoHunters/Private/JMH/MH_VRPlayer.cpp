@@ -376,16 +376,8 @@ void AMH_VRPlayer::TriggerInteractCompleted()
 			ActiveWidgetInteraction->bShowDebug = false;
 		}
 
-#pragma region Museum 레벨에서만 작동
-		FString CurrentLevel = GetWorld()->GetMapName();
-		CurrentLevel.RemoveFromStart(GetWorld()->StreamingLevelsPrefix); // 레벨 이름 앞에 접두사 _ 제거
-
-		if (CurrentLevel.ToLower().Contains("museum"))
-		{
-			if (!MuseumComponent || MuseumComponent->GetMuseumState() != EMuseumState::Decorate)
-				DisableWidgetInteraction();
-		}
-#pragma endregion
+		if (!(MuseumComponent && MuseumComponent->GetMuseumState() == EMuseumState::Decorate))
+			DisableWidgetInteraction();
 	}
 
 	// 월드맵 상호작용 리셋
