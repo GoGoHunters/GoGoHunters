@@ -419,7 +419,7 @@ void AMH_VRPlayer::ExcavationTool1()
 			if (DetectionTool)
 			{
 				//USceneComponent* HandSocket = RHandController;
-				DetectionTool->AttachToComponent(HandRight, FAttachmentTransformRules::SnapToTargetNotIncludingScale, "Tool_Socket_R");
+				DetectionTool->AttachToComponent(HandRight, FAttachmentTransformRules::SnapToTargetNotIncludingScale, "Socket_Tool1");
 
 				SetPlayerState(EPlayerVRState::UsingTool);
 			}
@@ -465,7 +465,7 @@ void AMH_VRPlayer::ExcavationTool2()
 			if (ShovelTool)
 			{
 				//USceneComponent* HandSocket = RHandController;
-				ShovelTool->AttachToComponent(HandRight, FAttachmentTransformRules::SnapToTargetNotIncludingScale, "Tool_Socket_R");
+				ShovelTool->AttachToComponent(HandRight, FAttachmentTransformRules::SnapToTargetNotIncludingScale, "Socket_Tool2");
 
 				// RelicsGround의 Shovel 할당
 				for (auto RelicsGroundRef : RelicsGroundRefs)
@@ -514,7 +514,7 @@ void AMH_VRPlayer::ExcavationTool3()
 			if (BrushTool)
 			{
 				//USceneComponent* HandSocket = RHandController;
-				BrushTool->AttachToComponent(HandRight, FAttachmentTransformRules::SnapToTargetNotIncludingScale, "Tool_Socket_R");
+				BrushTool->AttachToComponent(HandRight, FAttachmentTransformRules::SnapToTargetNotIncludingScale, "Socket_Tool3");
 
 				SetPlayerState(EPlayerVRState::UsingTool);
 			}
@@ -557,7 +557,7 @@ void AMH_VRPlayer::ExcavationTool4()
 			if (TweezersTool)
 			{
 				//USceneComponent* HandSocket = RHandController;
-				TweezersTool->AttachToComponent(HandRight, FAttachmentTransformRules::SnapToTargetNotIncludingScale, "Tool_Socket_R");
+				TweezersTool->AttachToComponent(HandRight, FAttachmentTransformRules::SnapToTargetNotIncludingScale, "Socket_Tool4");
 				
 				TweezersTool->SetAttachBase(RHandController);
 
