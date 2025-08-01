@@ -552,6 +552,8 @@ void AMH_VRPlayer::ExcavationTool4()
 			{
 				USceneComponent* HandSocket = RHandController;
 				TweezersTool->AttachToComponent(HandSocket, FAttachmentTransformRules::SnapToTargetNotIncludingScale, NAME_None);
+				
+				TweezersTool->SetAttachBase(HandSocket);
 
 				SetPlayerState(EPlayerVRState::UsingTool);
 			}

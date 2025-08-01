@@ -4,6 +4,7 @@
 #include "LHM/Excavation/TweezersTool.h"
 #include "Components/BoxComponent.h"
 #include "LHM/Excavation/RelicsBase.h"
+#include "MotionControllerComponent.h"
 
 // Sets default values
 ATweezersTool::ATweezersTool()
@@ -39,7 +40,6 @@ ATweezersTool::ATweezersTool()
 
 	PickupPoint = CreateDefaultSubobject<USceneComponent>(TEXT("PickupPoint"));
 	PickupPoint->SetupAttachment(RootComponent);
-	//PickupPoint->SetRelativeLocation(FVector(30.f, 0.f, 10.f));
 }
 
 // Called when the game starts or when spawned
@@ -56,11 +56,33 @@ void ATweezersTool::Tick(float DeltaTime)
 	Super::Tick(DeltaTime);
 
 	if(bIsPickingUp) PickUpRelic();
+
+	if (AttachBase && !bHasJustDropped)
+	{
+		FVector Current = AttachBase->GetComponentLocation();
+		if (!Current.Equals(LastAttachLocation, 0.1f))
+		{
+			PreviousAttachLocation = LastAttachLocation;
+			LastAttachLocation = Current;
+		}
+	}
+	else if (bHasJustDropped)
+	{
+		bHasJustDropped = false;
+	}
 }
 
 void ATweezersTool::PickUpRelic()
 {
 	if (!bIsPickingUp || PickedRelic || !RelicCandidate || !CandidateMesh) return;
+
+	if (!PickupBox->IsOverlappingActor(RelicCandidate))
+	{
+		RelicCandidate = nullptr;
+		CandidateMesh = nullptr;
+		//UE_LOG(LogTemp, Warning, TEXT("[TweezersTool] Blocked pickup: not overlapping!"));
+		return;
+	}
 
 	// Attach 조건 만족 → 실행
 	CandidateMesh->SetSimulatePhysics(false);
@@ -69,7 +91,7 @@ void ATweezersTool::PickUpRelic()
 
 	PickedRelic = RelicCandidate;
 
-	UE_LOG(LogTemp, Log, TEXT("[TweezersTool] Picked up %s"), *CandidateMesh->GetName());
+	//UE_LOG(LogTemp, Log, TEXT("[TweezersTool] Picked up %s"), *CandidateMesh->GetName());
 
 	// 초기화
 	RelicCandidate = nullptr;
@@ -78,7 +100,7 @@ void ATweezersTool::PickUpRelic()
 
 void ATweezersTool::OnBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
-	if (PickedRelic || !OtherActor || !OtherComp) return;
+	if (/*PickedRelic ||*/ !OtherActor || !OtherComp) return;
 
 	if (ARelicsBase* Relic = Cast<ARelicsBase>(OtherActor))
 	{
@@ -136,14 +158,36 @@ void ATweezersTool::SetIsPickingUp(bool _bIsPickingUp)
 					Mesh->SetGenerateOverlapEvents(true);
 					Mesh->BodyInstance.bUseCCD = true; // 빠르게 낙하 시 충돌 누락 방지
 
-					UE_LOG(LogTemp, Log, TEXT("[TweezersTool] Dropped relic mesh"));
+					// 던지기
+					if (AttachBase)
+					{
+						FVector Velocity = (LastAttachLocation - PreviousAttachLocation) / FMath::Max(GetWorld()->GetDeltaSeconds(), 0.001f);
+						FVector Direction = Velocity.GetSafeNormal();
+						float Speed = Velocity.Size();
+						//UE_LOG(LogTemp, Warning, TEXT("[TweezersTool] Velocity Raw: %s | SpeedRaw: %.2f"), *Velocity.ToString(), Speed);
+
+						if (!Direction.IsNearlyZero())
+						{
+							Mesh->SetPhysicsLinearVelocity(Direction * Speed);
+						}
+					}
+					//UE_LOG(LogTemp, Log, TEXT("[TweezersTool] Dropped relic mesh"));
 					break;
 				}
 			}
-
 			PickedRelic = nullptr;
+			bHasJustDropped = true;
 		}
 	}
+}
 
+void ATweezersTool::SetAttachBase(USceneComponent* InAttachBase)
+{
+	AttachBase = InAttachBase;
+	if (AttachBase)
+	{
+		LastAttachLocation = AttachBase->GetComponentLocation();
+		//UE_LOG(LogTemp, Warning, TEXT("[TweezersTool] AttachBase set to: %s"), *AttachBase->GetName());
+	}
 }
 
