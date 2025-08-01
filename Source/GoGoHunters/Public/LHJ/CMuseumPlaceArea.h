@@ -6,6 +6,7 @@
 
 class ACRelicBase;
 class UBoxComponent;
+class UCMuseumComponent;
 
 USTRUCT()
 struct FGridCell
@@ -54,18 +55,15 @@ private:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta=(AllowPrivateAccess))
 	float CellSize = 100.f;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta=(AllowPrivateAccess))
-	bool bShowGridDebug = false;
-
+	UPROPERTY()
+	TObjectPtr<UCMuseumComponent> MuseumComp;
+	
 	ACMuseumPlaceArea();
 	virtual void BeginPlay() override;
 	virtual void Tick(float DeltaTime) override;
 
 	void CreateGrid();
 	void DrawGridDebug() const;
-
-	// 디버그용 그리드 표시 토글
-	void SetGridDebugVisible(bool bVisible);
 
 	bool GetCell(const FVector& WorldLocation, FGridCell& outCell);
 };

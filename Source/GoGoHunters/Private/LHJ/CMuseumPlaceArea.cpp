@@ -3,6 +3,7 @@
 #include "Components/BoxComponent.h"
 #include "Utilities/CHelpers.h"
 #include "DrawDebugHelpers.h"
+#include "JMH/CMuseumComponent.h"
 #include "LHJ/CRelicBase.h"
 
 ACMuseumPlaceArea::ACMuseumPlaceArea()
@@ -16,6 +17,8 @@ void ACMuseumPlaceArea::BeginPlay()
 {
 	Super::BeginPlay();
 	CreateGrid();
+
+	MuseumComp = GetWorld()->GetFirstPlayerController()->GetPawn()->GetComponentByClass<UCMuseumComponent>();
 }
 
 void ACMuseumPlaceArea::Tick(float DeltaTime)
@@ -51,11 +54,13 @@ void ACMuseumPlaceArea::CreateGrid()
 
 void ACMuseumPlaceArea::DrawGridDebug() const
 {
-	if (!bShowGridDebug) return;
-	for (const FGridCell& Cell : GridCells)
+	if (MuseumComp->GetMuseumState()==Decorate)
 	{
-		FColor Color = Cell.bOccupied ? FColor::Red : FColor::Green;
-		DrawDebugBox(GetWorld(), Cell.Center, FVector(CellSize/2, CellSize/2, 10.f), Color, false, -1, 0, 2);
+		for (const FGridCell& Cell : GridCells)
+		{
+			FColor Color = Cell.bOccupied ? FColor::Red : FColor::Green;
+			DrawDebugBox(GetWorld(), Cell.Center, FVector(CellSize/2, CellSize/2, 10.f), Color, false, .1, 0, 2);
+		}
 	}
 }
 
@@ -134,9 +139,3 @@ void ACMuseumPlaceArea::UnregisterRelic(const ACRelicBase* Relic)
 		}
 	}
 }
-
-void ACMuseumPlaceArea::SetGridDebugVisible(bool bVisible)
-{
-	bShowGridDebug = bVisible;
-}
-
