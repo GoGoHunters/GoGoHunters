@@ -59,6 +59,11 @@ public:
 	class UCameraComponent* VRCamera;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+	class USkeletalMeshComponent* HandLeft;
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+	class USkeletalMeshComponent* HandRight;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
 	UMotionControllerComponent* RHandController;
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
 	UMotionControllerComponent* LHandController;
