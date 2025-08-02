@@ -5,6 +5,7 @@
 #include "Components/Button.h"
 #include "LHM/Excavation/ExcavationManager.h"
 #include "EngineUtils.h"
+#include "LHM/Excavation/ExcavationWidgetActor.h"
 
 void UExcavationPhaseUI::NativeConstruct()
 {
@@ -25,12 +26,18 @@ void UExcavationPhaseUI::NativeConstruct()
 
 void UExcavationPhaseUI::SetVisibilityFlagTrigger(bool bVisible)
 {
-	if (Btn_FlagTrigger) Btn_FlagTrigger->SetVisibility(bVisible ? ESlateVisibility::Visible : ESlateVisibility::Hidden);
+	if (!Btn_FlagTrigger || !OwningWidgetActor) return;
+
+	Btn_FlagTrigger->SetVisibility(bVisible ? ESlateVisibility::Visible : ESlateVisibility::Hidden);
+	OwningWidgetActor->SetActorEnableCollision(bVisible ? true : false);
 }
 
 void UExcavationPhaseUI::SetVisibilityCloseLid(bool bVisible)
 {
-	if (Btn_CloseLid) Btn_CloseLid->SetVisibility(bVisible ? ESlateVisibility::Visible : ESlateVisibility::Hidden);
+	if (!Btn_CloseLid || !OwningWidgetActor) return;
+	
+	Btn_CloseLid->SetVisibility(bVisible ? ESlateVisibility::Visible : ESlateVisibility::Hidden);
+	OwningWidgetActor->SetActorEnableCollision(bVisible ? true : false);
 }
 
 void UExcavationPhaseUI::OnClick_FlagTrigger()

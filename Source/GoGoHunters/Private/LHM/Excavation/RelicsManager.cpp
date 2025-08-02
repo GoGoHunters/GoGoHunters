@@ -200,8 +200,8 @@ void ARelicsManager::SpawnCollectionBox()
 	if (IsValid(CollectionBox)) return;
 	if (!CollectionBoxClass) return;
 
-	FVector SpawnLocation = FVector(1935, 2720, -612); // (X=1935.000000,Y=2720.000000,Z=-612.0.000000)
-	FRotator SpawnRotation = FRotator(0, -80, 0); // (Pitch=0.000000,Yaw=-80.000000,Roll=0.000000)
+	FVector SpawnLocation = GetActorLocation() + FVector(-60, 85, 190);
+	FRotator SpawnRotation = GetActorRotation() + FRotator(0, -70, 0);
 
 	FActorSpawnParameters Params;
 	Params.Owner = this;

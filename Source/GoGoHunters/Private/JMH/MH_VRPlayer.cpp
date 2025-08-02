@@ -132,7 +132,6 @@ void AMH_VRPlayer::BeginPlay()
 		// Excavation Phase UI 
 		if (ExcavationUIActorClass = LoadClass<AExcavationWidgetActor>(nullptr, TEXT("/Game/LHM/BP/Excavation/BP_ExcavationWidgetActor.BP_ExcavationWidgetActor_C")))
 		{
-			//FVector SpawnLocation = FVector(1000, 0, 0); // (X=100.000000,Y=0.000000,Z=0.000000)
 			FVector SpawnLocation = FVector::ZeroVector;
 			FRotator SpawnRotation = FRotator::ZeroRotator;
 
@@ -140,7 +139,7 @@ void AMH_VRPlayer::BeginPlay()
 			if (ExcavationUIActor)
 			{
 				ExcavationUIActor->AttachToComponent(VRCamera, FAttachmentTransformRules::SnapToTargetNotIncludingScale, NAME_None);
-				UE_LOG(LogTemp, Log, TEXT("ExcavationUIActor Spawn"));
+				ExcavationUIActor->SetActorEnableCollision(false);
 			}
 		}
 	}
