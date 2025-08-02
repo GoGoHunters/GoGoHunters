@@ -22,15 +22,11 @@ ATweezersTool::ATweezersTool()
 	{
 		TweezersMeshL->SetStaticMesh(LMeshAsset.Object);
 		TweezersMeshL->SetupAttachment(RootComponent);
-		TweezersMeshL->SetRelativeLocation(FVector(20, 0, 0));
-		TweezersMeshL->SetRelativeRotation(FRotator(0, -90, 0));
 		TweezersMeshL->SetCollisionResponseToChannel(ECC_Pawn, ECR_Ignore);
 		TweezersMeshL->bReceivesDecals = false;
 
 		TweezersMeshR->SetStaticMesh(RMeshAsset.Object);
 		TweezersMeshR->SetupAttachment(RootComponent);
-		TweezersMeshR->SetRelativeLocation(FVector(20, 0, 0));
-		TweezersMeshR->SetRelativeRotation(FRotator(0, -90, 0));
 		TweezersMeshR->SetCollisionResponseToChannel(ECC_Pawn, ECR_Ignore);
 		TweezersMeshL->bReceivesDecals = false;
 	}
@@ -133,17 +129,13 @@ void ATweezersTool::SetIsPickingUp(bool _bIsPickingUp)
 
 	if (bIsPickingUp)
 	{
-		TweezersMeshL->SetRelativeLocation(FVector(20, 0, 0));
-		TweezersMeshL->SetRelativeRotation(FRotator(0, -82, 0));
-		TweezersMeshR->SetRelativeLocation(FVector(20, 0, 0));
-		TweezersMeshR->SetRelativeRotation(FRotator(0, -97, 0));
+		TweezersMeshL->SetRelativeRotation(FRotator(0, 7, 0));
+		TweezersMeshR->SetRelativeRotation(FRotator(0, -7, 0));
 	}
 	else
 	{
-		TweezersMeshL->SetRelativeLocation(FVector(20, 0, 0));
-		TweezersMeshL->SetRelativeRotation(FRotator(0, -90, 0));
-		TweezersMeshR->SetRelativeLocation(FVector(20, 0, 0));
-		TweezersMeshR->SetRelativeRotation(FRotator(0, -90, 0));
+		TweezersMeshL->SetRelativeRotation(FRotator(0, 0, 0));
+		TweezersMeshR->SetRelativeRotation(FRotator(0, 0, 0));
 
 		// 유물 놓기
 		if (PickedRelic)
