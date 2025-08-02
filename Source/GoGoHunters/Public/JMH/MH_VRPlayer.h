@@ -72,8 +72,6 @@ public:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
 	UMotionControllerComponent* RAimMotionController;
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
-	UWidgetInteractionComponent* LWidgetInteractionComponent;
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
 	UWidgetInteractionComponent* RWidgetInteractionComponent;
 
 	// 현재 플레이어의 상태
@@ -293,4 +291,15 @@ private:
 
 	UPROPERTY()
 	AMH_ZoneBase* CurrentZone;
+
+	FString CurrentLevel="";
+
+	// ==================================
+	// Widget Interaction ReFactoring
+private:
+	void SetWidgetInteractionUsing(bool bUsing);
+	bool IsPointingAtWidget();
+	void SetClickAndWidgetActivation(bool bUsing);
+	void SetWidgetInteractionClick(bool bPress);
+	void SetWidgetComponent(bool bSet);
 };

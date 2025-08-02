@@ -16,6 +16,8 @@ struct FInputActionInstance;
 struct FCRelicData;
 struct FCRelicDetailData;
 
+DECLARE_DELEGATE(FRelicPlaceDel);
+
 UENUM(BlueprintType)
 enum EMuseumState : uint8
 {
@@ -30,6 +32,8 @@ class GOGOHUNTERS_API UCMuseumComponent : public UActorComponent
 	GENERATED_BODY()
 
 public:
+	FRelicPlaceDel OnRelicPlace;
+	
 	UFUNCTION(BlueprintCallable)
 	const EMuseumState GetMuseumState() { return MuseumState; }
 	

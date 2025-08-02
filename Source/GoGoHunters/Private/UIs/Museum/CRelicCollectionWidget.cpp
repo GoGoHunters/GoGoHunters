@@ -13,23 +13,15 @@ void UCRelicCollectionWidget::NativeConstruct()
 
 	GI = Cast<UGI_Base>(GetGameInstance());
 
-	if (GI && InitRelicWidgets())
-	{
-		Txt_EmptyRelics->SetVisibility(ESlateVisibility::Hidden);
-		Grid_Relics->SetVisibility(ESlateVisibility::SelfHitTestInvisible);
-	}
-	else
-	{
-		Txt_EmptyRelics->SetVisibility(ESlateVisibility::SelfHitTestInvisible);
-		Grid_Relics->SetVisibility(ESlateVisibility::Hidden);
-	}
-
 	Btn_Prev->OnClicked.AddDynamic(this, &UCRelicCollectionWidget::OnPrevPage);
 	Btn_Later->OnClicked.AddDynamic(this, &UCRelicCollectionWidget::OnNextPage);
+	InitRelicWidgets();
 }
 
-bool UCRelicCollectionWidget::InitRelicWidgets()
+void UCRelicCollectionWidget::InitRelicWidgets()
 {
+	if (!GI) return;
+	
 	Grid_Relics->ClearChildren();
 
 	TArray<FCRelicData> RelicData = GI->GetAllRelicData();
@@ -55,7 +47,16 @@ bool UCRelicCollectionWidget::InitRelicWidgets()
 		ShowPage(CurrentPage);		
 	}
 
-	return PlaceableRelics.Num() > 0;
+	if (PlaceableRelics.Num() > 0)
+	{
+		Txt_EmptyRelics->SetVisibility(ESlateVisibility::Hidden);
+		Grid_Relics->SetVisibility(ESlateVisibility::SelfHitTestInvisible);
+	}
+	else
+	{
+		Txt_EmptyRelics->SetVisibility(ESlateVisibility::SelfHitTestInvisible);
+		Grid_Relics->SetVisibility(ESlateVisibility::Hidden);
+	}
 }
 
 void UCRelicCollectionWidget::ShowPage(int32 PageIndex)
