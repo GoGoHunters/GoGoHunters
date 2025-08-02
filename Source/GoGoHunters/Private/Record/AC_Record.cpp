@@ -17,7 +17,6 @@ UAC_Record::UAC_Record()
 
     AudioCapture = CreateDefaultSubobject<UAudioCaptureComponent>(TEXT("AudioCaptureComponent"));
     AudioCapture->bAutoActivate = false;
-    AudioCapture->bOutputToBusOnly_DEPRECATED = true;
     AudioCapture->SetSubmixSend(nullptr, 0.0f);
 }
 
