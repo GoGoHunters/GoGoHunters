@@ -165,7 +165,7 @@ void ARelicsManager::NotifyGroundProgress(float Progress)
 {
 	if (CurrentLayerIndex >= GroundLayers.Num()) return;
 
-	if (Progress >= 0.5f) // 50% 이상 파괴되었으면
+	if (Progress >= 0.15f) // 15% 이상 파괴되었으면
 	{
 		auto CurrentLayer = GroundLayers[CurrentLayerIndex];
 		if (IsValid(CurrentLayer))
@@ -238,7 +238,7 @@ bool ARelicsManager::GetCurrentDigProgress(float& OutProgress) const
 		else
 		{
 			float Destruction = Ground->CalculateDestructionFromRenderTarget();
-			float Normalized = FMath::Clamp(Destruction / 0.5f, 0.0f, 1.0f); // 50% 기준으로 정규화
+			float Normalized = FMath::Clamp(Destruction / 0.15f, 0.0f, 1.0f); // 15% 기준으로 정규화
 			TotalProgress += Normalized;
 		}
 	}
