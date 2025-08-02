@@ -3,6 +3,7 @@
 
 #include "LHM/Excavation/ExcavationWidgetActor.h"
 #include "Components/WidgetComponent.h"
+#include "LHM/UI/ExcavationPhaseUI.h"
 
 // Sets default values
 AExcavationWidgetActor::AExcavationWidgetActor()
@@ -15,7 +16,7 @@ AExcavationWidgetActor::AExcavationWidgetActor()
 	static ConstructorHelpers::FClassFinder<UUserWidget> WidgetClassFinder(TEXT("/Game/LHM/UI/WBP_ExcavationPhaseUI"));
 	if (WidgetClassFinder.Succeeded())
 	{
-		WidgetComponent = CreateDefaultSubobject<UWidgetComponent>(TEXT("ExcavationUI"));
+		WidgetComponent = CreateDefaultSubobject<UWidgetComponent>(TEXT("PhaseUI"));
 		WidgetComponent->SetWidgetClass(WidgetClassFinder.Class);
 		WidgetComponent->SetupAttachment(RootComponent);
 		WidgetComponent->SetWidgetSpace(EWidgetSpace::World);
@@ -35,6 +36,14 @@ void AExcavationWidgetActor::BeginPlay()
 {
 	Super::BeginPlay();
 	
+	if (WidgetComponent)
+	{
+		UUserWidget* UserWidget = WidgetComponent->GetWidget();
+		if (UExcavationPhaseUI* PhaseUI = Cast<UExcavationPhaseUI>(UserWidget))
+		{
+			PhaseUI->SetOwningWidgetActor(this);
+		}
+	}
 }
 
 // Called every frame

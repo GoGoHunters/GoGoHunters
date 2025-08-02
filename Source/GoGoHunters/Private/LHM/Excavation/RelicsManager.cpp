@@ -165,7 +165,7 @@ void ARelicsManager::NotifyGroundProgress(float Progress)
 {
 	if (CurrentLayerIndex >= GroundLayers.Num()) return;
 
-	if (Progress >= 0.5f) // 50% 이상 파괴되었으면
+	if (Progress >= 0.15f) // 15% 이상 파괴되었으면
 	{
 		auto CurrentLayer = GroundLayers[CurrentLayerIndex];
 		if (IsValid(CurrentLayer))
@@ -200,8 +200,8 @@ void ARelicsManager::SpawnCollectionBox()
 	if (IsValid(CollectionBox)) return;
 	if (!CollectionBoxClass) return;
 
-	FVector SpawnLocation = FVector(1935, 2720, -612); // (X=1935.000000,Y=2720.000000,Z=-612.0.000000)
-	FRotator SpawnRotation = FRotator(0, -80, 0); // (Pitch=0.000000,Yaw=-80.000000,Roll=0.000000)
+	FVector SpawnLocation = GetActorLocation() + FVector(-60, 85, 190);
+	FRotator SpawnRotation = GetActorRotation() + FRotator(0, -70, 0);
 
 	FActorSpawnParameters Params;
 	Params.Owner = this;
@@ -238,7 +238,7 @@ bool ARelicsManager::GetCurrentDigProgress(float& OutProgress) const
 		else
 		{
 			float Destruction = Ground->CalculateDestructionFromRenderTarget();
-			float Normalized = FMath::Clamp(Destruction / 0.5f, 0.0f, 1.0f); // 50% 기준으로 정규화
+			float Normalized = FMath::Clamp(Destruction / 0.15f, 0.0f, 1.0f); // 15% 기준으로 정규화
 			TotalProgress += Normalized;
 		}
 	}
