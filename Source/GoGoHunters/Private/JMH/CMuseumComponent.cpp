@@ -97,8 +97,8 @@ void UCMuseumComponent::OnMenuButtonClicked()
 void UCMuseumComponent::PreviewMode()
 {
 	FHitResult outHit;
-	FVector start = OwnerPlayer->LAimMotionController->GetComponentLocation();
-	FVector end = start + OwnerPlayer->LAimMotionController->GetForwardVector() * 600.f;
+	FVector start = OwnerPlayer->RAimMotionController->GetComponentLocation();
+	FVector end = start + OwnerPlayer->RAimMotionController->GetForwardVector() * 600.f;
 	FCollisionQueryParams params;
 	params.AddIgnoredActor(OwnerPlayer);
 	bool bHit = GetWorld()->LineTraceSingleByChannel(outHit, start, end, ECC_GameTraceChannel6, params);;
@@ -164,9 +164,6 @@ void UCMuseumComponent::SwitchState()
 	switch (MuseumState)
 	{
 	case EMuseumState::Display:
-		OwnerPlayer->LWidgetInteractionComponent->SetActive(false);
-		OwnerPlayer->LWidgetInteractionComponent->bEnableHitTesting = false;
-		OwnerPlayer->LWidgetInteractionComponent->bShowDebug = false;
 		OwnerPlayer->RWidgetInteractionComponent->SetActive(false);
 		OwnerPlayer->RWidgetInteractionComponent->bEnableHitTesting = false;
 		OwnerPlayer->RWidgetInteractionComponent->bShowDebug = false;
@@ -174,11 +171,8 @@ void UCMuseumComponent::SwitchState()
 		bIsPreviewMode = false;
 		PreviewEnd();
 		break;
+		
 	case EMuseumState::Decorate:
-		// OwnerPlayer->RelicCollectionWidget->SetHiddenInGame(false);
-		OwnerPlayer->LWidgetInteractionComponent->SetActive(true);
-		OwnerPlayer->LWidgetInteractionComponent->bEnableHitTesting = true;
-		OwnerPlayer->LWidgetInteractionComponent->bShowDebug = true;
 		OwnerPlayer->RWidgetInteractionComponent->SetActive(true);
 		OwnerPlayer->RWidgetInteractionComponent->bEnableHitTesting = true;
 		OwnerPlayer->RWidgetInteractionComponent->bShowDebug = true;
@@ -223,8 +217,8 @@ void UCMuseumComponent::PlayPreviewMode(const FCRelicData& InRelicData, const FC
 	RelicData = InRelicData;
 	RelicDetailData = InRelicDetailData;
 	bIsPreviewMode = true;
-	// TODO
-	// UI 숨기기
+	if (OnUiAnimPlay.IsBound())
+		OnUiAnimPlay.Execute(true);
 }
 
 void UCMuseumComponent::PlaceRelic()
@@ -259,8 +253,11 @@ void UCMuseumComponent::PlaceRelic()
 	}
 
 	PreviewEnd();
-	// TODO
-	// UI 다시 나오게 하기
+
+	if (OnRelicPlace.IsBound())
+		OnRelicPlace.Execute();
+	if (OnUiAnimPlay.IsBound())
+		OnUiAnimPlay.Execute(false);
 }
 
 void UCMuseumComponent::RegisterRelic(const int32& InRelicTag)
