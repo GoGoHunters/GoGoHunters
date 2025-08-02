@@ -20,7 +20,9 @@ public:
 	void SetUiActor(ACUiActor* InActor) { UiActor = InActor; }
 	UFUNCTION(BlueprintCallable)
 	void BlindActive(bool bUseBlind);
-
+	UFUNCTION(BlueprintNativeEvent)
+	void K2_PlayUiAnim(bool bIsReverse);
+	
 protected:
 	UPROPERTY(BlueprintReadOnly, meta=(BindWidget))
 	TObjectPtr<UButton> Btn_A;

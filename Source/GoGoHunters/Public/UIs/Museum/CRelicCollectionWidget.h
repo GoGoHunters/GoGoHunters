@@ -19,7 +19,8 @@ class GOGOHUNTERS_API UCRelicCollectionWidget : public UUserWidget
 	GENERATED_BODY()
 
 public:
-	bool InitRelicWidgets();
+	UFUNCTION()
+	void InitRelicWidgets();
 	
 private:
 	UPROPERTY(EditDefaultsOnly, meta=(BindWidget))
@@ -42,8 +43,11 @@ private:
 	int32 CurrentPage = 0;
 	int32 MaxPage = 0;
 	TArray<FCRelicData> PlaceableRelics;
+
+	FTimerHandle TimerHandle_UpdatePage;
 	
 	virtual void NativeConstruct() override;
+	
 	void ShowPage(int32 PageIndex);
 	void UpdatePage();
 	UFUNCTION()
