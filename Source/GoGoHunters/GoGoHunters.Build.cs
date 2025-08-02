@@ -8,6 +8,25 @@ public class GoGoHunters : ModuleRules
 	{
 		PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
 
-		PublicDependencyModuleNames.AddRange(new string[] { "Core", "CoreUObject", "Engine", "InputCore", "EnhancedInput", "HeadMountedDisplay", "Niagara", "Http", "WebSockets" });
-	}
+		PublicDependencyModuleNames.AddRange(new string[] { 
+			"Core", 
+			"CoreUObject", 
+			"Engine", 
+			"InputCore", 
+			"EnhancedInput", 
+			"HeadMountedDisplay", 
+			"Niagara",
+			"HTTP", 
+			"WebSockets",
+            "SignalProcessing",
+            "Json",
+            "JsonUtilities",
+            "UMG", "Slate", "SlateCore"
+        });
+        PrivateDependencyModuleNames.AddRange(new string[] {
+            "AudioMixer",
+            "AudioCapture",
+            "AudioCaptureCore"
+        });
+    }
 }

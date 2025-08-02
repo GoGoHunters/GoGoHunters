@@ -2,9 +2,10 @@
 
 
 #include "JMH/MH_ZoneBase.h"
-
-#include "Components/SphereComponent.h"
+#include "JMH/MH_MessageUI.h"
+#include "Components/BoxComponent.h"
 #include "JMH/MH_VRPlayer.h"
+
 
 // Sets default values
 AMH_ZoneBase::AMH_ZoneBase()
@@ -13,26 +14,44 @@ AMH_ZoneBase::AMH_ZoneBase()
 	PrimaryActorTick.bCanEverTick = true;
 
 	// 콜리전 판정용 스피어
-	CollisionSphere = CreateDefaultSubobject<USphereComponent>(TEXT("CollisionSphere"));
-	RootComponent = CollisionSphere;
-
-	CollisionSphere->InitSphereRadius(400.f);
-	CollisionSphere->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
-	CollisionSphere->SetCollisionObjectType(ECC_WorldDynamic);
-	CollisionSphere->SetCollisionResponseToAllChannels(ECR_Ignore);
-	CollisionSphere->SetCollisionResponseToChannel(ECC_Visibility, ECR_Block);
+	CollisionBox = CreateDefaultSubobject<UBoxComponent>(TEXT("CollisionSphere"));
+	RootComponent = CollisionBox;
+	
+	CollisionBox->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
+	CollisionBox->SetCollisionResponseToAllChannels(ECR_Ignore);
 
 	// 시각적 표시용 메쉬
 	ZoneVisual = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("ZoneVisual"));
 	ZoneVisual->SetupAttachment(RootComponent);
 	ZoneVisual->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+
+	MessageWidgetComponent = CreateDefaultSubobject<UWidgetComponent>(TEXT("MessageUI"));
+	MessageWidgetComponent->SetupAttachment(RootComponent);
+	
 }
 
 // Called when the game starts or when spawned
 void AMH_ZoneBase::BeginPlay()
 {
 	Super::BeginPlay();
-	CollisionSphere->OnComponentBeginOverlap.AddDynamic(this, &AMH_ZoneBase::OnZoneOverlapBegin);
+	CollisionBox->OnComponentBeginOverlap.AddDynamic(this, &AMH_ZoneBase::OnZoneOverlapBegin);
+	CollisionBox->OnComponentEndOverlap.AddDynamic(this, &AMH_ZoneBase::OnZoneOverlapEnd);
+	
+	if (MessageUIClass)
+	{
+		MessageWidgetComponent->SetWidgetClass(MessageUIClass);
+
+		// BeginPlay 시점에서는 이미 위젯이 만들어져 있을 수 있으므로 캐싱
+		MessageUI = Cast<UMH_MessageUI>(MessageWidgetComponent->GetUserWidgetObject());
+
+		if (MessageUI)
+		{
+			MessageWidgetComponent->SetVisibility(false);
+			MessageUI->SetOuterActor(this);
+			MessageUI->SetMessage(FText::FromString(GuideMessage));
+			MessageUI->TargetLevel = TargetLevelName;
+		}
+	}
 }
 
 // Called every frame
@@ -43,23 +62,23 @@ void AMH_ZoneBase::Tick(float DeltaTime)
 
 void AMH_ZoneBase::OnPlayerInteracted_Implementation(AActor* Player)
 {
-	if (!GuideMessage.IsEmpty())
-	{
-		GEngine->AddOnScreenDebugMessage(-1, 2.f, FColor::Red, GuideMessage);
-	}
+	if (!Player) return;
 
-	static const TMap<FName, TFunction<void(AMH_ZoneBase*, AActor*)>> ZoneFunctionMap = {
-		{"Globe", [](AMH_ZoneBase* Z, AActor* P) { Z->HandleGlobeInteraction(P); }},
-		{"Restore", [](AMH_ZoneBase* Z, AActor* P) { Z->HandleRestoreInteraction(P); }},
-		{"Museum", [](AMH_ZoneBase* Z, AActor* P) { Z->HandleMyMuseumInteraction(P); }},
-		{"Record", [](AMH_ZoneBase* Z, AActor* P) { Z->HandleRecordInteraction(P); }},
-		{"Settings", [](AMH_ZoneBase* Z, AActor* P) { Z->HandleSettingsInteraction(P); }},
-		{"Exit", [](AMH_ZoneBase* Z, AActor* P) { Z->HandleExitInteraction(P); }}
+	VRPlayer = Cast<AMH_VRPlayer>(Player);
+	if (!VRPlayer) return;
+	
+	static const TMap<FName, TFunction<void(AMH_ZoneBase*)>> ZoneFunctionMap = {
+		{"Restore", [](AMH_ZoneBase* Z) { Z->HandleRestoreInteraction(); }},
+		{"Museum", [](AMH_ZoneBase* Z) { Z->HandleMyMuseumInteraction(); }},
+		{"Lobby", [](AMH_ZoneBase* Z) { Z->HandleLobbyInteraction(); }},
+		{"Exit", [](AMH_ZoneBase* Z) { Z->HandleExitInteraction(); }}
+		//{"Record", [](AMH_ZoneBase* Z, AActor* P) { Z->HandleRecordInteraction(P); }},
+		//{"Settings", [](AMH_ZoneBase* Z, AActor* P) { Z->HandleSettingsInteraction(P); }},
 	};
 
-	if (const TFunction<void(AMH_ZoneBase*, AActor*)>* Func = ZoneFunctionMap.Find(ZoneTag))
+	if (const TFunction<void(AMH_ZoneBase*)>* Func = ZoneFunctionMap.Find(ZoneTag))
 	{
-		(*Func)(this, Player);
+		(*Func)(this);
 	}
 	else
 	{
@@ -67,8 +86,14 @@ void AMH_ZoneBase::OnPlayerInteracted_Implementation(AActor* Player)
 	}
 }
 
+void AMH_ZoneBase::ShowZoneMessageUI(FString Message)
+{
+	if (!MessageUI) return;
+	MessageWidgetComponent->SetVisibility(true);	
+}
+
 void AMH_ZoneBase::OnZoneOverlapBegin(UPrimitiveComponent* OverlappedComp, AActor* OtherActor,
-	UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
+                                      UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
 	if (!OtherActor) return;
 
@@ -79,38 +104,59 @@ void AMH_ZoneBase::OnZoneOverlapBegin(UPrimitiveComponent* OverlappedComp, AActo
 	}
 }
 
-void AMH_ZoneBase::HandleGlobeInteraction(AActor* Player)
+void AMH_ZoneBase::OnZoneOverlapEnd(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
+	UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
 {
-	GEngine->AddOnScreenDebugMessage(-1, 2.f, FColor::Cyan, TEXT("[Globe] 탐험지역 UI 열림"));
-	// TODO: 탐험 UI 위젯 열기
+	if (!OtherActor) return;
+	
+	if (OtherActor->IsA(AMH_VRPlayer::StaticClass()))
+	{
+		VRPlayer = nullptr;
+		MessageWidgetComponent->SetVisibility(false);
+	}
 }
 
-void AMH_ZoneBase::HandleRestoreInteraction(AActor* Player)
+void AMH_ZoneBase::HandleMapInteraction()
 {
-	GEngine->AddOnScreenDebugMessage(-1, 2.f, FColor::Green, TEXT("[Restore] 유물 복원 UI 실행"));
+
+}
+
+void AMH_ZoneBase::HandleRestoreInteraction()
+{
+	//GEngine->AddOnScreenDebugMessage(-1, 2.f, FColor::Green, TEXT("[Restore] 유물 복원 UI 실행"));
 	// TODO: 복원 미니게임 실행
+	ShowZoneMessageUI(GuideMessage);
+	MessageWidgetComponent->SetVisibility(true);
 }
 
-void AMH_ZoneBase::HandleMyMuseumInteraction(AActor* Player)
+void AMH_ZoneBase::HandleMyMuseumInteraction()
 {
-	GEngine->AddOnScreenDebugMessage(-1, 2.f, FColor::Magenta, TEXT("[Museum] 유물 전시 UI 열림"));
+	//GEngine->AddOnScreenDebugMessage(-1, 2.f, FColor::Magenta, TEXT("[Museum] 유물 전시 UI 열림"));\
 	// TODO: 전시 기능 위젯 실행
+	ShowZoneMessageUI(GuideMessage);
+	MessageWidgetComponent->SetVisibility(true);
 }
 
-void AMH_ZoneBase::HandleRecordInteraction(AActor* Player)
+void AMH_ZoneBase::HandleRecordInteraction()
 {
-	GEngine->AddOnScreenDebugMessage(-1, 2.f, FColor::Silver, TEXT("[Record] 탐험 기록 열람 UI 표시"));
-	// TODO: 도감/기록 확인 UI 띄우기
+	
 }
 
-void AMH_ZoneBase::HandleSettingsInteraction(AActor* Player)
+void AMH_ZoneBase::HandleSettingsInteraction()
 {
-	GEngine->AddOnScreenDebugMessage(-1, 2.f, FColor::White, TEXT("[Settings] 설정 메뉴 실행"));
-	// TODO: 설정 UI 열기
+	
 }
 
-void AMH_ZoneBase::HandleExitInteraction(AActor* Player)
+void AMH_ZoneBase::HandleExitInteraction()
 {
-	GEngine->AddOnScreenDebugMessage(-1, 2.f, FColor::White, TEXT("[Exit] Exit 메뉴 실행"));
+	//GEngine->AddOnScreenDebugMessage(-1, 2.f, FColor::White, TEXT("[Exit] Exit 메뉴 실행"));
 	// TODO: Exit UI 열기
+	ShowZoneMessageUI(GuideMessage);
+	MessageWidgetComponent->SetVisibility(true);
+}
+
+void AMH_ZoneBase::HandleLobbyInteraction()
+{
+	ShowZoneMessageUI(GuideMessage);
+	MessageWidgetComponent->SetVisibility(true);
 }

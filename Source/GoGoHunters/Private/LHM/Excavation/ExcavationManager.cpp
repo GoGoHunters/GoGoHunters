@@ -1,0 +1,265 @@
+﻿// Fill out your copyright notice in the Description page of Project Settings.
+
+
+#include "LHM/Excavation/ExcavationManager.h"
+#include "LHM/Excavation/RelicsManager.h"
+#include "EngineUtils.h"
+#include "Kismet/GameplayStatics.h"
+#include "JMH/CMuseumComponent.h"
+#include "base/GI_Base.h"
+#include "LHM/Excavation/RelicsBase.h"
+#include "LHM/UI/DiggingUI.h"
+#include "LHM/UI/BrushingUI.h"
+#include "UIs/CUiActor.h"
+#include "LHM/UI/ExcavationPhaseUI.h"
+#include "LHM/Excavation/CollectionBox.h"
+
+// Sets default values
+AExcavationManager::AExcavationManager()
+{
+ 	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
+	PrimaryActorTick.bCanEverTick = true;
+
+	// 기본 단계별 도구 가용성 설정
+	ToolAvailabilityByPhase.SetNum(4); // 4개 도구
+	ToolAvailabilityByPhase[0] = true;  // 탐지 도구 - 항상 사용 가능
+	ToolAvailabilityByPhase[1] = false; // 삽 도구 - 삽질 단계에서만
+	ToolAvailabilityByPhase[2] = false; // 붓 도구 - 붓질 단계에서만
+	ToolAvailabilityByPhase[3] = false; // 집게 도구 - 수거 단계에서만
+}
+
+// Called when the game starts or when spawned
+void AExcavationManager::BeginPlay()
+{
+	Super::BeginPlay();
+	
+	for (TActorIterator<ARelicsManager> It(GetWorld()); It; ++It)
+	{
+		AllRelicsManagers.Add(*It);
+	}
+
+	// 초기 단계 설정
+	SetCurrentPhase(EExcavationPhase::Detection);
+}
+
+// Called every frame
+void AExcavationManager::Tick(float DeltaTime)
+{
+	Super::Tick(DeltaTime);
+
+    // Digging 단계일 때만 진행률 UI 업데이트
+    if (CurrentPhase == EExcavationPhase::Digging)
+    {
+		UpdateDiggingProgress();
+    }
+}
+
+void AExcavationManager::NotifyDetectionCompleted(class ARelicsManager* FromManager)
+{
+	if (!IsValid(FromManager)) return;
+	if (!PhaseUI) return;
+
+	CurrentActiveManager = FromManager;
+	FromManager->StartExcavation();
+
+	// Phase UI 가시화 (깃발 트리거)
+	// Phase UI에서 완료버튼 클릭하면 발굴 단계로 전환
+	PhaseUI->SetVisibilityFlagTrigger(true);
+
+	//// 삽질 단계로 전환
+	//SetCurrentPhase(EExcavationPhase::Digging);
+	//UE_LOG(LogTemp, Log, TEXT("[ExcavationManager] 유물 발견! 땅 파기 단계로 전환: %s"), *FromManager->GetName());
+}
+
+void AExcavationManager::NotifyExcavationCompleted(class ARelicsManager* FromManager)
+{
+	if (!IsValid(FromManager)) return;
+	if(!DiggingUI || !BrushingUI) return;
+
+	DiggingUI->SetVisibility(ESlateVisibility::Hidden);
+	BrushingUI->SetVisibility(ESlateVisibility::Visible);
+
+	// 붓질 단계로 전환
+	SetCurrentPhase(EExcavationPhase::Brushing);
+	UE_LOG(LogTemp, Log, TEXT("[ExcavationManager] 땅 파기 완료! 붓질 단계로 전환: %s"), *FromManager->GetName());
+}
+
+void AExcavationManager::NotifyDustingCompleted(class ARelicsManager* FromManager)
+{
+	if (!IsValid(FromManager)) return;
+
+	FromManager->SpawnCollectionBox(); // 수거박스 생성 요청
+
+	// 수거 단계로 전환
+	SetCurrentPhase(EExcavationPhase::Collection);
+	UE_LOG(LogTemp, Log, TEXT("[ExcavationManager] 붓질 완료! 수거 단계로 전환: %s"), *FromManager->GetName());
+}
+
+void AExcavationManager::NotifyCollectionCompleted(class ARelicsManager* FromManager, class ACollectionBox* FromCollectionBox)
+{
+	if (!IsValid(FromManager)) return;
+	if (!IsValid(FromCollectionBox)) return;
+	if (!PhaseUI) return;
+
+	CurrentActiveManager = FromManager;
+	CollectionBox = FromCollectionBox;
+
+	// Phase UI 가시화 (수거함 완료 트리거)
+	// Phase UI에서 완료버튼 클릭하면 수거함 닫기
+	PhaseUI->SetVisibilityCloseLid(true);
+}
+
+void AExcavationManager::SetCurrentPhase(EExcavationPhase NewPhase)
+{
+	if (CurrentPhase == NewPhase) return;
+
+	CurrentPhase = NewPhase;
+
+	// 단계별 도구 가용성 업데이트
+	switch (CurrentPhase)
+	{
+	case EExcavationPhase::Detection:
+		ToolAvailabilityByPhase[0] = true;  // 탐지 도구
+		ToolAvailabilityByPhase[1] = false; // 삽 도구
+		ToolAvailabilityByPhase[2] = false; // 붓 도구
+		ToolAvailabilityByPhase[3] = false; // 집게 도구
+		break;
+
+	case EExcavationPhase::Digging:
+		ToolAvailabilityByPhase[0] = true;  // 탐지 도구 (여전히 사용 가능)
+		ToolAvailabilityByPhase[1] = true;  // 삽 도구
+		ToolAvailabilityByPhase[2] = false; // 붓 도구
+		ToolAvailabilityByPhase[3] = false; // 집게 도구
+		break;
+
+	case EExcavationPhase::Brushing:
+		ToolAvailabilityByPhase[0] = true;  // 탐지 도구
+		ToolAvailabilityByPhase[1] = true;  // 삽 도구 (여전히 사용 가능)
+		ToolAvailabilityByPhase[2] = true;  // 붓 도구
+		ToolAvailabilityByPhase[3] = false; // 집게 도구
+		break;
+
+	case EExcavationPhase::Collection:
+		ToolAvailabilityByPhase[0] = true;  // 탐지 도구
+		ToolAvailabilityByPhase[1] = true;  // 삽 도구
+		ToolAvailabilityByPhase[2] = true;  // 붓 도구
+		ToolAvailabilityByPhase[3] = true;  // 집게 도구
+		break;
+
+	case EExcavationPhase::Completed:
+		// 모든 도구 사용 가능 (완료 후 자유롭게 사용)
+		ToolAvailabilityByPhase[0] = true;
+		ToolAvailabilityByPhase[1] = true;
+		ToolAvailabilityByPhase[2] = true;
+		ToolAvailabilityByPhase[3] = true;
+		break;
+	}
+
+	// Brushing 단계 진입 시점에 BrushingUI를 RelicsBase에 연결
+	if (CurrentPhase == EExcavationPhase::Brushing)
+	{
+		if (BrushingUI && CurrentActiveManager && CurrentActiveManager->GetRelics())
+		{
+			CurrentActiveManager->GetRelics()->SetBrushingUI(BrushingUI);
+		}
+	}
+
+	OnExcavationPhaseChanged.Broadcast(CurrentPhase);
+	UE_LOG(LogTemp, Log, TEXT("[ExcavationManager] 발굴 단계 변경: %d"), (int32)CurrentPhase);
+}
+
+bool AExcavationManager::IsToolAvailableForPhase(int32 ToolIndex) const
+{
+	if (ToolIndex >= 0 && ToolIndex < ToolAvailabilityByPhase.Num())
+	{
+		return ToolAvailabilityByPhase[ToolIndex];
+	}
+	return false;
+}
+
+void AExcavationManager::ChangeExcavationPhase()
+{
+	if( !CurrentActiveManager || !CurrentActiveManager->GetRelics() ) return;
+	if (!PhaseUI || !DiggingUI) return;
+	
+	CurrentActiveManager->GetRelics()->ActivateMarker();
+
+	// Progress UI 가시화
+	PhaseUI->SetVisibilityFlagTrigger(false);
+	DiggingUI->SetVisibility(ESlateVisibility::Visible);
+	PlayPopupUiAnim(false);
+
+	// 삽질 단계로 전환
+	SetCurrentPhase(EExcavationPhase::Digging);
+}
+
+void AExcavationManager::ChangeCompletedPhase()
+{
+	if (!IsValid(CurrentActiveManager)) return;
+	if (!IsValid(CollectionBox)) return;
+	if (!BrushingUI) return;
+
+	PhaseUI->SetVisibilityCloseLid(false);
+	BrushingUI->SetVisibility(ESlateVisibility::Hidden);
+	PlayPopupUiAnim(true);
+
+	// 수거함 닫기 애니메이션
+	CollectionBox->PlayBoxCloseAnimation();
+
+	// 게임 인스턴스에서 유물 등록
+	if (UGI_Base* GI = Cast<UGI_Base>(UGameplayStatics::GetGameInstance(GetWorld())))
+	{
+		// 플레이어의 MuseumComponent를 찾아서 RegisterRelic 호출
+		if (APlayerController* PC = UGameplayStatics::GetPlayerController(GetWorld(), 0))
+		{
+			if (APawn* Pawn = PC->GetPawn())
+			{
+				if (UCMuseumComponent* MuseumComponent = Pawn->FindComponentByClass<UCMuseumComponent>())
+				{
+					// RelicsBase에서 유물 태그 가져오기
+					ARelicsBase* Relics = CurrentActiveManager->GetRelics();
+					int32 RelicTag = -1;
+					if (Relics)
+					{
+						RelicTag = Relics->GetRelicTag();
+					}
+
+					MuseumComponent->RegisterRelic(RelicTag);
+					UE_LOG(LogTemp, Log, TEXT("[ExcavationManager] 유물 등록 완료 - 태그: %d"), RelicTag);
+				}
+			}
+		}
+	}
+
+	// 발굴 완료 단계로 전환
+	SetCurrentPhase(EExcavationPhase::Completed);
+	UE_LOG(LogTemp, Log, TEXT("[ExcavationManager] 수거 완료! 발굴 완료: %s"), *CurrentActiveManager->GetName());
+}
+
+void AExcavationManager::PlayPopupUiAnim(bool IsTunrOff)
+{
+	TArray<AActor*> FoundActors;
+	UGameplayStatics::GetAllActorsOfClass(GetWorld(), ACUiActor::StaticClass(), FoundActors);
+
+	if (FoundActors.Num() > 0)
+	{
+		if (ACUiActor* UiActor = Cast<ACUiActor>(FoundActors[0]))
+		{
+			if (IsTunrOff) UiActor->K2_PlayPopupUiAnim(true);
+			else UiActor->K2_PlayPopupUiAnim(false);
+		}
+	}
+}
+
+void AExcavationManager::UpdateDiggingProgress()
+{
+	if (!CurrentActiveManager) return;
+	if (!DiggingUI) return;
+	
+	float DigProgress = 0.0f;
+	if (CurrentActiveManager->GetCurrentDigProgress(DigProgress))
+	{
+		float ProgressPercent = FMath::Clamp(DigProgress, 0.0f, 100.0f);
+		DiggingUI->UpdateUI(ProgressPercent);
+	}
+}

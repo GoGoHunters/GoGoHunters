@@ -15,6 +15,9 @@
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnWebSocketMessageReceived, const FString&, Message);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnWebSocketConnectionStatusChanged, bool, bIsConnected);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnByteDataReceived, const TArray<uint8>&, ReceivedBytes);
+
+
 
 /**
  * 
@@ -29,13 +32,26 @@ private:
     TSharedPtr<IWebSocket> WebSocket;
     FString Server_URL;
 
+    TArray<uint8> CurrentIncomingMessageBuffer;
+
     // 웹소켓 이벤트 핸들러
     void OnWebSocketConnected();
     void OnWebSocketConnectionError(const FString& Error);
     void OnWebSocketClosed(int32 StatusCode, const FString& Reason, bool bWasClean);
     void OnWebSocketMessage(const FString& Message);
+    void OnWebSocketRawMessage(const void* Data, SIZE_T Size, SIZE_T BytesRemaining);
 
     void OnFileUploadResponse(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bWasSuccessful);
+
+    void OnFileDownloadComplete(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bWasSuccessful, FString DownloadedFilePath);
+
+
+    bool EnsureDirectoryForFile(const FString& FilePath);
+
+    bool WaitForFileToBeReadable(const FString& FilePath, int32 MaxAttempts = 10, float DelayPerAttempt = 0.1f);
+
+    
+     FString CleanWebSocketURL(const FString& InURL);
 
 public:
     UU_WebSocketManager();
@@ -49,6 +65,12 @@ public:
     UFUNCTION(BlueprintCallable, Category = "WebSocket")
     void WebSocketSendMessage(const FString& Message);
 
+    UFUNCTION(BlueprintCallable, Category = "WebSocket")
+    void WebSocketSendByteData(const TArray<uint8>& DataToSend);
+
+    UFUNCTION(BlueprintCallable, Category = "WebSocket")
+    void SendEndOfDataSignal();
+
     UFUNCTION(BlueprintPure, Category = "WebSocket")
     bool IsConnected() const;
 
@@ -58,8 +80,36 @@ public:
     UPROPERTY(BlueprintAssignable, Category = "WebSocket")
     FOnWebSocketConnectionStatusChanged OnConnectionStatusChanged;
 
+    UPROPERTY(BlueprintAssignable, Category = "WebSocket|Messages")
+    FOnByteDataReceived OnByteDataReceived;
+
     // Sending File 
     UFUNCTION(BlueprintCallable, Category = "WebSocket")
-    void WebSocketSendFile(const FString& SaveFilePath, const FString& URL);
+    void WebSocketSendFile(const FString& FilePath, const FString& URLPath);
 
+    UFUNCTION(BlueprintCallable, Category = "WebSocket|FileDownload")
+    void WebSocketDownloadFile(const FString& URL, const FString& SaveAsFileName);
+
+    // Sending File Byte
+    UFUNCTION(BlueprintCallable, Category = "WebSocket")
+    void WebSocketSendByteFile(const FString& FilePath);
+    
+};
+
+USTRUCT(BlueprintType)
+struct FAIAnalysisResult
+{
+    GENERATED_BODY()
+
+    UPROPERTY(BlueprintReadWrite, Category = "AIAnalysis")
+    int32 Type; // JSON의 "type": 1 에 해당
+
+    UPROPERTY(BlueprintReadWrite, Category = "AIAnalysis")
+    FString Filename;
+
+    UPROPERTY(BlueprintReadWrite, Category = "AIAnalysis")
+    FString DownloadURL;
+
+    UPROPERTY(BlueprintReadWrite, Category = "AIAnalysis")
+    FString Timestamp;
 };

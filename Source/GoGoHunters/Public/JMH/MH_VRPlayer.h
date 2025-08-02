@@ -5,7 +5,16 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
 #include "InputAction.h"
+#include "MH_ZoneBase.h"
 #include "MH_VRPlayer.generated.h"
+
+class ACRelicCollectionWidgetActor;
+class UCMuseumComponent;
+class ACWorldMap;
+class UMotionControllerComponent;
+class UWidgetInteractionComponent;
+class UWidgetComponent;
+class USpringArmComponent;
 
 /*
  * 텔레포트 조건 = Teleportable 액터 태그
@@ -50,21 +59,22 @@ public:
 	class UCameraComponent* VRCamera;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
-	class UMotionControllerComponent* RHandController;
+	class USkeletalMeshComponent* HandLeft;
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
-	class UMotionControllerComponent* LHandController;
+	class USkeletalMeshComponent* HandRight;
 
-	//손일단 VR 카메라에 Root 붙여 놓음 이동해야함 (수정)
-	UPROPERTY(VisibleAnywhere)
-	class USceneComponent* L_Hand;
-	UPROPERTY(VisibleAnywhere)
-	class USceneComponent* R_Hand;
-
-	//스켈레탈 메쉬 컴프
-	UPROPERTY(VisibleAnywhere)
-	class USkeletalMeshComponent* LHandSKM;
-	UPROPERTY(VisibleAnywhere)
-	class USkeletalMeshComponent* RHandSKM;
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+	UMotionControllerComponent* RHandController;
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+	UMotionControllerComponent* LHandController;
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+	UMotionControllerComponent* LAimMotionController;
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+	UMotionControllerComponent* RAimMotionController;
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+	UWidgetInteractionComponent* LWidgetInteractionComponent;
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+	UWidgetInteractionComponent* RWidgetInteractionComponent;
 
 	// 현재 플레이어의 상태
 	UPROPERTY(BlueprintReadWrite, Category = "State")
@@ -76,10 +86,13 @@ public:
 	UFUNCTION(BlueprintPure, Category = "State")
 	EPlayerVRState GetPlayerState() const;
 
+	// 발굴 중 상태 복구용
+	EPlayerVRState PreTeleportState = EPlayerVRState::Idle;
+
 	UPROPERTY()
 	AActor* FocusedGrabbableActor;
-
-
+	UPROPERTY()
+	TObjectPtr<AActor> GrabRelicActor;
 public:
 	
 	//IA////////////////////////////////////////////////////////
@@ -89,6 +102,8 @@ public:
 	UInputAction* IA_MHGrab;
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Input")
 	UInputAction* IA_MHInteract;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Input")
+	UInputAction* IA_MHInteract_L;
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Input")
 	UInputAction* IA_MHTestTeleportStart;
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Input")
@@ -113,15 +128,59 @@ public:
 	UInputAction* IA_ExcavationTool2;
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Input")
 	UInputAction* IA_ExcavationTool3;
-	
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Input")
+	UInputAction* IA_ExcavationTool4;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Input")
+	UInputAction* IA_ExcavationDetect;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Input")
+	UInputAction* IA_ExcavationDig;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Input")
+	UInputAction* IA_ExcavationBrush;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Input")
+	UInputAction* IA_ExcavationCollect;
+
 	void ExcavationTool1();
 	void ExcavationTool2();
 	void ExcavationTool3();
+	void ExcavationTool4();
+	void ExcavationDetectStart();
+	void ExcavationDetectEnd();
+	void ExcavationDigStart();
+	void ExcavationDigEnd();
+	void ExcavationBrushStart();
+	void ExcavationBrushEnd();
+	void ExcavationCollectStart();
+	void ExcavationCollectEnd();
 	
 	UPROPERTY()
 	TSubclassOf<class ADetectorTool> DetectionToolClass;
 	UPROPERTY()
 	class ADetectorTool* DetectionTool;
+
+	UPROPERTY()
+	TSubclassOf<class AShovelTool> ShovelToolClass;
+	UPROPERTY()
+	class AShovelTool* ShovelTool;
+	
+	UPROPERTY()
+	TSubclassOf<class ABrushTool> BrushToolClass;
+	UPROPERTY()
+	class ABrushTool* BrushTool;
+
+	UPROPERTY()
+	TSubclassOf<class ATweezersTool> TweezersToolClass;
+	UPROPERTY()
+	class ATweezersTool* TweezersTool;
+
+	UPROPERTY()
+	TArray<class ARelicsGround*> RelicsGroundRefs;
+
+	UPROPERTY()
+	TSubclassOf<class AExcavationWidgetActor> ExcavationUIActorClass;
+
+	UPROPERTY()
+	class AExcavationWidgetActor* ExcavationUIActor;
+
 #pragma endregion 발굴 장비 IA
 
 	//마우스 회전방지
@@ -150,7 +209,9 @@ public:
 	void TestTurn(const FInputActionValue& Value);
 	void TestLookUp(const FInputActionValue& Value);
 	UFUNCTION()
-	void TestInteract();
+	void TriggerInteract(const FInputActionInstance& IA_Instance);
+	UFUNCTION()
+	void TriggerInteractCompleted();
 	
 	UFUNCTION(exec)
 	void ActiveDebugDraw();
@@ -196,4 +257,40 @@ public:
 
 	UPROPERTY(EditAnywhere, Category="VR Movement")
 	float SnapTurnAngle = 15.f;
+
+	UFUNCTION(BlueprintNativeEvent)
+	void ToggleMenu();
+	
+private:
+	UPROPERTY()
+	TObjectPtr<ACWorldMap> CachedWorldMap = nullptr;
+
+	void TryWorldMapInteraction(const FInputActionInstance& IA_Instance);
+	void ResetWorldMapInteraction();
+
+	// UI 상호작용 관련 변수들
+	UPROPERTY()
+	TObjectPtr<UWidgetComponent> CurrentFocusedUI = nullptr;
+	
+	UPROPERTY()
+	TObjectPtr<UWidgetInteractionComponent> ActiveWidgetInteraction = nullptr;
+	
+	bool bIsUIInteractionActive = false;
+	
+	// UI 상호작용 함수들
+	void HandleUIInteraction(const FInputActionInstance& IA_Instance);
+	
+	// UI 감지 함수
+	bool IsPointingAtUI(UMotionControllerComponent* MotionController, UWidgetComponent*& OutWidgetComponent);
+	
+	// WidgetInteraction 활성화/비활성화
+	void EnableWidgetInteraction(UMotionControllerComponent* MotionController);
+	void DisableWidgetInteraction();
+
+	// Museum Component
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, meta=(AllowPrivateAccess))
+	UCMuseumComponent* MuseumComponent;
+
+	UPROPERTY()
+	AMH_ZoneBase* CurrentZone;
 };
