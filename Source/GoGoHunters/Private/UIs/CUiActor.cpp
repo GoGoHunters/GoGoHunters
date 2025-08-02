@@ -2,6 +2,7 @@
 
 #include "JMH/CMuseumComponent.h"
 #include "JMH/MH_VRPlayer.h"
+#include "UIs/CWidgetBase.h"
 #include "UIs/Museum/CRelicCollectionWidget.h"
 
 ACUiActor::ACUiActor()
@@ -26,4 +27,14 @@ void ACUiActor::BindMuseumDelegate()
 	if (!MuseumComponent) return;
 
 	MuseumComponent->OnRelicPlace.BindUObject(RelicCollectionWidget, &UCRelicCollectionWidget::InitRelicWidgets);
+}
+
+void ACUiActor::BindUiAnimDelegateForMuseum()
+{
+	if (!OwnerPlayer) return;
+	
+	UCMuseumComponent* MuseumComponent = OwnerPlayer->GetComponentByClass<UCMuseumComponent>();
+	if (!MuseumComponent) return;
+
+	MuseumComponent->OnUiAnimPlay.BindUObject(MuseumWidget, &UCWidgetBase::K2_PlayUiAnim);
 }

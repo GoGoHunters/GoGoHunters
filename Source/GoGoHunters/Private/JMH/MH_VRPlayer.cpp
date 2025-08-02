@@ -370,13 +370,19 @@ void AMH_VRPlayer::TriggerInteractCompleted()
 	SetClickAndWidgetActivation(false);
 	
 	// WidgetInteraction 비활성화
-	SetWidgetInteractionUsing(false);
+	if (!CurrentLevel.ToLower().Contains("museum"))
+		SetWidgetInteractionUsing(false);
+	else
+	{
+		if (!(MuseumComponent && MuseumComponent->GetMuseumState() == Decorate))
+			SetWidgetInteractionUsing(false);
+	}
 		
 	if (CurrentLevel.ToLower().Contains("lobby"))
 	{
 		// WorldMap Interaction 초기화
 		ResetWorldMapInteraction();			
-	}	
+	}
 }
 
 void AMH_VRPlayer::ExcavationTool1()

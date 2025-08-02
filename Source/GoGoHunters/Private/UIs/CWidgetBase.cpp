@@ -2,7 +2,10 @@
 
 #include "Components/Button.h"
 #include "Components/Image.h"
+#include "JMH/CMuseumComponent.h"
 #include "UIs/CUiActor.h"
+
+class UCMuseumComponent;
 
 void UCWidgetBase::NativeConstruct()
 {
@@ -35,4 +38,8 @@ void UCWidgetBase::BlindActive(bool bUseBlind)
 		Img_Blind->SetVisibility(ESlateVisibility::Visible);
 	else
 		Img_Blind->SetVisibility(ESlateVisibility::HitTestInvisible);
+}
+
+void UCWidgetBase::K2_PlayUiAnim_Implementation(bool bIsReverse)
+{
 }

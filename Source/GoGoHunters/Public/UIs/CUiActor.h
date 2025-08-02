@@ -4,6 +4,7 @@
 #include "GameFramework/Actor.h"
 #include "CUiActor.generated.h"
 
+class UCWidgetBase;
 class UCRelicCollectionWidget;
 class AMH_VRPlayer;
 
@@ -24,6 +25,8 @@ private:
 	TObjectPtr<AMH_VRPlayer> OwnerPlayer;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta=(AllowPrivateAccess))
 	TObjectPtr<UCRelicCollectionWidget> RelicCollectionWidget;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta=(AllowPrivateAccess))
+	TObjectPtr<UCWidgetBase> MuseumWidget;
 
 	ACUiActor();
 	virtual void BeginPlay() override;
@@ -35,4 +38,6 @@ private:
 
 	UFUNCTION(BlueprintCallable)
 	void BindMuseumDelegate();
+	UFUNCTION(BlueprintCallable)
+	void BindUiAnimDelegateForMuseum();
 };

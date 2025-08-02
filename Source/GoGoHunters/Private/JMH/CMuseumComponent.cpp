@@ -217,8 +217,8 @@ void UCMuseumComponent::PlayPreviewMode(const FCRelicData& InRelicData, const FC
 	RelicData = InRelicData;
 	RelicDetailData = InRelicDetailData;
 	bIsPreviewMode = true;
-	// TODO
-	// UI 숨기기
+	if (OnUiAnimPlay.IsBound())
+		OnUiAnimPlay.Execute(true);
 }
 
 void UCMuseumComponent::PlaceRelic()
@@ -256,8 +256,8 @@ void UCMuseumComponent::PlaceRelic()
 
 	if (OnRelicPlace.IsBound())
 		OnRelicPlace.Execute();
-	// TODO
-	// UI 다시 나오게 하기
+	if (OnUiAnimPlay.IsBound())
+		OnUiAnimPlay.Execute(false);
 }
 
 void UCMuseumComponent::RegisterRelic(const int32& InRelicTag)
