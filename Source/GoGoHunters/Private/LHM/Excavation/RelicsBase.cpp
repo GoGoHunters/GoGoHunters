@@ -28,7 +28,7 @@ ARelicsBase::ARelicsBase()
         RelicMesh->SetGenerateOverlapEvents(true);
         RelicsMeshes.Add(RelicMesh);
 
-        int DecalCount = (i == 0) ? 2 : 1;
+        /*int DecalCount = (i == 0) ? 2 : 1;
 
         for (int j = 0; j < DecalCount; ++j)
         {
@@ -38,7 +38,7 @@ ARelicsBase::ARelicsBase()
 			Decal->DecalSize = FVector(10.0f, 10.0f, 10.0f);
             DustDecals.Add(Decal);
             DecalToMeshMap.Add(Decal, RelicMesh);
-        }
+        }*/
     }
 
 	TriggerVolume = CreateDefaultSubobject<UBoxComponent>(TEXT("TriggerVolume"));
@@ -55,7 +55,39 @@ void ARelicsBase::PostInitializeComponents()
 	TotalInitialOpacity = 0.f;
 	TotalRemainingOpacity = 0.f;
 
-    for (UDecalComponent* Decal : DustDecals)
+    TArray<UDecalComponent*> AllDecals;
+    GetComponents(AllDecals);
+
+    DustDecals.Empty();
+    DecalToMeshMap.Empty();
+    DecalMIDs.Empty();
+
+    for (UDecalComponent* Decal : AllDecals)
+    {
+        // 1. DustDecals 배열에 추가
+        DustDecals.Add(Decal);
+
+        // 2. DecalToMeshMap 할당
+        UStaticMeshComponent* ParentMesh = Cast<UStaticMeshComponent>(Decal->GetAttachParent());
+        if (ParentMesh)
+        {
+            DecalToMeshMap.Add(Decal, ParentMesh);
+        }
+
+        // 3. DecalMIDs 할당
+        if (Decal->GetMaterial(0))
+        {
+            UMaterialInstanceDynamic* MID = UMaterialInstanceDynamic::Create(Decal->GetMaterial(0), this);
+            Decal->SetMaterial(0, MID);
+            MID->SetScalarParameterValue(OpacityParameterName, CurrentOpacity);
+            DecalMIDs.Add(Decal, MID);
+
+            TotalInitialOpacity += 1.0f;
+            TotalRemainingOpacity += 1.0f;
+        }
+    }
+
+    /*for (UDecalComponent* Decal : DustDecals)
     {
         UMaterialInstanceDynamic* MID = UMaterialInstanceDynamic::Create(Decal->GetMaterial(0), this);
         Decal->SetMaterial(0, MID);
@@ -63,7 +95,7 @@ void ARelicsBase::PostInitializeComponents()
         DecalMIDs.Add(Decal, MID);
         TotalInitialOpacity += 1.0f;
         TotalRemainingOpacity += 1.0f;
-    }
+    }*/
 }
 
 // Called when the game starts or when spawned
