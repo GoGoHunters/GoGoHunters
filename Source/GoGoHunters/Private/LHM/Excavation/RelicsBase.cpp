@@ -106,6 +106,9 @@ void ARelicsBase::OnOverlapBegin(UPrimitiveComponent* Overlapped, AActor* OtherA
         if (OtherComp == relicMesh)
         {
 			relicMesh->SetWorldLocation(TriggerVolume->GetComponentLocation() + FVector(0, 0, 200));
+            relicMesh->SetSimulatePhysics(true);
+            relicMesh->SetCollisionProfileName(FName("Relic_Physics"));
+            relicMesh->SetGenerateOverlapEvents(true);
             break;
         }
 	}
