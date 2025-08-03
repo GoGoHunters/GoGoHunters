@@ -408,12 +408,11 @@ void AMH_VRPlayer::ExcavationTool1()
 		FActorSpawnParameters SpawnParams;
 		SpawnParams.Owner = this;
 
-		if (DetectionToolClass = LoadClass<ADetectorTool>(nullptr, TEXT("/Game/LHM/BP/Excavation/BP_DetectorTool.BP_DetectorTool_C")))
+		if(DetectionToolClass)
 		{
 			DetectionTool = GetWorld()->SpawnActor<ADetectorTool>(DetectionToolClass, FVector::ZeroVector, FRotator::ZeroRotator, SpawnParams);
 			if (DetectionTool)
 			{
-				//USceneComponent* HandSocket = RHandController;
 				DetectionTool->AttachToComponent(HandRight, FAttachmentTransformRules::SnapToTargetNotIncludingScale, "Socket_Tool1");
 
 				SetPlayerState(EPlayerVRState::UsingTool);
@@ -448,18 +447,14 @@ void AMH_VRPlayer::ExcavationTool2()
 			TweezersTool = nullptr;
 		}
 
-		if (ShovelToolClass = LoadClass<AShovelTool>(nullptr, TEXT("/Game/LHM/BP/Excavation/BP_ShovelTool.BP_ShovelTool_C")))
+		if(ShovelToolClass)
 		{
 			FActorSpawnParameters SpawnParams;
 			SpawnParams.Owner = this;
 
-			//FVector SpawnLocation = FVector(-7, 1.5, -7); // (X=-7.000000,Y=1.500000,Z=-7.000000)
-			//FRotator SpawnRotation = FRotator(0, 55, 90); // (Pitch=0.000000,Yaw=55.000000,Roll=90.000000)
-
 			ShovelTool = GetWorld()->SpawnActor<AShovelTool>(ShovelToolClass, FVector::ZeroVector, FRotator::ZeroRotator, SpawnParams);
 			if (ShovelTool)
 			{
-				//USceneComponent* HandSocket = RHandController;
 				ShovelTool->AttachToComponent(HandRight, FAttachmentTransformRules::SnapToTargetNotIncludingScale, "Socket_Tool2");
 
 				// RelicsGround의 Shovel 할당
@@ -503,12 +498,11 @@ void AMH_VRPlayer::ExcavationTool3()
 		FActorSpawnParameters SpawnParams;
 		SpawnParams.Owner = this;
 
-		if (BrushToolClass = LoadClass<ABrushTool>(nullptr, TEXT("/Game/LHM/BP/Excavation/BP_BrushTool.BP_BrushTool_C")))
+		if(BrushToolClass)
 		{
 			BrushTool = GetWorld()->SpawnActor<ABrushTool>(BrushToolClass, FVector::ZeroVector, FRotator::ZeroRotator, SpawnParams);
 			if (BrushTool)
 			{
-				//USceneComponent* HandSocket = RHandController;
 				BrushTool->AttachToComponent(HandRight, FAttachmentTransformRules::SnapToTargetNotIncludingScale, "Socket_Tool3");
 
 				SetPlayerState(EPlayerVRState::UsingTool);
@@ -546,12 +540,11 @@ void AMH_VRPlayer::ExcavationTool4()
 		FActorSpawnParameters SpawnParams;
 		SpawnParams.Owner = this;
 
-		if (TweezersToolClass = LoadClass<ATweezersTool>(nullptr, TEXT("/Game/LHM/BP/Excavation/BP_TweezersTool.BP_TweezersTool_C")))
+		if(TweezersToolClass)
 		{
 			TweezersTool = GetWorld()->SpawnActor<ATweezersTool>(TweezersToolClass, FVector::ZeroVector, FRotator::ZeroRotator, SpawnParams);
 			if (TweezersTool)
 			{
-				//USceneComponent* HandSocket = RHandController;
 				TweezersTool->AttachToComponent(HandRight, FAttachmentTransformRules::SnapToTargetNotIncludingScale, "Socket_Tool4");
 				
 				TweezersTool->SetAttachBase(RHandController);
