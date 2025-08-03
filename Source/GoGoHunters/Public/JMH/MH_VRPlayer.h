@@ -150,22 +150,22 @@ public:
 	void ExcavationCollectStart();
 	void ExcavationCollectEnd();
 	
-	UPROPERTY()
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Tools")
 	TSubclassOf<class ADetectorTool> DetectionToolClass;
 	UPROPERTY()
 	class ADetectorTool* DetectionTool;
 
-	UPROPERTY()
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Tools")
 	TSubclassOf<class AShovelTool> ShovelToolClass;
 	UPROPERTY()
 	class AShovelTool* ShovelTool;
 	
-	UPROPERTY()
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Tools")
 	TSubclassOf<class ABrushTool> BrushToolClass;
 	UPROPERTY()
 	class ABrushTool* BrushTool;
 
-	UPROPERTY()
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Tools")
 	TSubclassOf<class ATweezersTool> TweezersToolClass;
 	UPROPERTY()
 	class ATweezersTool* TweezersTool;
