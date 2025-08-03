@@ -453,10 +453,10 @@ void AMH_VRPlayer::ExcavationTool2()
 			FActorSpawnParameters SpawnParams;
 			SpawnParams.Owner = this;
 
-			FVector SpawnLocation = FVector(-7, 1.5, -7); // (X=-7.000000,Y=1.500000,Z=-7.000000)
-			FRotator SpawnRotation = FRotator(0, 55, 90); // (Pitch=0.000000,Yaw=55.000000,Roll=90.000000)
+			//FVector SpawnLocation = FVector(-7, 1.5, -7); // (X=-7.000000,Y=1.500000,Z=-7.000000)
+			//FRotator SpawnRotation = FRotator(0, 55, 90); // (Pitch=0.000000,Yaw=55.000000,Roll=90.000000)
 
-			ShovelTool = GetWorld()->SpawnActor<AShovelTool>(ShovelToolClass, SpawnLocation, SpawnRotation, SpawnParams);
+			ShovelTool = GetWorld()->SpawnActor<AShovelTool>(ShovelToolClass, FVector::ZeroVector, FRotator::ZeroRotator, SpawnParams);
 			if (ShovelTool)
 			{
 				//USceneComponent* HandSocket = RHandController;
