@@ -86,16 +86,6 @@ void ARelicsBase::PostInitializeComponents()
             TotalRemainingOpacity += 1.0f;
         }
     }
-
-    /*for (UDecalComponent* Decal : DustDecals)
-    {
-        UMaterialInstanceDynamic* MID = UMaterialInstanceDynamic::Create(Decal->GetMaterial(0), this);
-        Decal->SetMaterial(0, MID);
-        MID->SetScalarParameterValue(OpacityParameterName, CurrentOpacity);
-        DecalMIDs.Add(Decal, MID);
-        TotalInitialOpacity += 1.0f;
-        TotalRemainingOpacity += 1.0f;
-    }*/
 }
 
 // Called when the game starts or when spawned
