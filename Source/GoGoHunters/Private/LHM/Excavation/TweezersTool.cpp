@@ -28,7 +28,7 @@ ATweezersTool::ATweezersTool()
 		TweezersMeshR->SetStaticMesh(RMeshAsset.Object);
 		TweezersMeshR->SetupAttachment(RootComponent);
 		TweezersMeshR->SetCollisionResponseToChannel(ECC_Pawn, ECR_Ignore);
-		TweezersMeshL->bReceivesDecals = false;
+		TweezersMeshR->bReceivesDecals = false;
 	}
 
 	PickupBox = CreateDefaultSubobject<UBoxComponent>(TEXT("PickupBox"));

@@ -121,7 +121,7 @@ void AMH_VRPlayer::BeginPlay()
 		SpawnParams.Owner = this;
 
 		// Excavation Phase UI 
-		if (ExcavationUIActorClass = LoadClass<AExcavationWidgetActor>(nullptr, TEXT("/Game/LHM/BP/Excavation/BP_ExcavationWidgetActor.BP_ExcavationWidgetActor_C")))
+		if (ExcavationUIActorClass)
 		{
 			FVector SpawnLocation = FVector::ZeroVector;
 			FRotator SpawnRotation = FRotator::ZeroRotator;

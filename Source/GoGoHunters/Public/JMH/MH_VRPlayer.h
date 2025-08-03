@@ -150,22 +150,22 @@ public:
 	void ExcavationCollectStart();
 	void ExcavationCollectEnd();
 	
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Tools")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Excavation")
 	TSubclassOf<class ADetectorTool> DetectionToolClass;
 	UPROPERTY()
 	class ADetectorTool* DetectionTool;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Tools")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Excavation")
 	TSubclassOf<class AShovelTool> ShovelToolClass;
 	UPROPERTY()
 	class AShovelTool* ShovelTool;
 	
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Tools")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Excavation")
 	TSubclassOf<class ABrushTool> BrushToolClass;
 	UPROPERTY()
 	class ABrushTool* BrushTool;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Tools")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Excavation")
 	TSubclassOf<class ATweezersTool> TweezersToolClass;
 	UPROPERTY()
 	class ATweezersTool* TweezersTool;
@@ -173,7 +173,7 @@ public:
 	UPROPERTY()
 	TArray<class ARelicsGround*> RelicsGroundRefs;
 
-	UPROPERTY()
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Excavation")
 	TSubclassOf<class AExcavationWidgetActor> ExcavationUIActorClass;
 
 	UPROPERTY()
