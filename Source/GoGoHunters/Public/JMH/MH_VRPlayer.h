@@ -262,6 +262,7 @@ public:
 	// LineTrace & WidgetInteraction Line Update Function
 	void UpdateDrawLineTraceEffect(const FVector& Start, const FVector& End);
 	const float GetWidgetInteractionDistance() const { return WidgetInteractionDistance; }
+	void SetUseLineTraceEffect(bool bUse);
 	
 private:
 	UPROPERTY()
@@ -313,6 +314,5 @@ private:
 
 	// 인터렉션 VFX
 	UPROPERTY(EditDefaultsOnly)
-	UNiagaraComponent* LineTraceEffectComponent;
-	void SetUseLineTraceEffect(bool bUse);	
+	UNiagaraComponent* LineTraceEffectComponent;	
 };

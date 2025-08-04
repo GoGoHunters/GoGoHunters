@@ -336,7 +336,6 @@ void AMH_VRPlayer::TriggerInteract(const FInputActionInstance& IA_Instance)
 	SetUseLineTraceEffect(true);
 	
 	// 상호작용이 가능한 UI에 닿아있는지 확인
-
 	FVector Start = RWidgetInteractionComponent->GetComponentLocation();
 	FVector End = FVector::ZeroVector;
 	bInteracteAnyComponent = false;
@@ -367,10 +366,6 @@ void AMH_VRPlayer::TriggerInteract(const FInputActionInstance& IA_Instance)
 		// 함수 내부에서 UI 업데이트까지 수행
 		TryWorldMapInteraction(IA_Instance);
 	}
-
-	// 박물관 레벨 - 유물 설치 모드일 때는 MuseumComponent에서 UpdateDrawLineTraceEffect() 수행
-	if (CurrentLevel.ToLower().Contains("museum") && MuseumComponent && MuseumComponent->GetMuseumState() == Decorate)
-		return;
 	
 	// 아무 곳에도 닿지 않았으면
 	if (!bInteracteAnyComponent)
@@ -383,7 +378,7 @@ void AMH_VRPlayer::TriggerInteract(const FInputActionInstance& IA_Instance)
 }
 
 void AMH_VRPlayer::TriggerInteractCompleted()
-{
+{	
 	// 저장된 Widget가 있든 없든
 	// 좌클릭을 해제하고, Widget을 초기화한다.
 	SetClickAndWidgetActivation(false);
@@ -986,6 +981,7 @@ void AMH_VRPlayer::SetUseLineTraceEffect(bool bUse)
 {
 	if (!LineTraceEffectComponent) return;
 	LineTraceEffectComponent->SetVisibility(bUse);
+	UpdateDrawLineTraceEffect(FVector::ZeroVector, FVector::ZeroVector);
 }
 
 void AMH_VRPlayer::UpdateDrawLineTraceEffect(const FVector& Start, const FVector& End)

@@ -20,7 +20,6 @@ UCMuseumComponent::UCMuseumComponent()
 	PrimaryComponentTick.bCanEverTick = true;
 }
 
-UE_DISABLE_OPTIMIZATION
 void UCMuseumComponent::BeginPlay()
 {
 	Super::BeginPlay();
@@ -74,7 +73,6 @@ void UCMuseumComponent::BeginPlay()
 		GrabComponent = OwnerPlayer->GetComponentByClass<UMH_GrabComp>();
 	}
 }
-UE_ENABLE_OPTIMIZATION
 
 void UCMuseumComponent::TickComponent(float DeltaTime, ELevelTick TickType,
                                       FActorComponentTickFunction* ThisTickFunction)
@@ -104,6 +102,8 @@ void UCMuseumComponent::PreviewMode()
 {
 	if (!OwnerPlayer) return;
 	if (!OwnerPlayer->RWidgetInteractionComponent) return;
+
+	OwnerPlayer->SetUseLineTraceEffect(true);
 	
 	FHitResult outHit;
 	FVector start = OwnerPlayer->RAimMotionController->GetComponentLocation();
@@ -157,7 +157,6 @@ void UCMuseumComponent::PreviewMode()
 	{
 		BuildTransform.SetLocation(end);
 		BuildTransform.SetRotation(FRotator::ZeroRotator.Quaternion());
-		// BuildTransform.SetRotation(BuildRotation.Quaternion());
 		BuildTransform.SetScale3D(FVector(1));
 		Relic->SetActorTransform(BuildTransform);
 		Relic->SetRelicMaterial(RelicRejectedMaterial);
@@ -183,6 +182,7 @@ void UCMuseumComponent::SwitchState()
 		
 		bIsPreviewMode = false;
 		PreviewEnd();
+		OwnerPlayer->SetUseLineTraceEffect(false);
 		break;
 		
 	case EMuseumState::Decorate:

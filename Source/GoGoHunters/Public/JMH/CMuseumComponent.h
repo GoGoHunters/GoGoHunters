@@ -38,6 +38,7 @@ public:
 	
 	UFUNCTION(BlueprintCallable)
 	const EMuseumState GetMuseumState() { return MuseumState; }
+	bool IsPreviewMode() { return bIsPreviewMode; }
 	
 	void SetupPlayerInputComponent(UEnhancedInputComponent* EnhancedInput);
 	void PlayPreviewMode(const FCRelicData& InRelicData, const FCRelicDetailData& InRelicDetailData);
