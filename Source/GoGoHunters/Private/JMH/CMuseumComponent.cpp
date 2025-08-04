@@ -20,6 +20,7 @@ UCMuseumComponent::UCMuseumComponent()
 	PrimaryComponentTick.bCanEverTick = true;
 }
 
+UE_DISABLE_OPTIMIZATION
 void UCMuseumComponent::BeginPlay()
 {
 	Super::BeginPlay();
@@ -40,7 +41,7 @@ void UCMuseumComponent::BeginPlay()
 		if (UGI_Base* GI = Cast<UGI_Base>(UGameplayStatics::GetGameInstance(GetWorld())))
 		{
 			TArray<FCRelicData> RelicArray = GI->GetAllRelicData();
-			for (const FCRelicData& Data : RelicArray)
+			for (FCRelicData& Data : RelicArray)
 			{
 				if (!Data.IsPlace) continue;
 				if (Data.RelicTag == -1) continue;
@@ -53,9 +54,13 @@ void UCMuseumComponent::BeginPlay()
 				SpawnParams.Owner = OwnerPlayer;
 				SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
 
+				if (Data.PlaceArea)
+					Data.PlacedTransform.SetScale3D(Data.PlaceArea->CellUniformScale);
+				
 				ACRelicBase* RelicActor = GetWorld()->SpawnActor<ACRelicBase>(Local_RelicDetailData->RelicActorClass, Data.PlacedTransform, SpawnParams);
 				if (RelicActor)
 				{
+					RelicActor->SetActorScale3D(Data.PlacedTransform.GetScale3D());
 					RelicActor->InitializeAsset(Data, *Local_RelicDetailData);
 					RelicActor->Tags.Add("Grabable");
 					if (Data.PlaceArea) Data.PlaceArea->PlaceRelicAt(Data.PlacedTransform.GetLocation());
@@ -69,6 +74,7 @@ void UCMuseumComponent::BeginPlay()
 		GrabComponent = OwnerPlayer->GetComponentByClass<UMH_GrabComp>();
 	}
 }
+UE_ENABLE_OPTIMIZATION
 
 void UCMuseumComponent::TickComponent(float DeltaTime, ELevelTick TickType,
                                       FActorComponentTickFunction* ThisTickFunction)
@@ -240,6 +246,7 @@ void UCMuseumComponent::PlaceRelic()
 	auto placeActor = GetWorld()->SpawnActor<ACRelicBase>(RelicDetailData.RelicActorClass, BuildTransform, SpawnParams);
 	if (placeActor)
 	{
+		placeActor->SetActorScale3D(BuildTransform.GetScale3D());
 		PlaceArea->PlaceRelicAt(BuildTransform.GetLocation());
 		placeActor->InitializeAsset(RelicData, RelicDetailData);
 		placeActor->SetRelicMaterial();
