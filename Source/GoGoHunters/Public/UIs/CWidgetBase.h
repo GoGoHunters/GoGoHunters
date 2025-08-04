@@ -23,6 +23,13 @@ public:
 	UFUNCTION(BlueprintNativeEvent)
 	void K2_PlayUiAnim(bool bIsReverse);
 	
+	UFUNCTION()
+	void PlaySystemMessageAnim();
+	
+	UPROPERTY(meta = (BindWidgetAnimOptional), Transient)
+	UWidgetAnimation* Anim_ShowMessage;
+	
+	
 protected:
 	UPROPERTY(BlueprintReadOnly, meta=(BindWidget))
 	TObjectPtr<UButton> Btn_A;
@@ -34,7 +41,30 @@ protected:
 	TObjectPtr<ACUiActor> UiActor;
 
 	virtual void NativeConstruct() override;
+	
 private:
+	UPROPERTY(meta=(BindWidgetOptional))
+	class UCanvasPanel* Can_SystemMessage;
+	//MainUI
+	UPROPERTY(meta=(BindWidgetOptional))
+	TObjectPtr<UButton> Btn_Tami;
+	UPROPERTY(meta=(BindWidgetOptional))
+	TObjectPtr<UButton> Btn_Lobby;
+	UPROPERTY(meta=(BindWidgetOptional))
+	TObjectPtr<UButton> Btn_Settings;
+	UPROPERTY(meta=(BindWidgetOptional))
+	TObjectPtr<UButton> Btn_Exit;
+
+
+	UFUNCTION()
+	void OnBtnTamiClicked();
+	UFUNCTION()
+	void OnBtnLobbyClicked();
+	UFUNCTION()
+	void OnBtnSetClicked();
+	UFUNCTION()
+	void OnBtnExitClicked();
+
 	
 	UFUNCTION()
 	void OnBtnAClicked();
