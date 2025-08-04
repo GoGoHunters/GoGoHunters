@@ -174,7 +174,6 @@ void UCMuseumComponent::SwitchState()
 	case EMuseumState::Display:
 		OwnerPlayer->RWidgetInteractionComponent->SetActive(false);
 		OwnerPlayer->RWidgetInteractionComponent->bEnableHitTesting = false;
-		OwnerPlayer->RWidgetInteractionComponent->bShowDebug = false;
 		
 		bIsPreviewMode = false;
 		PreviewEnd();
@@ -183,7 +182,6 @@ void UCMuseumComponent::SwitchState()
 	case EMuseumState::Decorate:
 		OwnerPlayer->RWidgetInteractionComponent->SetActive(true);
 		OwnerPlayer->RWidgetInteractionComponent->bEnableHitTesting = true;
-		OwnerPlayer->RWidgetInteractionComponent->bShowDebug = true;
 		GrabComponent->RelicUnGrab();
 		break;
 	}
