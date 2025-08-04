@@ -41,19 +41,20 @@ public:
 	bool bWasDiggingLastFrame = false;
 	FVector PreviousLocation;
 
-    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Digging")
+    /*UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Digging")
 	bool bIsShovelLifting = false;
 	bool bWasLiftingLastFrame = false;
-	FVector PreviousSplatLocation;
+	FVector PreviousSplatLocation;*/
     
 	void UpdateDigSwingState(float DeltaTime);
-	UFUNCTION(BlueprintCallable)
-	void EvaluateShovelLiftMotion(float DeltaTime);
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Digging")
-	bool bIsDigHoldState = false;
-	float HoldTimer = 0.0f;
-	const float MaxHoldTime = 3.0f; // 1초 동안 기다림
+	//UFUNCTION(BlueprintCallable)
+	//void EvaluateShovelLiftMotion(float DeltaTime);
+
+	//UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Digging")
+	//bool bIsDigHoldState = false;
+	//float HoldTimer = 0.0f;
+	//const float MaxHoldTime = 3.0f; // 1초 동안 기다림
 
 public:
 	UFUNCTION()
