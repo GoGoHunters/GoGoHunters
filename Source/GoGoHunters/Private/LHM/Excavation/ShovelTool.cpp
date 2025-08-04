@@ -48,9 +48,8 @@ void AShovelTool::Tick(float DeltaTime)
 	Super::Tick(DeltaTime);
 
 	UpdateDigSwingState(DeltaTime);
-	//EvaluateShovelLiftMotion(DeltaTime);
 
-	if (bIsDigHoldState)
+	/*if (bIsDigHoldState)
 	{
 		HoldTimer += DeltaTime;
 		EvaluateShovelLiftMotion(DeltaTime);
@@ -58,7 +57,7 @@ void AShovelTool::Tick(float DeltaTime)
 	else
 	{
 		if(HoldTimer > MaxHoldTime) bIsDigHoldState = false;
-	}
+	}*/
 }
 
 void AShovelTool::UpdateDigSwingState(float DeltaTime)
@@ -105,51 +104,51 @@ void AShovelTool::UpdateDigSwingState(float DeltaTime)
 			bCanTriggerDigTrace = false;
 		}
 
-		if (bWasLiftingLastFrame)
+		/*if (bWasLiftingLastFrame)
 		{
 			bWasLiftingLastFrame = false;
 			bIsShovelLifting = false;
-		}
+		}*/
 	}
 }
 
-void AShovelTool::EvaluateShovelLiftMotion(float DeltaTime)
-{
-	if(!bIsDigging || !bCanTriggerDigTrace || !SplatPoint)
-	{
-		bIsShovelLifting = false;
-		bWasDiggingLastFrame = false;
-		return;
-	}
-
-	if(!bWasLiftingLastFrame)
-	{
-		PreviousSplatLocation = SplatPoint->GetComponentLocation();
-		bWasLiftingLastFrame = true;
-		bIsShovelLifting = false;
-		return; // 첫 프레임은 계산 생략
-	}
-
-	// 위치 기준 속도 계산
-	FVector CurrentLocation = SplatPoint->GetComponentLocation();
-	FVector Velocity = (CurrentLocation - PreviousSplatLocation) / DeltaTime;
-	PreviousSplatLocation = CurrentLocation;
-
-	// 방향 일치 판단
-	float Speed = Velocity.Size();
-	FVector NormalizedVelocity = Velocity.GetSafeNormal();
-	FVector UpDirection = SplatPoint->GetUpVector();
-
-	//float Dot = FVector::DotProduct(NormalizedVelocity, UpDirection);
-	float Dot = NormalizedVelocity.Z;
-
-	// Dot 값이 0.5 이상이고 속도가 100 이상일 때만 리프팅으로 간주
-	bIsShovelLifting = Dot > 0.5f && Speed > 100.0f;
-
-	//UE_LOG(LogTemp, Log, TEXT("[LiftCheck] Dot: %.2f, Speed: %.1f"), Dot, Speed);
-	UE_LOG(LogTemp, Log, TEXT("Speed: %.2f | Dot: %.2f | Velocity: %s | Up: %s"),
-		   Speed, Dot, *NormalizedVelocity.ToString(), *UpDirection.ToString());
-}
+//void AShovelTool::EvaluateShovelLiftMotion(float DeltaTime)
+//{
+//	if(!bIsDigging || !bCanTriggerDigTrace || !SplatPoint)
+//	{
+//		bIsShovelLifting = false;
+//		bWasDiggingLastFrame = false;
+//		return;
+//	}
+//
+//	if(!bWasLiftingLastFrame)
+//	{
+//		PreviousSplatLocation = SplatPoint->GetComponentLocation();
+//		bWasLiftingLastFrame = true;
+//		bIsShovelLifting = false;
+//		return; // 첫 프레임은 계산 생략
+//	}
+//
+//	// 위치 기준 속도 계산
+//	FVector CurrentLocation = SplatPoint->GetComponentLocation();
+//	FVector Velocity = (CurrentLocation - PreviousSplatLocation) / DeltaTime;
+//	PreviousSplatLocation = CurrentLocation;
+//
+//	// 방향 일치 판단
+//	float Speed = Velocity.Size();
+//	FVector NormalizedVelocity = Velocity.GetSafeNormal();
+//	FVector UpDirection = SplatPoint->GetUpVector();
+//
+//	//float Dot = FVector::DotProduct(NormalizedVelocity, UpDirection);
+//	float Dot = NormalizedVelocity.Z;
+//
+//	// Dot 값이 0.5 이상이고 속도가 100 이상일 때만 리프팅으로 간주
+//	bIsShovelLifting = Dot > 0.5f && Speed > 100.0f;
+//
+//	//UE_LOG(LogTemp, Log, TEXT("[LiftCheck] Dot: %.2f, Speed: %.1f"), Dot, Speed);
+//	UE_LOG(LogTemp, Log, TEXT("Speed: %.2f | Dot: %.2f | Velocity: %s | Up: %s"),
+//		   Speed, Dot, *NormalizedVelocity.ToString(), *UpDirection.ToString());
+//}
 
 void AShovelTool::UpdateFeedback(FVector ImpactLocation)
 {
