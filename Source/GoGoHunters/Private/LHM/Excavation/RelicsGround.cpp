@@ -49,6 +49,7 @@ void ARelicsGround::TriggerOnGroundDug(FVector ImpactLocation)
 	{
 		Shovel_Ref->SetIsDigging(false);
 		Shovel_Ref->bCanTriggerDigTrace = false;
+		//Shovel_Ref->bIsDigHoldState = false;
 	}
 
 	// 파괴량 측정은 한 프레임 지연 후
@@ -66,11 +67,34 @@ void ARelicsGround::UpdateDigProgress()
 
 float ARelicsGround::CalculateDestructionFromRenderTarget()
 {
-	if (!HeightFieldRT) return 0.f;
+	//if (!HeightFieldRT) return 0.f;
+
+	//FTextureRenderTargetResource* RTResource = HeightFieldRT->GameThread_GetRenderTargetResource();
+	//if (!RTResource) return 0.f;
+
+	//TArray<FColor> Pixels;
+	////RTResource->ReadPixels(Pixels);
+	//if (!RTResource->ReadPixels(Pixels) || Pixels.Num() == 0) return 0.f;
+
+	if (!IsValid(HeightFieldRT) || !HeightFieldRT->GetResource())
+	{
+		UE_LOG(LogTemp, Warning, TEXT("HeightFieldRT is not ready (null or no resource)."));
+		return 0.f;
+	}
 
 	FTextureRenderTargetResource* RTResource = HeightFieldRT->GameThread_GetRenderTargetResource();
+	if (!RTResource)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("RenderTargetResource is null"));
+		return 0.f;
+	}
+
 	TArray<FColor> Pixels;
-	RTResource->ReadPixels(Pixels);
+	if (!RTResource->ReadPixels(Pixels) || Pixels.Num() == 0)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Failed to read pixels or empty array"));
+		return 0.f;
+	}
 
 	// 평균 밝기 계산
 	int64 TotalR = 0;
