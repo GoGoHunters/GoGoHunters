@@ -258,6 +258,10 @@ public:
 
 	UFUNCTION(BlueprintNativeEvent)
 	void ToggleMenu();
+
+	// LineTrace & WidgetInteraction Line Update Function
+	void UpdateDrawLineTraceEffect(const FVector& Start, const FVector& End);
+	const float GetWidgetInteractionDistance() const { return WidgetInteractionDistance; }
 	
 private:
 	UPROPERTY()
@@ -297,9 +301,18 @@ private:
 	// ==================================
 	// Widget Interaction ReFactoring
 private:
+	UPROPERTY(EditDefaultsOnly, Category="UI")
+	float WidgetInteractionDistance = 400.f;
+	bool bInteracteAnyComponent = false;
+	
 	void SetWidgetInteractionUsing(bool bUsing);
 	bool IsPointingAtWidget();
 	void SetClickAndWidgetActivation(bool bUsing);
 	void SetWidgetInteractionClick(bool bPress);
 	void SetWidgetComponent(bool bSet);
+
+	// 인터렉션 VFX
+	UPROPERTY(EditDefaultsOnly)
+	UNiagaraComponent* LineTraceEffectComponent;
+	void SetUseLineTraceEffect(bool bUse);	
 };

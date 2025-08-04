@@ -96,9 +96,12 @@ void UCMuseumComponent::OnMenuButtonClicked()
 
 void UCMuseumComponent::PreviewMode()
 {
+	if (!OwnerPlayer) return;
+	if (!OwnerPlayer->RWidgetInteractionComponent) return;
+	
 	FHitResult outHit;
 	FVector start = OwnerPlayer->RAimMotionController->GetComponentLocation();
-	FVector end = start + OwnerPlayer->RAimMotionController->GetForwardVector() * 600.f;
+	FVector end = start + OwnerPlayer->RAimMotionController->GetForwardVector() * OwnerPlayer->GetWidgetInteractionDistance();
 	FCollisionQueryParams params;
 	params.AddIgnoredActor(OwnerPlayer);
 	bool bHit = GetWorld()->LineTraceSingleByChannel(outHit, start, end, ECC_GameTraceChannel6, params);;
@@ -140,6 +143,9 @@ void UCMuseumComponent::PreviewMode()
 				bCanPlace = true;				
 			}
 		}
+
+		end = outHit.ImpactPoint;
+		OwnerPlayer->UpdateDrawLineTraceEffect(start, end);
 	}
 	else
 	{
@@ -152,6 +158,8 @@ void UCMuseumComponent::PreviewMode()
 		bCanPlace = false;
 
 		PlaceArea = nullptr;
+		
+		OwnerPlayer->UpdateDrawLineTraceEffect(start, end);
 	}
 }
 
