@@ -11,17 +11,19 @@
 void UExcavationUI::NativeConstruct()
 {
 	Super::NativeConstruct();
-	
+
 	VRPlayer = Cast<AMH_VRPlayer>(UGameplayStatics::GetPlayerCharacter(this, 0));
-	
+
 	// ExcavationManager 찾기 및 연결
 	FindAndConnectExcavationManager();
-	
-	if (Btn_Tool1) Btn_Tool1->OnClicked.AddDynamic(this, &UExcavationUI::OnClick_DetectionTool);
-	if (Btn_Tool2) Btn_Tool2->OnClicked.AddDynamic(this, &UExcavationUI::OnClick_ShovelTool);
-	if (Btn_Tool3) Btn_Tool3->OnClicked.AddDynamic(this, &UExcavationUI::OnClick_BrushTool);
-	if (Btn_Tool4) Btn_Tool4->OnClicked.AddDynamic(this, &UExcavationUI::OnClick_TweezerTool);
 
+	if (Btn_Tool1)Btn_Tool1->OnClicked.AddDynamic(this, &UExcavationUI::OnClick_DetectionTool);
+	if (Btn_Tool2)Btn_Tool2->OnClicked.AddDynamic(this, &UExcavationUI::OnClick_ShovelTool);
+	
+	if (Btn_Tool3)Btn_Tool3->OnClicked.AddDynamic(this, &UExcavationUI::OnClick_BrushTool);
+	
+	if (Btn_Tool4)Btn_Tool4->OnClicked.AddDynamic(this, &UExcavationUI::OnClick_TweezerTool);
+	z
 	// UI Tool 버튼 초기화
 	if (ExcavationManager)
 	{
@@ -44,7 +46,7 @@ void UExcavationUI::OnExcavationPhaseChanged(EExcavationPhase NewPhase)
 {
 	// 실시간으로 단계 변경 감지
 	CurrentPhase = NewPhase;
-	
+
 	// 각 도구의 가용성 확인 및 버튼 상태 업데이트
 	for (int32 i = 0; i < 4; ++i)
 	{
@@ -58,7 +60,7 @@ void UExcavationUI::OnExcavationPhaseChanged(EExcavationPhase NewPhase)
 void UExcavationUI::SetToolButtonEnabled(int32 ToolIndex, bool bEnabled)
 {
 	UButton* TargetButton = nullptr;
-	
+
 	switch (ToolIndex)
 	{
 	case 0:
@@ -78,7 +80,7 @@ void UExcavationUI::SetToolButtonEnabled(int32 ToolIndex, bool bEnabled)
 	if (TargetButton)
 	{
 		TargetButton->SetIsEnabled(bEnabled);
-		
+
 		// 시각적 피드백을 위한 투명도 조정
 		if (bEnabled)
 		{
@@ -136,7 +138,7 @@ void UExcavationUI::OnClick_ShovelTool()
 void UExcavationUI::OnClick_BrushTool()
 {
 	UE_LOG(LogTemp, Warning, TEXT("[ExcavationUI] OnClick_BrushTool"));
-	
+
 	FString CurrentLevel = GetWorld()->GetMapName();
 	CurrentLevel.RemoveFromStart(GetWorld()->StreamingLevelsPrefix);
 	if (CurrentLevel == "LV_TestExcavation")
@@ -187,7 +189,7 @@ void UExcavationUI::FindAndConnectExcavationManager()
 		ExcavationManager = *It;
 		break;
 	}
-	
+
 	// 델리게이트 구독
 	if (ExcavationManager)
 	{
