@@ -46,6 +46,11 @@ private:
 	TObjectPtr<ACContinentWidgetActor> ContinentWidgetActor = nullptr;
 	UPROPERTY()
 	TObjectPtr<UStaticMeshComponent> PrevOutlinedComp = nullptr;
+
+	UPROPERTY(EditAnywhere, Category = Color, meta = (AllowPrivateAccess))
+	FLinearColor RecoverAdditiveChangeColor = FLinearColor(0, 0, 0);
+	UPROPERTY(EditAnywhere, Category = Color, meta = (AllowPrivateAccess))
+	FLinearColor ActiveAdditiveChangeColor = FLinearColor(.7, .7, .7);
 	
 	ACWorldMap();
 	virtual void BeginPlay() override;

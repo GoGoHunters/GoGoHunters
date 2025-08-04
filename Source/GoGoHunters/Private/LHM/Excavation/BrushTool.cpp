@@ -75,8 +75,8 @@ void ABrushTool::CheckBrushSwipe(float DeltaTime)
 {
 	if (!CurrentOverlappingRelic) return;
 
-	if (SwipeSpeed > BrushSwipeThresholdMin)
-		//&& SwipeSpeed < BrushSwipeThresholdMax)
+	if (SwipeSpeed > BrushSwipeThresholdMin
+		&& SwipeSpeed < BrushSwipeThresholdMax)
 	{
 		ARelicsBase* Relic = Cast<ARelicsBase>(CurrentOverlappingRelic);
 		if (Relic)
