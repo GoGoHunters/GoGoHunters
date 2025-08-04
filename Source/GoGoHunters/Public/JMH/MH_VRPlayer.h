@@ -150,22 +150,22 @@ public:
 	void ExcavationCollectStart();
 	void ExcavationCollectEnd();
 	
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Tools")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Excavation")
 	TSubclassOf<class ADetectorTool> DetectionToolClass;
 	UPROPERTY()
 	class ADetectorTool* DetectionTool;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Tools")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Excavation")
 	TSubclassOf<class AShovelTool> ShovelToolClass;
 	UPROPERTY()
 	class AShovelTool* ShovelTool;
 	
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Tools")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Excavation")
 	TSubclassOf<class ABrushTool> BrushToolClass;
 	UPROPERTY()
 	class ABrushTool* BrushTool;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Tools")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Excavation")
 	TSubclassOf<class ATweezersTool> TweezersToolClass;
 	UPROPERTY()
 	class ATweezersTool* TweezersTool;
@@ -173,7 +173,7 @@ public:
 	UPROPERTY()
 	TArray<class ARelicsGround*> RelicsGroundRefs;
 
-	UPROPERTY()
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Excavation")
 	TSubclassOf<class AExcavationWidgetActor> ExcavationUIActorClass;
 
 	UPROPERTY()
@@ -258,6 +258,11 @@ public:
 
 	UFUNCTION(BlueprintNativeEvent)
 	void ToggleMenu();
+
+	// LineTrace & WidgetInteraction Line Update Function
+	void UpdateDrawLineTraceEffect(const FVector& Start, const FVector& End);
+	const float GetWidgetInteractionDistance() const { return WidgetInteractionDistance; }
+	void SetUseLineTraceEffect(bool bUse);
 	
 private:
 	UPROPERTY()
@@ -297,9 +302,17 @@ private:
 	// ==================================
 	// Widget Interaction ReFactoring
 private:
+	UPROPERTY(EditDefaultsOnly, Category="UI")
+	float WidgetInteractionDistance = 400.f;
+	bool bInteracteAnyComponent = false;
+	
 	void SetWidgetInteractionUsing(bool bUsing);
 	bool IsPointingAtWidget();
 	void SetClickAndWidgetActivation(bool bUsing);
 	void SetWidgetInteractionClick(bool bPress);
 	void SetWidgetComponent(bool bSet);
+
+	// 인터렉션 VFX
+	UPROPERTY(EditDefaultsOnly)
+	UNiagaraComponent* LineTraceEffectComponent;	
 };

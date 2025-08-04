@@ -50,6 +50,9 @@ AMH_VRPlayer::AMH_VRPlayer()
 	LAimMotionController->SetTrackingMotionSource(FName("LeftAim"));
 	CHelpers::CreateComponent<UWidgetInteractionComponent>(this, &RWidgetInteractionComponent, "RWidgetInteractionComponent", RAimMotionController);
 
+	CHelpers::CreateComponent<UNiagaraComponent>(this, &LineTraceEffectComponent, "LineTraceEffectComponent", RAimMotionController);
+	LineTraceEffectComponent->SetVisibility(false);
+
 	// 손 메쉬 설정
 	HandLeft = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("HandLeft"));
 	HandRight = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("HandRight"));
@@ -64,7 +67,7 @@ AMH_VRPlayer::AMH_VRPlayer()
 
 	{
 		// WidgetInteraction 설정 - UI 상호작용을 위해 활성화
-		RWidgetInteractionComponent->InteractionDistance = 800.f; // UI 상호작용 거리 증가
+		RWidgetInteractionComponent->InteractionDistance = WidgetInteractionDistance; // UI 상호작용 거리
 		RWidgetInteractionComponent->bEnableHitTesting = false; // UI 상호작용을 위해 활성화
 		RWidgetInteractionComponent->bShowDebug = false;
 		RWidgetInteractionComponent->InteractionSource = EWidgetInteractionSource::World;
@@ -121,7 +124,7 @@ void AMH_VRPlayer::BeginPlay()
 		SpawnParams.Owner = this;
 
 		// Excavation Phase UI 
-		if (ExcavationUIActorClass = LoadClass<AExcavationWidgetActor>(nullptr, TEXT("/Game/LHM/BP/Excavation/BP_ExcavationWidgetActor.BP_ExcavationWidgetActor_C")))
+		if (ExcavationUIActorClass)
 		{
 			FVector SpawnLocation = FVector::ZeroVector;
 			FRotator SpawnRotation = FRotator::ZeroRotator;
@@ -150,19 +153,7 @@ void AMH_VRPlayer::Tick(float DeltaTime)
 	{
 		// 라인 안 보일 땐 그랩도 안 되게 Actor를 비워두기
 		FocusedGrabbableActor = nullptr;
-	}
-	
-	// UI 상호작용 상태 업데이트 (트리거를 누르지 않았을 때도 UI 감지)
-	// if (CurrentState == EPlayerVRState::Idle && !bIsUIInteractionActive)
-	// {
-	// 	// 양손에서 UI 감지 (시각적 피드백용)
-	// 	UWidgetComponent* TempWidget = nullptr;
-	// 	if (IsPointingAtUI(RHandController, TempWidget) || IsPointingAtUI(LHandController, TempWidget))
-	// 	{
-	// 		// UI를 가리키고 있지만 아직 상호작용하지 않은 상태
-	// 		// 여기서 UI 하이라이트 효과 등을 추가할 수 있음
-	// 	}
-	 // }
+	}	
 }
 
 // Called to bind functionality to input
@@ -341,12 +332,25 @@ void AMH_VRPlayer::TriggerInteract(const FInputActionInstance& IA_Instance)
 {
 	// WidgetInteraction 활성화
 	SetWidgetInteractionUsing(true);
+	// LineTraceEffect 활성화/비활성화
+	SetUseLineTraceEffect(true);
 	
 	// 상호작용이 가능한 UI에 닿아있는지 확인
+	FVector Start = RWidgetInteractionComponent->GetComponentLocation();
+	FVector End = FVector::ZeroVector;
+	bInteracteAnyComponent = false;
 	if (IsPointingAtWidget())
+	{
 		SetClickAndWidgetActivation(true);
+		// Hit된 위치로 LineTraceEffect를 그림
+		bInteracteAnyComponent = true;
+		End = RWidgetInteractionComponent->GetLastHitResult().ImpactPoint;
+		UpdateDrawLineTraceEffect(Start, End);
+	}
 	else
-		SetClickAndWidgetActivation(false);
+	{
+		SetClickAndWidgetActivation(false);		
+	}
 
 	// 박물관 레벨에서만 작동
 	if (CurrentLevel.ToLower().Contains("museum"))
@@ -359,15 +363,27 @@ void AMH_VRPlayer::TriggerInteract(const FInputActionInstance& IA_Instance)
 	else if (CurrentLevel.ToLower().Contains("lobby"))
 	{
 		// 월드맵 상호작용
+		// 함수 내부에서 UI 업데이트까지 수행
 		TryWorldMapInteraction(IA_Instance);
+	}
+	
+	// 아무 곳에도 닿지 않았으면
+	if (!bInteracteAnyComponent)
+	{
+		// 사정거리 끝까지 그림
+		End = RWidgetInteractionComponent->GetComponentLocation() + RWidgetInteractionComponent->GetForwardVector() * WidgetInteractionDistance;
+		// DrawDebugLine(GetWorld(), Start, End, FColor::Red, false, 0.0f, 0.0f, 1.0f);
+		UpdateDrawLineTraceEffect(Start, End);
 	}
 }
 
 void AMH_VRPlayer::TriggerInteractCompleted()
-{
+{	
 	// 저장된 Widget가 있든 없든
 	// 좌클릭을 해제하고, Widget을 초기화한다.
 	SetClickAndWidgetActivation(false);
+	// LineTraceEffect 활성화/비활성화
+	SetUseLineTraceEffect(false);
 	
 	// WidgetInteraction 비활성화
 	if (!CurrentLevel.ToLower().Contains("museum"))
@@ -799,18 +815,21 @@ void AMH_VRPlayer::TryWorldMapInteraction(const FInputActionInstance& IA_Instanc
 	if (!RWidgetInteractionComponent) return;
 
 	FVector Start = RWidgetInteractionComponent->GetComponentLocation();
-	FVector End = Start + (RWidgetInteractionComponent->GetForwardVector() * 800.f);
+	FVector End = Start + (RWidgetInteractionComponent->GetForwardVector() * WidgetInteractionDistance);
 
 	FHitResult HitResult;
 	FCollisionQueryParams Params;
 	Params.AddIgnoredActor(this);
 
-	// DrawDebugLine(GetWorld(), Start, End, FColor::Red, false, 0.f, 0, 1);
 	if (GetWorld()->LineTraceSingleByChannel(HitResult, Start, End, ECC_GameTraceChannel3, Params))
 	{
 		if (!HitResult.GetActor()->IsA(ACWorldMap::StaticClass())) return;
 		UStaticMeshComponent* HitMesh = Cast<UStaticMeshComponent>(HitResult.GetComponent());
 		if (HitMesh) Cast<ACWorldMap>(HitResult.GetActor())->EnableCompOutline(HitMesh);
+
+		End = HitResult.ImpactPoint;
+		UpdateDrawLineTraceEffect(Start, End);
+		bInteracteAnyComponent = true;
 	}
 	else
 	{
@@ -916,7 +935,7 @@ void AMH_VRPlayer::SetWidgetInteractionUsing(bool bUsing)
 {
 	RWidgetInteractionComponent->SetActive(bUsing);
 	RWidgetInteractionComponent->bEnableHitTesting = bUsing;
-	RWidgetInteractionComponent->bShowDebug = bUsing;
+	// RWidgetInteractionComponent->bShowDebug = bUsing;
 }
 
 bool AMH_VRPlayer::IsPointingAtWidget()
@@ -956,4 +975,21 @@ void AMH_VRPlayer::SetWidgetComponent(bool bSet)
 	{
 		CurrentFocusedUI = nullptr;
 	}
+}
+
+void AMH_VRPlayer::SetUseLineTraceEffect(bool bUse)
+{
+	if (!LineTraceEffectComponent) return;
+	LineTraceEffectComponent->SetVisibility(bUse);
+	UpdateDrawLineTraceEffect(FVector::ZeroVector, FVector::ZeroVector);
+}
+
+void AMH_VRPlayer::UpdateDrawLineTraceEffect(const FVector& Start, const FVector& End)
+{
+	if (!LineTraceEffectComponent) return;
+	TArray<FVector> LineTracePoints;
+	LineTracePoints.Emplace(Start);
+	LineTracePoints.Emplace(End);
+	UNiagaraDataInterfaceArrayFunctionLibrary::SetNiagaraArrayVector(
+			LineTraceEffectComponent, TEXT("User.PointArray"), LineTracePoints);
 }
