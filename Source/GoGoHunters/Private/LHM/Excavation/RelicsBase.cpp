@@ -27,18 +27,6 @@ ARelicsBase::ARelicsBase()
         RelicMesh->SetCollisionProfileName(FName("Relic_Buried"));
         RelicMesh->SetGenerateOverlapEvents(true);
         RelicsMeshes.Add(RelicMesh);
-
-        /*int DecalCount = (i == 0) ? 2 : 1;
-
-        for (int j = 0; j < DecalCount; ++j)
-        {
-            FString DecalName = FString::Printf(TEXT("DustDecal_%d_%d"), i + 1, j + 1);
-            UDecalComponent* Decal = CreateDefaultSubobject<UDecalComponent>(*DecalName);
-            Decal->SetupAttachment(RelicMesh);
-			Decal->DecalSize = FVector(10.0f, 10.0f, 10.0f);
-            DustDecals.Add(Decal);
-            DecalToMeshMap.Add(Decal, RelicMesh);
-        }*/
     }
 
 	TriggerVolume = CreateDefaultSubobject<UBoxComponent>(TEXT("TriggerVolume"));
@@ -86,6 +74,8 @@ void ARelicsBase::PostInitializeComponents()
             TotalRemainingOpacity += 1.0f;
         }
     }
+
+    //UE_LOG(LogTemp, Log, TEXT("[PostInitializeComponents] DustDecals size: %d"), DustDecals.Num());
 }
 
 // Called when the game starts or when spawned
@@ -116,7 +106,6 @@ void ARelicsBase::BeginPlay()
 void ARelicsBase::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-
 }
 
 void ARelicsBase::OnOverlapBegin(UPrimitiveComponent* Overlapped, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& Hit)
