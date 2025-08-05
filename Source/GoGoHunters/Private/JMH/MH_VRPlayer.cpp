@@ -26,6 +26,7 @@
 #include "LHM/Excavation/ExcavationWidgetActor.h"
 #include "LHM/Excavation/BrushTool.h"
 #include "LHM/Excavation/TweezersTool.h"
+#include "HeadMountedDisplayFunctionLibrary.h"
 
 AMH_VRPlayer::AMH_VRPlayer()
 {
@@ -138,6 +139,12 @@ void AMH_VRPlayer::BeginPlay()
 		}
 	}
 #pragma endregion 발굴 레벨에서만 초기화
+
+	if (UHeadMountedDisplayFunctionLibrary::IsHeadMountedDisplayEnabled())
+	{
+		UHeadMountedDisplayFunctionLibrary::SetTrackingOrigin(EHMDTrackingOrigin::Stage);
+		UHeadMountedDisplayFunctionLibrary::ResetOrientationAndPosition();		
+	}
 }
 
 // Called every frame
@@ -936,6 +943,13 @@ void AMH_VRPlayer::SetWidgetInteractionUsing(bool bUsing)
 	RWidgetInteractionComponent->SetActive(bUsing);
 	RWidgetInteractionComponent->bEnableHitTesting = bUsing;
 	// RWidgetInteractionComponent->bShowDebug = bUsing;
+	if (!bUsing)
+	{
+		if(RWidgetInteractionComponent->IsOverFocusableWidget())
+		{
+			RWidgetInteractionComponent->ReleaseKey(EKeys::LeftMouseButton);
+		}
+	}
 }
 
 bool AMH_VRPlayer::IsPointingAtWidget()
