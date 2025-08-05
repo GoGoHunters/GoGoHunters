@@ -103,6 +103,7 @@ void ADetectorTool::UpdateDetection(float DeltaTime)
 	{
 		if (!It->GetMarker()) continue;
 		if (!It->GetMarker()->IsHidden()) continue;
+		if (It->GetIsDetected()) continue;
 
 		float Dist = FVector::Dist(It->GetActorLocation(), GetActorLocation());
 		if (Dist < ClosestDist)
@@ -175,6 +176,8 @@ void ADetectorTool::UpdateDetection(float DeltaTime)
 			for (TActorIterator<AExcavationManager> It(GetWorld()); It; ++It)
 			{
 				It->NotifyDetectionCompleted(FindManager);
+				Relics->SetIsDetected(true);
+				Relics = nullptr;
 				break;
 			}
 		}
