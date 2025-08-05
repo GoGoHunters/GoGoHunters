@@ -154,7 +154,8 @@ void ARelicsBase::ReduceDustOpacity(const FVector& BrushLocation, float Amount, 
     float Current;
     MID->GetScalarParameterValue(FMaterialParameterInfo(OpacityParameterName), Current);
     float NewOpacity = FMath::Clamp(Current - Amount, 0.0f, 1.0f);
-    MID->SetScalarParameterValue(OpacityParameterName, NewOpacity);
+    if (NewOpacity <= 0.2f) NewOpacity = 0.0f;
+	MID->SetScalarParameterValue(OpacityParameterName, NewOpacity);
     
     // 제거된 양만큼 남은 총합 감소
     TotalRemainingOpacity -= (Current - NewOpacity);
@@ -174,7 +175,7 @@ void ARelicsBase::ReduceDustOpacity(const FVector& BrushLocation, float Amount, 
     //UE_LOG(LogTemp, Log, TEXT("[Debug] Decal Opacity value: %f"), Opacity);
 
     // 데칼 제거
-    if (Current <= 0.0f)
+    if (NewOpacity <= 0.2f)
     {
         Closest->DestroyComponent();
 
