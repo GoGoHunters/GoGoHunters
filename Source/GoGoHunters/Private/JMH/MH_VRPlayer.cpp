@@ -26,6 +26,7 @@
 #include "LHM/Excavation/ExcavationWidgetActor.h"
 #include "LHM/Excavation/BrushTool.h"
 #include "LHM/Excavation/TweezersTool.h"
+#include "LHM/Excavation/ExcavationProgressWidgetActor.h"
 
 AMH_VRPlayer::AMH_VRPlayer()
 {
@@ -120,16 +121,19 @@ void AMH_VRPlayer::BeginPlay()
 		{
 			RelicsGroundRefs.Add(*It);
 		}
-
+	}
+	
+	if(CurrentLevel == "LV_TestExcavation")
+	{
 		FActorSpawnParameters SpawnParams;
 		SpawnParams.Owner = this;
 
+		FVector SpawnLocation = FVector::ZeroVector;
+		FRotator SpawnRotation = FRotator::ZeroRotator;
+		
 		// Excavation Phase UI 
 		if (ExcavationUIActorClass)
 		{
-			FVector SpawnLocation = FVector::ZeroVector;
-			FRotator SpawnRotation = FRotator::ZeroRotator;
-
 			ExcavationUIActor = GetWorld()->SpawnActor<AExcavationWidgetActor>(ExcavationUIActorClass, SpawnLocation, SpawnRotation, SpawnParams);
 			if (ExcavationUIActor)
 			{
@@ -202,9 +206,9 @@ void AMH_VRPlayer::SetPlayerState(EPlayerVRState NewState)
 	if (CurrentState == NewState) return;
 
 	// 상태 전환 로그
-	UE_LOG(LogTemp, Log, TEXT("[VR] 상태 전환: %s → %s"),
+	/*UE_LOG(LogTemp, Log, TEXT("[VR] 상태 전환: %s → %s"),
 	       *UEnum::GetValueAsString(CurrentState),
-	       *UEnum::GetValueAsString(NewState));
+	       *UEnum::GetValueAsString(NewState));*/
 
 	// 이전 상태 정리 (예: 도구 해제, 입력 정지 등 필요 시 여기에)
 
