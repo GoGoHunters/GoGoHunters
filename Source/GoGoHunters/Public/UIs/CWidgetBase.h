@@ -22,7 +22,8 @@ public:
 	void BlindActive(bool bUseBlind);
 	UFUNCTION(BlueprintNativeEvent)
 	void K2_PlayUiAnim(bool bIsReverse);
-	
+
+	/////
 	UFUNCTION()
 	void PlaySystemMessageAnim();
 	
@@ -43,9 +44,10 @@ protected:
 	virtual void NativeConstruct() override;
 	
 private:
+	//MainUI//////
 	UPROPERTY(meta=(BindWidgetOptional))
 	class UCanvasPanel* Can_SystemMessage;
-	//MainUI
+	
 	UPROPERTY(meta=(BindWidgetOptional))
 	TObjectPtr<UButton> Btn_Tami;
 	UPROPERTY(meta=(BindWidgetOptional))
@@ -65,6 +67,14 @@ private:
 	UFUNCTION()
 	void OnBtnExitClicked();
 
+	UPROPERTY(meta=(BindWidgetOptional))
+	class UMH_MessageUI* WBP_Message;
+
+	UFUNCTION()
+	void OnShowMessage();
+	UFUNCTION()
+	void OnHideMessage();
+	///////
 	
 	UFUNCTION()
 	void OnBtnAClicked();

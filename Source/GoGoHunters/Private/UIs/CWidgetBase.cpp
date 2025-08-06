@@ -4,6 +4,7 @@
 #include "Components/Button.h"
 #include "Components/Image.h"
 #include "JMH/CMuseumComponent.h"
+#include "JMH/MH_MessageUI.h"
 #include "UIs/CUiActor.h"
 
 class UGI_Base;
@@ -24,6 +25,24 @@ void UCWidgetBase::NativeConstruct()
 		Btn_Settings->OnClicked.AddDynamic(this, &UCWidgetBase::OnBtnSetClicked);
 	if (Btn_Exit)
 		Btn_Exit->OnClicked.AddDynamic(this, &UCWidgetBase::OnBtnExitClicked);
+}
+
+void UCWidgetBase::OnShowMessage()
+{
+	if(!WBP_Message)GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green,TEXT("MessageUI11"));
+	if (WBP_Message)
+	{GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green,TEXT("MessageUI22"));
+		WBP_Message->OnCloseClicked.AddDynamic(this,&UCWidgetBase::OnHideMessage);
+		WBP_Message->SetMessage(NSLOCTEXT("UI", "ExitMessage", "고고헌터즈를 떠나시겠습니까?"));
+		WBP_Message->TargetLevel = FString("Exit");
+		WBP_Message->ShowButtons(true, true);
+		WBP_Message->SetVisibility(ESlateVisibility::Visible);
+	}
+}
+
+void UCWidgetBase::OnHideMessage()
+{
+	WBP_Message->SetVisibility(ESlateVisibility::Collapsed);
 }
 
 void UCWidgetBase::OnBtnAClicked()
@@ -57,17 +76,15 @@ void UCWidgetBase::K2_PlayUiAnim_Implementation(bool bIsReverse)
 
 void UCWidgetBase::PlaySystemMessageAnim()
 {
-	GEngine->AddOnScreenDebugMessage(-1,5.f,FColor::Green,TEXT("Anim_ShowMessage11"));
 	if (Anim_ShowMessage)
 	{
-		GEngine->AddOnScreenDebugMessage(-1,5.f,FColor::Green,TEXT("Anim_ShowMessage22"));
-		PlayAnimation(Anim_ShowMessage,0.0f,1,EUMGSequencePlayMode::Forward, 1.0f, false);
+		PlayAnimation(Anim_ShowMessage, 0.0f, 1, EUMGSequencePlayMode::Forward, 1.0f, false);
 	}
 }
 
 void UCWidgetBase::OnBtnTamiClicked()
 {
-	GEngine->AddOnScreenDebugMessage(-1,5.f,FColor::Green,TEXT("타미 나오세여"));
+	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green,TEXT("타미 나오세여"));
 }
 
 void UCWidgetBase::OnBtnLobbyClicked()
@@ -95,5 +112,5 @@ void UCWidgetBase::OnBtnSetClicked()
 
 void UCWidgetBase::OnBtnExitClicked()
 {
-	UKismetSystemLibrary::QuitGame(this, GetWorld()->GetFirstPlayerController(), EQuitPreference::Quit, false);
+	OnShowMessage();
 }

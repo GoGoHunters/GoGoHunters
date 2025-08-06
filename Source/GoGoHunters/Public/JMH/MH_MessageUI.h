@@ -10,6 +10,7 @@
 /**
  * 
  */
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnCloseClicked);
 
 UCLASS()
 class GOGOHUNTERS_API UMH_MessageUI : public UUserWidget
@@ -19,8 +20,17 @@ class GOGOHUNTERS_API UMH_MessageUI : public UUserWidget
 	virtual void NativeConstruct() override;
 
 public:
+	UPROPERTY(BlueprintAssignable, Category = "Events")
+	FOnCloseClicked OnCloseClicked;
+	
 	UPROPERTY(BlueprintReadOnly, meta=(BindWidget))
 	class UButton* Btn_Yes;
+	
+	UPROPERTY(BlueprintReadOnly, meta=(BindWidget))
+	class UButton* Btn_No;
+
+	UPROPERTY(BlueprintReadOnly, meta=(BindWidget))
+	class UGridPanel* Grid_Btn;
 
 	UPROPERTY(BlueprintReadOnly, meta=(BindWidget))
 	class UTextBlock* Text_Message;
@@ -34,9 +44,16 @@ public:
 
 	UFUNCTION()
 	void OnYesClicked();
-	
+	UFUNCTION()
+	void OnNoClicked();
 	UFUNCTION()
 	void SetOuterActor(AMH_ZoneBase* InOwner);
+	
+	// 외부에서 버튼 표시 설정을 할 Public 함수
+	void ShowButtons(bool bShowOkButton, bool bShowCloseButton);
+
+	// GridPanel에 버튼이 하나만 남았을 때 중앙 정렬을 위한 함수 (선택 사항)
+	void AlignButtons();
 
 	UPROPERTY()
 	TObjectPtr<AMH_ZoneBase> OuterOwner;

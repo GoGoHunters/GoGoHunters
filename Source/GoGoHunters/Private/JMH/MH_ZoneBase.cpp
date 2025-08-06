@@ -50,6 +50,7 @@ void AMH_ZoneBase::BeginPlay()
 			MessageUI->SetOuterActor(this);
 			MessageUI->SetMessage(FText::FromString(GuideMessage));
 			MessageUI->TargetLevel = TargetLevelName;
+			MessageUI->ShowButtons(true,false);
 		}
 	}
 }
