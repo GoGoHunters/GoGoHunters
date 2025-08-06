@@ -30,4 +30,11 @@ private:
 
 	UPROPERTY()
 	class AExcavationManager* ExcavationManager;
+
+public:
+	void SetOwningWidgetActor(class AExcavationProgressWidgetActor* InActor) { OwningWidgetActor = InActor; }
+
+private:
+	UPROPERTY()
+	class AExcavationProgressWidgetActor* OwningWidgetActor;
 };

@@ -121,7 +121,7 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
 	class UInputAction* IA_RotateHeldObject;
 
-#pragma region Excavation Tool Input Action
+#pragma region Excavation
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Input")
 	UInputAction* IA_ExcavationTool1;
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Input")
@@ -181,7 +181,7 @@ public:
 	UPROPERTY()
 	class AExcavationWidgetActor* ExcavationUIActor;
 
-#pragma endregion 발굴 장비 IA
+#pragma endregion 발굴 관련
 
 	//마우스 회전방지
 	bool bUseMouse = true;
