@@ -10,7 +10,7 @@ UAC_Audio::UAC_Audio()
 {
 	// Set this component to be initialized when the game starts, and to be ticked every frame.  You can turn these features
 	// off to improve performance if you don't need them.
-	PrimaryComponentTick.bCanEverTick = false;
+	PrimaryComponentTick.bCanEverTick = true;
     Owner = GetOwner();
 
     bAutoActivate = false;
@@ -20,7 +20,11 @@ UAC_Audio::UAC_Audio()
 
 void UAC_Audio::BeginPlay()
 {
+	Super::BeginPlay();
+
 	ProceduralSoundWave = NewObject<USoundWaveProcedural>(this);
+
+	SetComponentTickEnabled(false);
 	if (ProceduralSoundWave)
 	{
 		// USoundWaveProcedural의 초기 오디오 포맷 속성 설정
@@ -32,7 +36,6 @@ void UAC_Audio::BeginPlay()
 		ProceduralSoundWave->bProcedural = true;
 
 		OnAudioFinished.AddDynamic(this, &UAC_Audio::OnAudioPlaybackFinished);
-
 		// UAudioComponent에 ProceduralSoundWave 할당
 		SetSound(ProceduralSoundWave);
 		UE_LOG(LogTemp, Log, TEXT("MyProceduralAudioComponent: USoundWaveProcedural initialized and assigned."));
@@ -46,9 +49,7 @@ void UAC_Audio::BeginPlay()
 void UAC_Audio::EndPlay(const EEndPlayReason::Type EndPlayReason)
 {
 	if (IsPlaying())
-	{
 		Stop();
-	}
 
 	// ProceduralSoundWave를 가비지 컬렉션 대상이 되도록 마크합니다.
 	if (ProceduralSoundWave)
@@ -57,7 +58,26 @@ void UAC_Audio::EndPlay(const EEndPlayReason::Type EndPlayReason)
 		ProceduralSoundWave = nullptr;
 	}
 
+	if (AssembledSoundWave)
+	{
+		AssembledSoundWave->MarkAsGarbage();
+		AssembledSoundWave = nullptr;
+	}
+	AssembledPCMData.Empty();
 	Super::EndPlay(EndPlayReason);
+}
+
+void UAC_Audio::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
+{
+	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
+
+	UE_LOG(LogTemp, Display, TEXT("TickComponent work %d "), IsPlaying());
+	if (IsPlaying())
+		return ;
+
+	OnAudioPlaybackFinished();
+	SetComponentTickEnabled(false);
+	UE_LOG(LogTemp, Display, TEXT("PlayAudioFromBytes tick disable"));
 }
 
 void UAC_Audio::PlayAudioFromBytes(const TArray<uint8>& AudioBytes)
@@ -122,6 +142,13 @@ void UAC_Audio::PlayAudioFromBytes(const TArray<uint8>& AudioBytes)
 	}
 	UE_LOG(LogTemp, Log, TEXT("MyProceduralAudioComponent: Parsed WAV Header - SampleRate: %d, Channels: %d, BitsPerSample: %d"), ParsedSampleRate, ParsedNumChannels, ParsedBitsPerSample);
 
+	int32 AudioDataSizeInBytes = AudioBytes.Num() - WavHeaderSize;
+	float Duration = (float)AudioDataSizeInBytes / (ParsedSampleRate * ParsedNumChannels * (ParsedBitsPerSample / 8));
+
+	UE_LOG(LogTemp, Log, TEXT("MyProceduralAudioComponent: Parsed WAV Header - SampleRate: %d, Channels: %d, BitsPerSample: %d"), ParsedSampleRate, ParsedNumChannels, ParsedBitsPerSample);
+	// 계산된 플레이 시간 출력
+	UE_LOG(LogTemp, Log, TEXT("MyProceduralAudioComponent: Parsed audio duration for this chunk is %.2f seconds."), Duration);
+
 	ProceduralSoundWave->SetSampleRate(ParsedSampleRate);
 	ProceduralSoundWave->NumChannels = ParsedNumChannels;
 
@@ -164,6 +191,8 @@ void UAC_Audio::PlayAudioFromBytes(const TArray<uint8>& AudioBytes)
 		{
 			Play();
 			UE_LOG(LogTemp, Log, TEXT("MyProceduralAudioComponent: Started playing procedural sound from bytes."));
+			// timer 로 스탑
+			GetWorld()->GetTimerManager().SetTimer(StopAudioTimerHandle, this, &UAC_Audio::StopPlayback, Duration, false);
 		}
 		else
 		{
@@ -176,9 +205,153 @@ void UAC_Audio::PlayAudioFromBytes(const TArray<uint8>& AudioBytes)
 	}
 }
 
+void UAC_Audio::AddAudioDataChunk(const TArray<uint8>& AudioBytes, bool bIsLastChunk)
+{
+	if (AudioBytes.Num() < 44)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("UAC_Audio: Received audio data is too small to be a valid WAV chunk. Size: %d"), AudioBytes.Num());
+		return;
+	}
+
+	if (AssembledPCMData.Num() == 0)
+	{
+		int32 CurrentOffset = 12; 
+		bool bFoundFmt = false;
+
+		// 'fmt ' 청크를 찾기 위한 루프
+		while (CurrentOffset < AudioBytes.Num() - 8) 
+		{
+			char ChunkID[5];
+			FMemory::Memcpy(ChunkID, AudioBytes.GetData() + CurrentOffset, 4);
+			ChunkID[4] = '\0'; 
+
+			int32 ChunkSize = 0;
+			FMemory::Memcpy(&ChunkSize, AudioBytes.GetData() + CurrentOffset + 4, sizeof(int32));
+
+			if (FString(ChunkID).Equals(TEXT("fmt "), ESearchCase::CaseSensitive))
+			{
+				FMemory::Memcpy(&NumChannels, AudioBytes.GetData() + CurrentOffset + 8 + 2, sizeof(int16));
+				FMemory::Memcpy(&SampleRate, AudioBytes.GetData() + CurrentOffset + 8 + 4, sizeof(int32));
+				FMemory::Memcpy(&BitsPerSample, AudioBytes.GetData() + CurrentOffset + 8 + 14, sizeof(int16));
+
+				bFoundFmt = true;
+				UE_LOG(LogTemp, Log, TEXT("UAC_Audio: Parsed WAV Header - SampleRate: %d, Channels: %d, BitsPerSample: %d"), SampleRate, NumChannels, BitsPerSample);
+				break;
+			}
+			CurrentOffset += (8 + ChunkSize); 
+		}
+
+		if (!bFoundFmt)
+		{
+			UE_LOG(LogTemp, Error, TEXT("UAC_Audio: 'fmt ' chunk not found in the first audio chunk. Cannot parse audio format."));
+			return;
+		}
+	}
+
+	int32 DataChunkStartOffset = -1;
+	int32 CurrentOffsetForData = 12;
+
+	while (CurrentOffsetForData < AudioBytes.Num() - 8)
+	{
+		char ChunkID[5];
+		FMemory::Memcpy(ChunkID, AudioBytes.GetData() + CurrentOffsetForData, 4);
+		ChunkID[4] = '\0';
+
+		int32 ChunkSize = 0;
+		FMemory::Memcpy(&ChunkSize, AudioBytes.GetData() + CurrentOffsetForData + 4, sizeof(int32));
+
+		if (FString(ChunkID).Equals(TEXT("data"), ESearchCase::CaseSensitive))
+		{
+			DataChunkStartOffset = CurrentOffsetForData + 8;
+			break;
+		}
+		CurrentOffsetForData += (8 + ChunkSize);
+	}
+
+	if (DataChunkStartOffset != -1)
+	{
+		const uint8* PCMDataPtr = AudioBytes.GetData() + DataChunkStartOffset;
+		const int32 PCMDataSize = AudioBytes.Num() - DataChunkStartOffset;
+
+		if (PCMDataSize > 0)
+		{
+			AssembledPCMData.Append(PCMDataPtr, PCMDataSize);
+			UE_LOG(LogTemp, Log, TEXT("UAC_Audio: Appended %d bytes of PCM data. Total assembled size: %d"), PCMDataSize, AssembledPCMData.Num());
+		}
+		else
+		{
+			UE_LOG(LogTemp, Warning, TEXT("UAC_Audio: No PCM data found in this chunk after WAV header parsing."));
+		}
+	}
+	else
+	{
+		UE_LOG(LogTemp, Error, TEXT("UAC_Audio: 'data' chunk not found in the received audio chunk. Cannot extract PCM data."));
+	}
+
+	if (bIsLastChunk)
+	{
+		PlayAssembledWav();
+	}
+}
+
+void UAC_Audio::PlayAssembledWav()
+{
+	if (SampleRate == 0 || NumChannels == 0 || BitsPerSample == 0 || AssembledPCMData.Num() == 0)
+	{
+		UE_LOG(LogTemp, Error, TEXT("UAC_Audio: Cannot play assembled WAV. Missing audio format info (SampleRate: %d, Channels: %d, Bits: %d) or no PCM data (Size: %d)."), SampleRate, NumChannels, BitsPerSample, AssembledPCMData.Num());
+		return;
+	}
+	if (IsPlaying())
+	{
+		Stop();
+	}
+	if (AssembledSoundWave)
+	{
+		AssembledSoundWave->MarkAsGarbage();
+		AssembledSoundWave = nullptr;
+	}
+
+	AssembledSoundWave = NewObject<USoundWave>(this);
+	if (AssembledSoundWave)
+	{
+		AssembledSoundWave->RawPCMDataSize = AssembledPCMData.Num();
+		AssembledSoundWave->RawPCMData = (uint8*)FMemory::Memcpy(FMemory::Malloc(AssembledPCMData.Num()), AssembledPCMData.GetData(), AssembledPCMData.Num());
+
+		AssembledSoundWave->SetSampleRate(SampleRate);
+		AssembledSoundWave->NumChannels = NumChannels;
+
+		AssembledSoundWave->Duration = (float)AssembledPCMData.Num() / (SampleRate * NumChannels * (BitsPerSample / 8));
+
+		SetSound(AssembledSoundWave);
+		Play();
+
+		UE_LOG(LogTemp, Log, TEXT("UAC_Audio: Started playing assembled WAV. Duration: %.2f seconds."), AssembledSoundWave->Duration);
+	}
+	else
+	{
+		UE_LOG(LogTemp, Error, TEXT("UAC_Audio: Failed to create USoundWave for assembled data."));
+	}
+}
+
+
 void UAC_Audio::OnAudioPlaybackFinished()
 {
 	UE_LOG(LogTemp, Log, TEXT("MyProceduralAudioComponent: Audio playback finished!"));
 
-	OnAudioPlayFinishedEvent.Broadcast();
+	OnAudioPlaybackEnded.Broadcast();
+	AssembledPCMData.Empty();
+	if (AssembledSoundWave)
+	{
+		AssembledSoundWave->MarkAsGarbage();
+		AssembledSoundWave = nullptr;
+	}
+}
+
+void UAC_Audio::StopPlayback()
+{
+	if (IsPlaying())
+	{
+		Stop();
+		UE_LOG(LogTemp, Log, TEXT("UAC_Audio: Playback stopped by timer."));
+	}
 }
