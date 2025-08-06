@@ -18,7 +18,7 @@ class GOGOHUNTERS_API UCTutorialUI : public UUserWidget
 public:
 	// 튜토리얼 표시
 	UFUNCTION(BlueprintCallable, Category = "Tutorial UI")
-	void ShowTutorial(const FTutorialStepData& StepData);
+	void ShowTutorial(const FCTutorialData& StepData);
 
 	UFUNCTION(BlueprintCallable, Category = "Tutorial UI")
 	void HideTutorial();
@@ -32,7 +32,7 @@ private:
 	UPROPERTY(meta = (BindWidget))
 	UButton* SkipButton;
 
-	FTutorialStepData CurrentStepData;
+	FCTutorialData CurrentStepData;
 
 	// 버튼 이벤트
 	UFUNCTION()

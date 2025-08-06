@@ -14,11 +14,6 @@ void ACTutorialManager::BeginPlay()
 	LoadTutorialProgress(); // 시작 시 진행상황 불러오기
 }
 
-void ACTutorialManager::Tick(float DeltaTime)
-{
-	Super::Tick(DeltaTime);
-}
-
 void ACTutorialManager::StartTutorial(const FString& StepID)
 {
 	if (!TutorialDataTable) return;
@@ -54,11 +49,11 @@ void ACTutorialManager::EndTutorial()
 void ACTutorialManager::LoadTutorialStep(const FString& StepID)
 {
 	if (!TutorialDataTable) return;
-	CurrentStep = FTutorialStepData();
+	CurrentStep = FCTutorialData();
 	TArray<FName> RowNames = TutorialDataTable->GetRowNames();
 	for (const FName& RowName : RowNames)
 	{
-		FTutorialStepData* Step = TutorialDataTable->FindRow<FTutorialStepData>(RowName, TEXT("TutorialLoad"));
+		FCTutorialData* Step = TutorialDataTable->FindRow<FCTutorialData>(RowName, TEXT("TutorialLoad"));
 		if (Step && Step->StepID == StepID)
 		{
 			CurrentStep = *Step;

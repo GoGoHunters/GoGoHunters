@@ -6,13 +6,14 @@
 #include "GameFramework/SaveGame.h"
 #include "CTutorialManager.generated.h"
 
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnTutorialStepChanged, const FTutorialStepData&, StepData);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnTutorialStepChanged, const FCTutorialData&, StepData);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnTutorialCompleted);
 
 UCLASS()
 class GOGOHUNTERS_API ACTutorialManager : public AActor
 {
 	GENERATED_BODY()
+	
 public:
 	// 튜토리얼 시작/중지
 	UFUNCTION(BlueprintCallable, Category = "Tutorial")
@@ -26,7 +27,7 @@ public:
 	UFUNCTION(BlueprintPure, Category = "Tutorial")
 	bool IsTutorialActive() const { return bIsActive; }
 	UFUNCTION(BlueprintPure, Category = "Tutorial")
-	FTutorialStepData GetCurrentStep() const { return CurrentStep; }
+	FCTutorialData GetCurrentStep() const { return CurrentStep; }
 	UFUNCTION(BlueprintPure, Category = "Tutorial")
 	bool IsTutorialCompleted(const FString& StepID) const;
 
@@ -44,7 +45,7 @@ private:
 	// 현재 상태
 	bool bIsActive = false;
 	FString CurrentStepID;
-	FTutorialStepData CurrentStep;
+	FCTutorialData CurrentStep;
 
 	// 완료된 튜토리얼 관리
 	TMap<FString, bool> CompletedTutorials;
@@ -52,12 +53,9 @@ private:
 
 	const FString TutorialSaveSlot = TEXT("TutorialSaveSlot");
 
-public:
 	ACTutorialManager();
 	virtual void BeginPlay() override;
-	virtual void Tick(float DeltaTime) override;
-
-private:
+	
 	void LoadTutorialStep(const FString& StepID);
 	void EndTutorial();
 	void SaveTutorialProgress();

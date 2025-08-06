@@ -5,7 +5,7 @@
 #include "CTutorialData.generated.h"
 
 USTRUCT(BlueprintType)
-struct FTutorialStepData : public FTableRowBase
+struct FCTutorialData : public FTableRowBase
 {
 	GENERATED_BODY()
 

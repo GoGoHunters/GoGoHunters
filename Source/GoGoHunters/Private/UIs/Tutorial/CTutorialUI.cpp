@@ -13,7 +13,7 @@ void UCTutorialUI::NativeConstruct()
 		SkipButton->OnClicked.AddDynamic(this, &UCTutorialUI::OnSkipButtonClicked);
 }
 
-void UCTutorialUI::ShowTutorial(const FTutorialStepData& StepData)
+void UCTutorialUI::ShowTutorial(const FCTutorialData& StepData)
 {
 	CurrentStepData = StepData;
 	if (TutorialImage && StepData.TutorialImage)

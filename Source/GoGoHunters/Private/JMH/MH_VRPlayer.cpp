@@ -120,16 +120,19 @@ void AMH_VRPlayer::BeginPlay()
 		{
 			RelicsGroundRefs.Add(*It);
 		}
+	}
 
+	if(CurrentLevel == "LV_TestExcavation")
+	{
 		FActorSpawnParameters SpawnParams;
 		SpawnParams.Owner = this;
+
+		FVector SpawnLocation = FVector::ZeroVector;
+		FRotator SpawnRotation = FRotator::ZeroRotator;
 
 		// Excavation Phase UI 
 		if (ExcavationUIActorClass)
 		{
-			FVector SpawnLocation = FVector::ZeroVector;
-			FRotator SpawnRotation = FRotator::ZeroRotator;
-
 			ExcavationUIActor = GetWorld()->SpawnActor<AExcavationWidgetActor>(ExcavationUIActorClass, SpawnLocation, SpawnRotation, SpawnParams);
 			if (ExcavationUIActor)
 			{
