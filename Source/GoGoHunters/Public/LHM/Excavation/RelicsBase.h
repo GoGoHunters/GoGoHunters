@@ -61,7 +61,12 @@ protected:
 	int32 RelicTag = -1;
 
 // 탐지
+public:
+	bool GetIsDetected() const { return bIsDetected; }
+	void SetIsDetected(bool bDetected) { bIsDetected = bDetected; }
 protected:
+	bool bIsDetected = false;
+
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	TSubclassOf<class AExcavationMarker> MarkerClass;
 

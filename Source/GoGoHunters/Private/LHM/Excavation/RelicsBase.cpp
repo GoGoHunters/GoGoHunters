@@ -153,10 +153,9 @@ void ARelicsBase::ReduceDustOpacity(const FVector& BrushLocation, float Amount, 
     UMaterialInstanceDynamic* MID = DecalMIDs[Closest];
     float Current;
     MID->GetScalarParameterValue(FMaterialParameterInfo(OpacityParameterName), Current);
-    //Opacity = FMath::Clamp(Opacity - Amount, 0.0f, 1.0f);
     float NewOpacity = FMath::Clamp(Current - Amount, 0.0f, 1.0f);
-    MID->SetScalarParameterValue(OpacityParameterName, NewOpacity);
-	//if (BrushingUI) BrushingUI->UpdateDecalProgress(Closest, Opacity);
+    if (NewOpacity <= 0.2f) NewOpacity = 0.0f;
+	MID->SetScalarParameterValue(OpacityParameterName, NewOpacity);
     
     // 제거된 양만큼 남은 총합 감소
     TotalRemainingOpacity -= (Current - NewOpacity);
@@ -176,15 +175,62 @@ void ARelicsBase::ReduceDustOpacity(const FVector& BrushLocation, float Amount, 
     //UE_LOG(LogTemp, Log, TEXT("[Debug] Decal Opacity value: %f"), Opacity);
 
     // 데칼 제거
-    if (Current <= 0.0f)
+    if (NewOpacity <= 0.2f)
     {
         Closest->DestroyComponent();
+
+        // [1] Decal 제거 및 관련 맵 정리
+        UStaticMeshComponent* ParentMesh = DecalToMeshMap.FindRef(Closest);
         DustDecals.Remove(Closest);
         DecalMIDs.Remove(Closest);
         DecalToMeshMap.Remove(Closest);
 
-		UGameplayStatics::PlaySound2D(GetWorld(), DecalRemovalSFX);
+        // [2] 남은 데칼 중 ParentMesh에 붙어있는 게 있는지 검사
+        bool bShouldChangeColor = false;
 
+        if (ParentMesh == RelicsMeshes[0])
+        {
+			// RelicMesh_1의 경우: 데칼이 모두 제거된 경우에만 색상 변경
+            bool bAllRemoved = true;
+            for (const auto& Pair : DecalToMeshMap)
+            {
+                if (Pair.Value == RelicsMeshes[0] && Pair.Key != Closest)
+                {
+                    bAllRemoved = false;
+                    break;
+                }
+            }
+
+            if (bAllRemoved)
+            {
+                bShouldChangeColor = true;
+            }
+        }
+        else if (ParentMesh) // RelicMesh_2~8
+        {
+            bShouldChangeColor = true;
+        }
+
+        // [3] 붙어있는 데칼이 모두 제거된 경우만 머티리얼 색상 변경
+        if (bShouldChangeColor && ParentMesh)
+        {
+            UMaterialInterface* MatInterface = ParentMesh->GetOverlayMaterial();
+            if (MatInterface)
+            {
+                UMaterialInstanceDynamic* OverlayMID = Cast<UMaterialInstanceDynamic>(MatInterface);
+                if (!OverlayMID)
+                {
+                    OverlayMID = UMaterialInstanceDynamic::Create(MatInterface, this);
+                    ParentMesh->SetOverlayMaterial(OverlayMID);
+                }
+
+                // 색상 변경
+                OverlayMID->SetVectorParameterValue(FName("Color"), FLinearColor(1.0f, 1.0f, 1.0f, 1.0f));
+            }
+        }
+
+		// [4] 효과음 및 피드백
+		UGameplayStatics::PlaySound2D(GetWorld(), DecalRemovalSFX);
         CheckAllDelcalsRemoved();
 		if (Brush) Brush->StopFeedback();
     }
@@ -207,20 +253,6 @@ void ARelicsBase::CheckAllDelcalsRemoved()
 void ARelicsBase::SetBrushingUI(class UBrushingUI* InBrushingUI)
 {
     BrushingUI = InBrushingUI;
-    //if (BrushingUI)
-    //{
-    //    BrushingUI->CreateDecalWidgets(DustDecals);
-    //    // 초기 오파시티로 UI 갱신
-    //    for (UDecalComponent* Decal : DustDecals)
-    //    {
-    //        if (Decal && DecalMIDs.Contains(Decal))
-    //        {
-    //            float Opacity = 1.0f;
-    //            DecalMIDs[Decal]->GetScalarParameterValue(FMaterialParameterInfo(OpacityParameterName), Opacity);
-    //            BrushingUI->UpdateDecalProgress(Decal, Opacity);
-    //        }
-    //    }
-    //}
 }
 
 UStaticMeshComponent* ARelicsBase::GetRelicMeshByDecal(UDecalComponent* Decal) const

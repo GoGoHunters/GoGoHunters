@@ -26,14 +26,14 @@
 #include "LHM/Excavation/ExcavationWidgetActor.h"
 #include "LHM/Excavation/BrushTool.h"
 #include "LHM/Excavation/TweezersTool.h"
-#include "HeadMountedDisplayFunctionLibrary.h"
 
 AMH_VRPlayer::AMH_VRPlayer()
 {
 	PrimaryActorTick.bCanEverTick = true;
-
+	
+	CHelpers::CreateComponent<USceneComponent>(this, &VRCompRoot, "CameraRoot", RootComponent);
 	VRCamera = CreateDefaultSubobject<UCameraComponent>(TEXT("VRCamera"));
-	VRCamera->SetupAttachment(RootComponent);
+	VRCamera->SetupAttachment(VRCompRoot);
 
 	TeleportCircleA = CreateDefaultSubobject<UNiagaraComponent>(TEXT("TeleportCircle"));
 	TeleportCircleA->SetupAttachment(RootComponent);
@@ -41,13 +41,13 @@ AMH_VRPlayer::AMH_VRPlayer()
 	TeleportUIComponent = CreateDefaultSubobject<UNiagaraComponent>(TEXT("TeleportUIComponent"));
 	TeleportUIComponent->SetupAttachment(RootComponent);
 
-	CHelpers::CreateComponent<UMotionControllerComponent>(this, &RHandController, "RHandController", RootComponent);
+	CHelpers::CreateComponent<UMotionControllerComponent>(this, &RHandController, "RHandController", VRCompRoot);
 	RHandController->SetTrackingMotionSource(FName("Right"));
-	CHelpers::CreateComponent<UMotionControllerComponent>(this, &LHandController, "LHandController", RootComponent);
+	CHelpers::CreateComponent<UMotionControllerComponent>(this, &LHandController, "LHandController", VRCompRoot);
 	LHandController->SetTrackingMotionSource(FName("Left"));
-	CHelpers::CreateComponent<UMotionControllerComponent>(this, &RAimMotionController, "RAimMotionController", RootComponent);
+	CHelpers::CreateComponent<UMotionControllerComponent>(this, &RAimMotionController, "RAimMotionController", VRCompRoot);
 	RAimMotionController->SetTrackingMotionSource(FName("RightAim"));
-	CHelpers::CreateComponent<UMotionControllerComponent>(this, &LAimMotionController, "LAimMotionController", RootComponent);
+	CHelpers::CreateComponent<UMotionControllerComponent>(this, &LAimMotionController, "LAimMotionController", VRCompRoot);
 	LAimMotionController->SetTrackingMotionSource(FName("LeftAim"));
 	CHelpers::CreateComponent<UWidgetInteractionComponent>(this, &RWidgetInteractionComponent, "RWidgetInteractionComponent", RAimMotionController);
 
@@ -139,12 +139,6 @@ void AMH_VRPlayer::BeginPlay()
 		}
 	}
 #pragma endregion 발굴 레벨에서만 초기화
-
-	if (UHeadMountedDisplayFunctionLibrary::IsHeadMountedDisplayEnabled())
-	{
-		UHeadMountedDisplayFunctionLibrary::SetTrackingOrigin(EHMDTrackingOrigin::Stage);
-		UHeadMountedDisplayFunctionLibrary::ResetOrientationAndPosition();		
-	}
 }
 
 // Called every frame
@@ -300,7 +294,9 @@ void AMH_VRPlayer::F_TeleportEnd(const struct FInputActionValue& Value)
 		FVector OutLocation;
 		if (TeleportComponent->CompleteTeleport(OutLocation))
 		{
-			SetActorLocation(OutLocation + FVector(0.f, 0.f, 100.f));
+			FVector AddHeight = FVector(
+				0, 0, GetCapsuleComponent()->GetScaledCapsuleHalfHeight() + AdditiveTeleportHeight);
+			SetActorLocation(OutLocation + AddHeight);
 			TeleportDistanceFactor = 1.0f;
 		}
 

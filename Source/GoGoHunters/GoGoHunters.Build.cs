@@ -21,8 +21,7 @@ public class GoGoHunters : ModuleRules
             "SignalProcessing",
             "Json",
             "JsonUtilities",
-            "UMG", "Slate", "SlateCore",
-            "XRBase"
+            "UMG", "Slate", "SlateCore"
         });
         PrivateDependencyModuleNames.AddRange(new string[] {
             "AudioMixer",
