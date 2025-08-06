@@ -56,6 +56,8 @@ public:
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
+	USceneComponent* VRCompRoot;
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
 	class UCameraComponent* VRCamera;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
@@ -315,7 +317,6 @@ private:
 	// 인터렉션 VFX
 	UPROPERTY(EditDefaultsOnly)
 	UNiagaraComponent* LineTraceEffectComponent;
-
-	UPROPERTY(EditDefaultsOnly, Category=VR, BlueprintReadOnly, meta=(AllowPrivateAccess))
-	float HalfHeight = 50;
+	UPROPERTY(EditDefaultsOnly)
+	float AdditiveTeleportHeight = 10.f;
 };
