@@ -1,4 +1,4 @@
-// Fill out your copyright notice in the Description page of Project Settings.
+ // Fill out your copyright notice in the Description page of Project Settings.
 
 #pragma once
 
@@ -8,6 +8,7 @@
 #include "AudioCaptureCore.h" 
 #include "AudioCaptureDeviceInterface.h" 
 #include "Misc/Paths.h" 
+#include "Containers/Queue.h"
 
 #include "AudioCaptureComponent.h"
 #include "AudioMixerBlueprintLibrary.h"
@@ -21,6 +22,7 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnMicrophoneDataCaptured, const TAr
 
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnRecordingStateChanged, bool, bIsRecording);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnRecordingEndedDelegate);
 
 
 namespace WavHeaderUtils
@@ -64,8 +66,6 @@ private:
 	UPROPERTY(EditAnywhere, Category = "AudioRecording")
 	int32 SendBufferThresholdSamples = 48000;
 
-
-
 	UFUNCTION()
 	void HandleAudioEnvelopeValue(const float Volume);
 
@@ -106,7 +106,10 @@ public :
 	UFUNCTION(BlueprintImplementableEvent, Category = "AudioCapture")
 	void StartAudioCapture(UAudioCaptureComponent* AudioCaptureComponent);
 
-
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "AudioCapture")
+	bool isReadyToRecording = false;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "AudioCapture")
+	bool isWaitForServer = false;
 
 	UPROPERTY(BlueprintAssignable, Category = "AudioRecording")
 	FOnRecordFileSaved OnRecordFileSavedEvent;
@@ -121,6 +124,8 @@ public :
 	FOnRecordingStateChanged OnRecordingStateChanged; // 녹음 시작/중지 상태 변경 시 호출
 
 
+	UPROPERTY(BlueprintAssignable, Category = "AudioRecording")
+	FOnRecordingEndedDelegate OnRecordingEnded;
 };
 
 // https://dev.epicgames.com/documentation/en-us/unreal-engine/API/Runtime/Core/Misc 참조하기 최대 성능

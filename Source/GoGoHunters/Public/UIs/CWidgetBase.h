@@ -22,6 +22,14 @@ public:
 	void BlindActive(bool bUseBlind);
 	UFUNCTION(BlueprintNativeEvent)
 	void K2_PlayUiAnim(bool bIsReverse);
+
+	/////
+	UFUNCTION()
+	void PlaySystemMessageAnim();
+	
+	UPROPERTY(meta = (BindWidgetAnimOptional), Transient)
+	UWidgetAnimation* Anim_ShowMessage;
+	
 	
 protected:
 	UPROPERTY(BlueprintReadOnly, meta=(BindWidget))
@@ -34,7 +42,39 @@ protected:
 	TObjectPtr<ACUiActor> UiActor;
 
 	virtual void NativeConstruct() override;
+	
 private:
+	//MainUI//////
+	UPROPERTY(meta=(BindWidgetOptional))
+	class UCanvasPanel* Can_SystemMessage;
+	
+	UPROPERTY(meta=(BindWidgetOptional))
+	TObjectPtr<UButton> Btn_Tami;
+	UPROPERTY(meta=(BindWidgetOptional))
+	TObjectPtr<UButton> Btn_Lobby;
+	UPROPERTY(meta=(BindWidgetOptional))
+	TObjectPtr<UButton> Btn_Settings;
+	UPROPERTY(meta=(BindWidgetOptional))
+	TObjectPtr<UButton> Btn_Exit;
+
+
+	UFUNCTION()
+	void OnBtnTamiClicked();
+	UFUNCTION()
+	void OnBtnLobbyClicked();
+	UFUNCTION()
+	void OnBtnSetClicked();
+	UFUNCTION()
+	void OnBtnExitClicked();
+
+	UPROPERTY(meta=(BindWidgetOptional))
+	class UMH_MessageUI* WBP_Message;
+
+	UFUNCTION()
+	void OnShowMessage();
+	UFUNCTION()
+	void OnHideMessage();
+	///////
 	
 	UFUNCTION()
 	void OnBtnAClicked();
