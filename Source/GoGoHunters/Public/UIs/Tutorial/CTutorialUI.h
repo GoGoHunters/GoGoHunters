@@ -19,26 +19,27 @@ public:
 	// 튜토리얼 표시
 	UFUNCTION(BlueprintCallable, Category = "Tutorial UI")
 	void ShowTutorial(const FCTutorialData& StepData);
-
 	UFUNCTION(BlueprintCallable, Category = "Tutorial UI")
-	void HideTutorial();
+	void EndTutorial();
+
+	UFUNCTION(BlueprintCallable)
+	void SetAI_Pawn(APawn* InPawn) { AI_Pawn = InPawn; }
 
 private:
 	virtual void NativeConstruct() override;
 
 	// UI 컴포넌트들
 	UPROPERTY(meta = (BindWidget))
-	UImage* TutorialImage;
+	UImage* ImgTutorial;
 	UPROPERTY(meta = (BindWidget))
-	UButton* SkipButton;
+	UButton* BtnSkip;
 
 	FCTutorialData CurrentStepData;
 
+	UPROPERTY()
+	TObjectPtr<APawn> AI_Pawn;
+	
 	// 버튼 이벤트
 	UFUNCTION()
 	void OnSkipButtonClicked();
-
-	// 애니메이션 및 사운드
-	void PlayTutorialAnimation(UAnimationAsset* Animation);
-	void PlayTutorialSound(USoundBase* Sound);
 };

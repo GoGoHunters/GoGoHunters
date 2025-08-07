@@ -6,9 +6,6 @@
 #include "GameFramework/SaveGame.h"
 #include "CTutorialManager.generated.h"
 
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnTutorialStepChanged, const FCTutorialData&, StepData);
-DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnTutorialCompleted);
-
 UCLASS()
 class GOGOHUNTERS_API ACTutorialManager : public AActor
 {
@@ -20,8 +17,6 @@ public:
 	void StartTutorial(const FString& StepID);
 	UFUNCTION(BlueprintCallable, Category = "Tutorial")
 	void StopTutorial();
-	UFUNCTION(BlueprintCallable, Category = "Tutorial")
-	void SkipTutorial();
 
 	// 상태 확인
 	UFUNCTION(BlueprintPure, Category = "Tutorial")
@@ -30,12 +25,6 @@ public:
 	FCTutorialData GetCurrentStep() const { return CurrentStep; }
 	UFUNCTION(BlueprintPure, Category = "Tutorial")
 	bool IsTutorialCompleted(const FString& StepID) const;
-
-	// 델리게이트
-	UPROPERTY(BlueprintAssignable, Category = "Tutorial")
-	FOnTutorialStepChanged OnTutorialStepChanged;
-	UPROPERTY(BlueprintAssignable, Category = "Tutorial")
-	FOnTutorialCompleted OnTutorialCompleted;
 
 private:
 	// 튜토리얼 데이터
@@ -48,7 +37,12 @@ private:
 	FCTutorialData CurrentStep;
 
 	// 완료된 튜토리얼 관리
+	UPROPERTY(VisibleInstanceOnly)
 	TMap<FString, bool> CompletedTutorials;
+
+	UPROPERTY()
+	TObjectPtr<APawn> TamiAI;
+	
 	void MarkTutorialCompleted(const FString& StepID);
 
 	const FString TutorialSaveSlot = TEXT("TutorialSaveSlot");

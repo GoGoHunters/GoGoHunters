@@ -1,4 +1,6 @@
 #include "LHJ/Tutorial/CTutorialManager.h"
+
+#include "EngineUtils.h"
 #include "UIs/Tutorial/CTutorialUI.h"
 #include "Engine/DataTable.h"
 #include "Kismet/GameplayStatics.h"
@@ -12,6 +14,15 @@ void ACTutorialManager::BeginPlay()
 {
 	Super::BeginPlay();
 	LoadTutorialProgress(); // 시작 시 진행상황 불러오기
+
+	for (TActorIterator<APawn> It(GetWorld(), APawn::StaticClass()); It; ++It)
+	{
+		if (IsValid(*It) && (*It)->ActorHasTag(FName("Tami")))
+		{
+			TamiAI = *It;
+			break;
+		}
+	}
 }
 
 void ACTutorialManager::StartTutorial(const FString& StepID)
@@ -22,14 +33,18 @@ void ACTutorialManager::StartTutorial(const FString& StepID)
 	if (CurrentStep.StepID.IsEmpty()) return;
 	bIsActive = true;
 	CurrentStepID = StepID;
-	OnTutorialStepChanged.Broadcast(CurrentStep); // 시작 델리게이트 호출
-}
 
-void ACTutorialManager::SkipTutorial()
-{
-	if (!bIsActive) return;
-	bIsActive = false;
-	EndTutorial(); // 스킵 시 바로 종료 처리(델리게이트 미사용)
+	if (TamiAI)
+	{
+		// 블루프린트 함수 이름
+		FName FunctionName(TEXT("StartTutorial")); // 블루프린트에서 정의한 함수명
+
+		// 블루프린트 함수 가져오기
+		UFunction* Function = TamiAI->FindFunction(FunctionName);
+		if (Function)
+			// 블루프린트 함수 호출 (매개변수가 있는 경우)
+			TamiAI->ProcessEvent(Function, &CurrentStep);
+	}	
 }
 
 void ACTutorialManager::StopTutorial()
@@ -43,7 +58,6 @@ void ACTutorialManager::EndTutorial()
 {
 	MarkTutorialCompleted(CurrentStepID); // 진행상황 저장
 	SaveTutorialProgress();
-	OnTutorialCompleted.Broadcast(); // 종료 델리게이트 호출
 }
 
 void ACTutorialManager::LoadTutorialStep(const FString& StepID)

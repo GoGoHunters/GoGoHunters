@@ -2,45 +2,38 @@
 
 #include "Components/Button.h"
 #include "Components/Image.h"
-#include "Components/ProgressBar.h"
-#include "Components/TextBlock.h"
-#include "Kismet/GameplayStatics.h"
 
 void UCTutorialUI::NativeConstruct()
 {
 	Super::NativeConstruct();
-	if (SkipButton)
-		SkipButton->OnClicked.AddDynamic(this, &UCTutorialUI::OnSkipButtonClicked);
+	if (BtnSkip)
+		BtnSkip->OnClicked.AddDynamic(this, &UCTutorialUI::OnSkipButtonClicked);
 }
 
 void UCTutorialUI::ShowTutorial(const FCTutorialData& StepData)
 {
 	CurrentStepData = StepData;
-	if (TutorialImage && StepData.TutorialImage)
-		TutorialImage->SetBrushFromTexture(StepData.TutorialImage);
-	PlayTutorialAnimation(StepData.TutorialAnimation);
-	PlayTutorialSound(StepData.TutorialSound);
-	SetVisibility(ESlateVisibility::SelfHitTestInvisible);
+	if (ImgTutorial && StepData.TutorialImage)
+		ImgTutorial->SetBrushFromTexture(StepData.TutorialImage);
 }
 
-void UCTutorialUI::HideTutorial()
+void UCTutorialUI::EndTutorial()
 {
-	SetVisibility(ESlateVisibility::Collapsed);
+	if (ImgTutorial)
+		ImgTutorial->SetBrushFromTexture(nullptr);
+	CurrentStepData = FCTutorialData();
 }
 
 void UCTutorialUI::OnSkipButtonClicked()
 {
-	// 매니저에 SkipTutorial 호출 등
-}
+	if (!AI_Pawn) return;
+	
+	// 블루프린트 함수 이름
+	FName FunctionName(TEXT("SkipTutorial")); // 블루프린트에서 정의한 함수명
 
-void UCTutorialUI::PlayTutorialAnimation(UAnimationAsset* Animation)
-{
-	// 애니메이션 재생 로직 (예: UMG 애니메이션, 캐릭터 애니메이션 등)
+	// 블루프린트 함수 가져오기
+	UFunction* Function = AI_Pawn->FindFunction(FunctionName);
+	if (Function)
+		// 블루프린트 함수 호출 (매개변수가 없는 경우)
+		AI_Pawn->ProcessEvent(Function, nullptr);
 }
-
-void UCTutorialUI::PlayTutorialSound(USoundBase* Sound)
-{
-	if (Sound)
-		UGameplayStatics::PlaySound2D(this, Sound);
-}
-
