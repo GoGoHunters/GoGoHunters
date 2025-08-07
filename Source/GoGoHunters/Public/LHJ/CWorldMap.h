@@ -2,11 +2,10 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
+#include "CContinentData.h"
 #include "CWorldMap.generated.h"
 
 class ACContinentWidgetActor;
-class UDataTable;
-struct FCContinentData;
 
 UCLASS()
 class GOGOHUNTERS_API ACWorldMap : public AActor
