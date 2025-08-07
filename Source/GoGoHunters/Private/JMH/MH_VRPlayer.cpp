@@ -26,6 +26,7 @@
 #include "LHM/Excavation/ExcavationWidgetActor.h"
 #include "LHM/Excavation/BrushTool.h"
 #include "LHM/Excavation/TweezersTool.h"
+#include "Kismet/GameplayStatics.h"
 
 AMH_VRPlayer::AMH_VRPlayer()
 {
@@ -947,6 +948,9 @@ void AMH_VRPlayer::SetWidgetInteractionUsing(bool bUsing)
 		if(RWidgetInteractionComponent->IsOverFocusableWidget())
 		{
 			RWidgetInteractionComponent->ReleaseKey(EKeys::LeftMouseButton);
+
+			// UI 클릭 사운드 재생
+			if (UIClicked) UGameplayStatics::PlaySoundAtLocation(this, UIClicked, GetActorLocation());
 		}
 	}
 }
