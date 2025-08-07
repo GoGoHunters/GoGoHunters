@@ -4,6 +4,14 @@
 #include "JMH/MH_VRPlayer.h"
 #include "UIs/CWidgetBase.h"
 #include "UIs/Museum/CRelicCollectionWidget.h"
+#include "JMH/MH_MessageUI.h"
+
+UMH_MessageUI* ACUiActor::GetMessageWidget() const
+{
+	if (!MessageWidgetComponent) return nullptr;
+
+	return Cast<UMH_MessageUI>(MessageWidgetComponent->GetUserWidgetObject());
+}
 
 ACUiActor::ACUiActor()
 {
@@ -13,6 +21,7 @@ ACUiActor::ACUiActor()
 void ACUiActor::BeginPlay()
 {
 	Super::BeginPlay();	
+
 }
 
 void ACUiActor::Tick(float DeltaTime)
