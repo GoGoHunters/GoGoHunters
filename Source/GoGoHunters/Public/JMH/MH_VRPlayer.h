@@ -319,4 +319,11 @@ private:
 	UNiagaraComponent* LineTraceEffectComponent;
 	UPROPERTY(EditDefaultsOnly)
 	float AdditiveTeleportHeight = 10.f;
+
+#pragma region Sound Effects
+protected:
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="Sounds")
+    class USoundBase* UIClicked;
+	
+#pragma endregion
 };
