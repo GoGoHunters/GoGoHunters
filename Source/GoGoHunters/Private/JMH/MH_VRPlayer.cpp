@@ -22,6 +22,7 @@
 #include "JMH/CMuseumComponent.h"
 #include "LHJ/CRelicBase.h"
 #include "LHJ/CRelicCollectionWidgetActor.h"
+#include "LHJ/Tutorial/CTutorialManager.h"
 #include "LHM/Excavation/RelicsGround.h"
 #include "LHM/Excavation/ExcavationWidgetActor.h"
 #include "LHM/Excavation/BrushTool.h"
@@ -142,6 +143,24 @@ void AMH_VRPlayer::BeginPlay()
 		}
 	}
 #pragma endregion 발굴 레벨에서만 초기화
+
+	// 레벨에 있는 튜토리얼 매니저를 찾아서 저장
+	for (TActorIterator<ACTutorialManager> It(GetWorld(), ACTutorialManager::StaticClass()); It; ++It)
+	{
+		TutorialManager = *It;
+	}
+
+	if (TutorialManager)
+	{
+		// 로비 레벨에서 조작키 가이드
+		// 타미가 인사 먼저 진행하고 가이드 나오면 좋을듯함.
+		// ex) 안녕? 나는 너를 고고학자로 성장시켜줄 타미라고해~
+		//		(이후 조작키 가이드) 
+		if (CurrentLevel.ToLower().Contains("lobby"))
+		{
+			TutorialManager->StartTutorial("KEY_GUIDE");
+		}
+	}	
 }
 
 // Called every frame
