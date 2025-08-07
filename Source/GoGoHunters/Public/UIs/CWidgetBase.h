@@ -67,9 +67,6 @@ private:
 	UFUNCTION()
 	void OnBtnExitClicked();
 
-	UPROPERTY(meta=(BindWidgetOptional))
-	class UMH_MessageUI* WBP_Message;
-
 	UFUNCTION()
 	void OnShowMessage();
 	UFUNCTION()

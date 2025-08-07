@@ -29,20 +29,27 @@ void UCWidgetBase::NativeConstruct()
 
 void UCWidgetBase::OnShowMessage()
 {
-	if(!WBP_Message)GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green,TEXT("MessageUI11"));
-	if (WBP_Message)
-	{GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green,TEXT("MessageUI22"));
-		WBP_Message->OnCloseClicked.AddDynamic(this,&UCWidgetBase::OnHideMessage);
-		WBP_Message->SetMessage(NSLOCTEXT("UI", "ExitMessage", "고고헌터즈를 떠나시겠습니까?"));
-		WBP_Message->TargetLevel = FString("Exit");
-		WBP_Message->ShowButtons(true, true);
-		WBP_Message->SetVisibility(ESlateVisibility::Visible);
+	if(!UiActor) return;
+
+	if (UMH_MessageUI* MessageWidget = UiActor->GetMessageWidget())
+	{
+		MessageWidget->OnCloseClicked.AddDynamic(this, &UCWidgetBase::OnHideMessage);
+		MessageWidget->SetMessage(NSLOCTEXT("UI", "ExitMessage", "고고헌터즈를 떠나시겠습니까?"));
+		MessageWidget->TargetLevel = FString("Exit");
+		MessageWidget->ShowButtons(true, true);
+
+		UiActor->K2_PlayPopupUiAnim(false);
 	}
 }
 
 void UCWidgetBase::OnHideMessage()
 {
-	WBP_Message->SetVisibility(ESlateVisibility::Collapsed);
+	if (!UiActor) return;
+
+	if (UMH_MessageUI* MessageWidget = UiActor->GetMessageWidget())
+	{
+		UiActor->K2_PlayPopupUiAnim(true);
+	}
 }
 
 void UCWidgetBase::OnBtnAClicked()

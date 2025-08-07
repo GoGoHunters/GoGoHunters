@@ -7,6 +7,7 @@
 class UCWidgetBase;
 class UCRelicCollectionWidget;
 class AMH_VRPlayer;
+class UMH_MessageUI;
 
 UCLASS()
 class GOGOHUNTERS_API ACUiActor : public AActor
@@ -19,6 +20,13 @@ public:
 
 	UFUNCTION(BlueprintImplementableEvent, Category = "UI Event")
 	void K2_PlayPopupUiAnim(bool IsTurnOff);
+
+public:
+	UFUNCTION(BlueprintCallable)
+	UMH_MessageUI* GetMessageWidget() const;
+	
+	UPROPERTY(BlueprintReadWrite, VisibleAnywhere, Category = "UI", meta = (AllowPrivateAccess = "true"))
+	TObjectPtr<class UWidgetComponent> MessageWidgetComponent;
 
 private:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta=(AllowPrivateAccess))
