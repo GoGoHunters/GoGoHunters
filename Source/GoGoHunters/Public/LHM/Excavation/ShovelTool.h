@@ -60,6 +60,13 @@ public:
 	UFUNCTION()
 	void UpdateFeedback(FVector ImpactLocation);
 	
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="Digging")
-	class UHapticFeedbackEffect_Base* DigHapticEffect;
+protected:
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="Effects")
+	class UHapticFeedbackEffect_Base* DigHapticFX;
+	
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="Effects")
+	class UNiagaraSystem* DigFX;
+	
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="Effects")
+    class USoundBase* SoundFX;
 };

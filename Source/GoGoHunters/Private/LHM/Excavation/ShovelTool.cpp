@@ -10,6 +10,7 @@
 #include "EngineUtils.h"
 #include "JMH/MH_VRPlayer.h"
 #include "MotionControllerComponent.h"
+#include "../../../../Plugins/FX/Niagara/Source/Niagara/Public/NiagaraFunctionLibrary.h"
 
 // Sets default values
 AShovelTool::AShovelTool()
@@ -156,8 +157,27 @@ void AShovelTool::UpdateFeedback(FVector ImpactLocation)
 
 	// 햅틱 피드백 재생
 	APlayerController* PC = UGameplayStatics::GetPlayerController(this, 0);
-	if (PC && DigHapticEffect)
+	if (PC && DigHapticFX)
 	{ 
-		PC->PlayHapticEffect(DigHapticEffect, EControllerHand::Right, 1.0f, false);
+		PC->PlayHapticEffect(DigHapticFX, EControllerHand::Right, 1.0f, false);
+	}
+
+	// 나이아가라
+	if (DigFX)
+	{
+		UNiagaraFunctionLibrary::SpawnSystemAtLocation(
+			GetWorld(),
+			DigFX,
+			ImpactLocation,
+			FRotator::ZeroRotator,
+			FVector(1.0f),
+			true, true, ENCPoolMethod::AutoRelease, true
+		);
+	}
+
+	// 사운드 재생
+	if (SoundFX)
+	{
+		UGameplayStatics::PlaySoundAtLocation(this, SoundFX, ImpactLocation);
 	}
 }
