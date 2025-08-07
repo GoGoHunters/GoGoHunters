@@ -29,16 +29,16 @@ public:
 
 protected:
 	// 버튼 위젯
-	UPROPERTY(meta = (BindWidget))
+	UPROPERTY(BlueprintReadWrite,meta = (BindWidget))
 	class UButton* Btn_Tool1;
 
-	UPROPERTY(meta = (BindWidget))
+	UPROPERTY(BlueprintReadWrite, meta = (BindWidget))
 	class UButton* Btn_Tool2;
 
-	UPROPERTY(meta = (BindWidget))
+	UPROPERTY(BlueprintReadWrite, meta = (BindWidget))
 	class UButton* Btn_Tool3;
 	
-	UPROPERTY(meta = (BindWidget))
+	UPROPERTY(BlueprintReadWrite, meta = (BindWidget))
 	class UButton* Btn_Tool4;
 
 	// 바인딩 함수
@@ -53,7 +53,7 @@ protected:
 	
 	UFUNCTION()
 	void OnClick_TweezerTool();
-
+	
 private:
 	// ExcavationManager 찾기 및 연결
 	void FindAndConnectExcavationManager();

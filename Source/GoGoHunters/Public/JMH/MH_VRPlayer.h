@@ -55,7 +55,7 @@ public:
 	// Called to bind functionality to input
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
-	UPROPERTY(VisibleAnywhere)
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
 	class UCameraComponent* VRCamera;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
@@ -71,8 +71,6 @@ public:
 	UMotionControllerComponent* LAimMotionController;
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
 	UMotionControllerComponent* RAimMotionController;
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
-	UWidgetInteractionComponent* LWidgetInteractionComponent;
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
 	UWidgetInteractionComponent* RWidgetInteractionComponent;
 
@@ -152,22 +150,22 @@ public:
 	void ExcavationCollectStart();
 	void ExcavationCollectEnd();
 	
-	UPROPERTY()
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Excavation")
 	TSubclassOf<class ADetectorTool> DetectionToolClass;
 	UPROPERTY()
 	class ADetectorTool* DetectionTool;
 
-	UPROPERTY()
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Excavation")
 	TSubclassOf<class AShovelTool> ShovelToolClass;
 	UPROPERTY()
 	class AShovelTool* ShovelTool;
 	
-	UPROPERTY()
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Excavation")
 	TSubclassOf<class ABrushTool> BrushToolClass;
 	UPROPERTY()
 	class ABrushTool* BrushTool;
 
-	UPROPERTY()
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Excavation")
 	TSubclassOf<class ATweezersTool> TweezersToolClass;
 	UPROPERTY()
 	class ATweezersTool* TweezersTool;
@@ -175,7 +173,7 @@ public:
 	UPROPERTY()
 	TArray<class ARelicsGround*> RelicsGroundRefs;
 
-	UPROPERTY()
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Excavation")
 	TSubclassOf<class AExcavationWidgetActor> ExcavationUIActorClass;
 
 	UPROPERTY()
@@ -260,6 +258,11 @@ public:
 
 	UFUNCTION(BlueprintNativeEvent)
 	void ToggleMenu();
+
+	// LineTrace & WidgetInteraction Line Update Function
+	void UpdateDrawLineTraceEffect(const FVector& Start, const FVector& End);
+	const float GetWidgetInteractionDistance() const { return WidgetInteractionDistance; }
+	void SetUseLineTraceEffect(bool bUse);
 	
 private:
 	UPROPERTY()
@@ -293,4 +296,26 @@ private:
 
 	UPROPERTY()
 	AMH_ZoneBase* CurrentZone;
+
+	FString CurrentLevel="";
+
+	// ==================================
+	// Widget Interaction ReFactoring
+private:
+	UPROPERTY(EditDefaultsOnly, Category="UI")
+	float WidgetInteractionDistance = 400.f;
+	bool bInteracteAnyComponent = false;
+	
+	void SetWidgetInteractionUsing(bool bUsing);
+	bool IsPointingAtWidget();
+	void SetClickAndWidgetActivation(bool bUsing);
+	void SetWidgetInteractionClick(bool bPress);
+	void SetWidgetComponent(bool bSet);
+
+	// 인터렉션 VFX
+	UPROPERTY(EditDefaultsOnly)
+	UNiagaraComponent* LineTraceEffectComponent;
+
+	UPROPERTY(EditDefaultsOnly, Category=VR, BlueprintReadOnly, meta=(AllowPrivateAccess))
+	float HalfHeight = 50;
 };

@@ -28,7 +28,7 @@ ATweezersTool::ATweezersTool()
 		TweezersMeshR->SetStaticMesh(RMeshAsset.Object);
 		TweezersMeshR->SetupAttachment(RootComponent);
 		TweezersMeshR->SetCollisionResponseToChannel(ECC_Pawn, ECR_Ignore);
-		TweezersMeshL->bReceivesDecals = false;
+		TweezersMeshR->bReceivesDecals = false;
 	}
 
 	PickupBox = CreateDefaultSubobject<UBoxComponent>(TEXT("PickupBox"));
@@ -98,16 +98,23 @@ void ATweezersTool::OnBeginOverlap(UPrimitiveComponent* OverlappedComponent, AAc
 {
 	if (/*PickedRelic ||*/ !OtherActor || !OtherComp) return;
 
-	if (ARelicsBase* Relic = Cast<ARelicsBase>(OtherActor))
+	if (ARelicsBase* RelicsBase = Cast<ARelicsBase>(OtherActor))
 	{
-		for (UStaticMeshComponent* Mesh : Relic->RelicsMeshes)
+		for (UStaticMeshComponent* Relic : RelicsBase->RelicsMeshes)
 		{
-			if (OtherComp == Mesh)
+			if (OtherComp == Relic)
 			{
-				if (Mesh->ComponentTags.Contains("Collected")) return; // 이미 수거된 유물은 무시
+				// 이미 수거된 유물은 무시
+				if (Relic->ComponentTags.Contains("Collected"))
+				{
+					//UE_LOG(LogTemp, Warning, TEXT("[TweezersTool] Ignored already collected relic: %s"), *Relic->GetName());
+					RelicCandidate = nullptr;
+					CandidateMesh = nullptr;
+					return;
+				}
 			
-				RelicCandidate = Relic;
-				CandidateMesh = Mesh;
+				RelicCandidate = RelicsBase;
+				CandidateMesh = Relic;
 				break;
 			}
 		}
@@ -140,15 +147,15 @@ void ATweezersTool::SetIsPickingUp(bool _bIsPickingUp)
 		// 유물 놓기
 		if (PickedRelic)
 		{
-			for (UStaticMeshComponent* Mesh : PickedRelic->RelicsMeshes)
+			for (UStaticMeshComponent* Relic : PickedRelic->RelicsMeshes)
 			{
-				if (Mesh->GetAttachParent() == PickupPoint)
+				if (Relic->GetAttachParent() == PickupPoint)
 				{
-					Mesh->DetachFromComponent(FDetachmentTransformRules::KeepWorldTransform);
-					Mesh->SetSimulatePhysics(true);
-					Mesh->SetCollisionProfileName(FName("Relic_Physics"));
-					Mesh->SetGenerateOverlapEvents(true);
-					Mesh->BodyInstance.bUseCCD = true; // 빠르게 낙하 시 충돌 누락 방지
+					Relic->DetachFromComponent(FDetachmentTransformRules::KeepWorldTransform);
+					Relic->SetSimulatePhysics(true);
+					Relic->SetCollisionProfileName(FName("Relic_Physics"));
+					Relic->SetGenerateOverlapEvents(true);
+					Relic->BodyInstance.bUseCCD = true; // 빠르게 낙하 시 충돌 누락 방지
 
 					// 던지기
 					if (AttachBase)
@@ -160,7 +167,7 @@ void ATweezersTool::SetIsPickingUp(bool _bIsPickingUp)
 
 						if (!Direction.IsNearlyZero())
 						{
-							Mesh->SetPhysicsLinearVelocity(Direction * Speed);
+							Relic->SetPhysicsLinearVelocity(Direction * Speed);
 						}
 					}
 					//UE_LOG(LogTemp, Log, TEXT("[TweezersTool] Dropped relic mesh"));

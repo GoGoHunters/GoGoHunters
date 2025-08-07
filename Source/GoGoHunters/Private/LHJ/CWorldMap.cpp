@@ -67,26 +67,25 @@ void ACWorldMap::EnableCompOutline(UStaticMeshComponent* Comp)
 
 	if (PrevOutlinedComp && PrevOutlinedComp != Comp)
 	{
-		UMaterialInstanceDynamic* PrevDynMat = Cast<UMaterialInstanceDynamic>(PrevOutlinedComp->GetMaterial(0));
-		if (!PrevDynMat)
-		{
-			PrevDynMat = PrevOutlinedComp->CreateAndSetMaterialInstanceDynamic(0);
-		}
-		if (PrevDynMat)
-		{
-			PrevDynMat->SetVectorParameterValue("BC", FLinearColor(0.15f, 0.25f, 1.0f));
-		}
+		ResetPrevOutline();
 	}
 
 	UMaterialInstanceDynamic* DynMat = Cast<UMaterialInstanceDynamic>(Comp->GetMaterial(0));
 	if (!DynMat)
 	{
 		DynMat = Comp->CreateAndSetMaterialInstanceDynamic(0);
+		
+		UMaterialInterface* mat = Comp->GetMaterial(0);
+		FLinearColor color;
+		FName ParameterName = "Color";
+		if(mat->GetVectorParameterValue(ParameterName, color))
+			DynMat->SetVectorParameterValue(ParameterName, color);
+		DynMat->SetVectorParameterValue("BC", RecoverAdditiveChangeColor);
 	}
 
 	if (DynMat)
 	{
-		DynMat->SetVectorParameterValue("BC", FLinearColor(1.0f, 0.65f, 0.0f));
+		DynMat->SetVectorParameterValue("BC", ActiveAdditiveChangeColor);
 		PrevOutlinedComp = Comp;
 	}
 	
@@ -107,7 +106,7 @@ void ACWorldMap::ResetPrevOutline()
 		if (!DynMat)
 			DynMat = PrevOutlinedComp->CreateAndSetMaterialInstanceDynamic(0);
 		if (DynMat)
-			DynMat->SetVectorParameterValue("BC", FLinearColor(0.15f, 0.25f, 1.0f));
+			DynMat->SetVectorParameterValue("BC", RecoverAdditiveChangeColor);
 		PrevOutlinedComp = nullptr;
 	}
 }

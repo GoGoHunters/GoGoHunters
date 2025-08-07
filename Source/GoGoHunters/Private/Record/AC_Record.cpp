@@ -17,7 +17,6 @@ UAC_Record::UAC_Record()
 
     AudioCapture = CreateDefaultSubobject<UAudioCaptureComponent>(TEXT("AudioCaptureComponent"));
     AudioCapture->bAutoActivate = false;
-    AudioCapture->bOutputToBusOnly_DEPRECATED = true;
     AudioCapture->SetSubmixSend(nullptr, 0.0f);
 }
 
@@ -240,6 +239,10 @@ void UAC_Record::HandleAudioEnvelopeValue(const float Volume)
 {
     if (debugRecord)
         UE_LOG(LogTemp, Log, TEXT("HandleAudioEnvelopeValue: Volume = %f"), Volume);
+    if (!isReadyToRecording && !isRecording)
+        return;
+    if (isWaitForServer)
+        return;
     if (Volume > minVolume)
     {
         startRecordTime = GetWorld()->GetTimeSeconds();
@@ -312,6 +315,14 @@ void UAC_Record::EndRecordingVoice()
         AsyncTask(ENamedThreads::GameThread, [this, WavHeader]() {
             if (OnMicrophoneDataCaptured.IsBound())
                 OnMicrophoneDataCaptured.Broadcast(WavHeader);
+            });
+    }
+
+    if (OnRecordingEnded.IsBound())
+    {
+        AsyncTask(ENamedThreads::GameThread, [this]() {
+            if (OnRecordingEnded.IsBound())
+                OnRecordingEnded.Broadcast();
             });
     }
 }

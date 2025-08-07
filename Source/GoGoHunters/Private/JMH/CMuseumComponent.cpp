@@ -40,7 +40,7 @@ void UCMuseumComponent::BeginPlay()
 		if (UGI_Base* GI = Cast<UGI_Base>(UGameplayStatics::GetGameInstance(GetWorld())))
 		{
 			TArray<FCRelicData> RelicArray = GI->GetAllRelicData();
-			for (const FCRelicData& Data : RelicArray)
+			for (FCRelicData& Data : RelicArray)
 			{
 				if (!Data.IsPlace) continue;
 				if (Data.RelicTag == -1) continue;
@@ -53,9 +53,13 @@ void UCMuseumComponent::BeginPlay()
 				SpawnParams.Owner = OwnerPlayer;
 				SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
 
+				if (Data.PlaceArea)
+					Data.PlacedTransform.SetScale3D(Data.PlaceArea->CellUniformScale);
+				
 				ACRelicBase* RelicActor = GetWorld()->SpawnActor<ACRelicBase>(Local_RelicDetailData->RelicActorClass, Data.PlacedTransform, SpawnParams);
 				if (RelicActor)
 				{
+					RelicActor->SetActorScale3D(Data.PlacedTransform.GetScale3D());
 					RelicActor->InitializeAsset(Data, *Local_RelicDetailData);
 					RelicActor->Tags.Add("Grabable");
 					if (Data.PlaceArea) Data.PlaceArea->PlaceRelicAt(Data.PlacedTransform.GetLocation());
@@ -96,9 +100,14 @@ void UCMuseumComponent::OnMenuButtonClicked()
 
 void UCMuseumComponent::PreviewMode()
 {
+	if (!OwnerPlayer) return;
+	if (!OwnerPlayer->RWidgetInteractionComponent) return;
+
+	OwnerPlayer->SetUseLineTraceEffect(true);
+	
 	FHitResult outHit;
-	FVector start = OwnerPlayer->LAimMotionController->GetComponentLocation();
-	FVector end = start + OwnerPlayer->LAimMotionController->GetForwardVector() * 600.f;
+	FVector start = OwnerPlayer->RAimMotionController->GetComponentLocation();
+	FVector end = start + OwnerPlayer->RAimMotionController->GetForwardVector() * OwnerPlayer->GetWidgetInteractionDistance();
 	FCollisionQueryParams params;
 	params.AddIgnoredActor(OwnerPlayer);
 	bool bHit = GetWorld()->LineTraceSingleByChannel(outHit, start, end, ECC_GameTraceChannel6, params);;
@@ -140,18 +149,22 @@ void UCMuseumComponent::PreviewMode()
 				bCanPlace = true;				
 			}
 		}
+
+		end = outHit.ImpactPoint;
+		OwnerPlayer->UpdateDrawLineTraceEffect(start, end);
 	}
 	else
 	{
 		BuildTransform.SetLocation(end);
 		BuildTransform.SetRotation(FRotator::ZeroRotator.Quaternion());
-		// BuildTransform.SetRotation(BuildRotation.Quaternion());
 		BuildTransform.SetScale3D(FVector(1));
 		Relic->SetActorTransform(BuildTransform);
 		Relic->SetRelicMaterial(RelicRejectedMaterial);
 		bCanPlace = false;
 
 		PlaceArea = nullptr;
+		
+		OwnerPlayer->UpdateDrawLineTraceEffect(start, end);
 	}
 }
 
@@ -164,24 +177,17 @@ void UCMuseumComponent::SwitchState()
 	switch (MuseumState)
 	{
 	case EMuseumState::Display:
-		OwnerPlayer->LWidgetInteractionComponent->SetActive(false);
-		OwnerPlayer->LWidgetInteractionComponent->bEnableHitTesting = false;
-		OwnerPlayer->LWidgetInteractionComponent->bShowDebug = false;
 		OwnerPlayer->RWidgetInteractionComponent->SetActive(false);
 		OwnerPlayer->RWidgetInteractionComponent->bEnableHitTesting = false;
-		OwnerPlayer->RWidgetInteractionComponent->bShowDebug = false;
 		
 		bIsPreviewMode = false;
 		PreviewEnd();
+		OwnerPlayer->SetUseLineTraceEffect(false);
 		break;
+		
 	case EMuseumState::Decorate:
-		// OwnerPlayer->RelicCollectionWidget->SetHiddenInGame(false);
-		OwnerPlayer->LWidgetInteractionComponent->SetActive(true);
-		OwnerPlayer->LWidgetInteractionComponent->bEnableHitTesting = true;
-		OwnerPlayer->LWidgetInteractionComponent->bShowDebug = true;
 		OwnerPlayer->RWidgetInteractionComponent->SetActive(true);
 		OwnerPlayer->RWidgetInteractionComponent->bEnableHitTesting = true;
-		OwnerPlayer->RWidgetInteractionComponent->bShowDebug = true;
 		GrabComponent->RelicUnGrab();
 		break;
 	}
@@ -223,8 +229,8 @@ void UCMuseumComponent::PlayPreviewMode(const FCRelicData& InRelicData, const FC
 	RelicData = InRelicData;
 	RelicDetailData = InRelicDetailData;
 	bIsPreviewMode = true;
-	// TODO
-	// UI 숨기기
+	if (OnUiAnimPlay.IsBound())
+		OnUiAnimPlay.Execute(true);
 }
 
 void UCMuseumComponent::PlaceRelic()
@@ -240,6 +246,7 @@ void UCMuseumComponent::PlaceRelic()
 	auto placeActor = GetWorld()->SpawnActor<ACRelicBase>(RelicDetailData.RelicActorClass, BuildTransform, SpawnParams);
 	if (placeActor)
 	{
+		placeActor->SetActorScale3D(BuildTransform.GetScale3D());
 		PlaceArea->PlaceRelicAt(BuildTransform.GetLocation());
 		placeActor->InitializeAsset(RelicData, RelicDetailData);
 		placeActor->SetRelicMaterial();
@@ -259,8 +266,11 @@ void UCMuseumComponent::PlaceRelic()
 	}
 
 	PreviewEnd();
-	// TODO
-	// UI 다시 나오게 하기
+
+	if (OnRelicPlace.IsBound())
+		OnRelicPlace.Execute();
+	if (OnUiAnimPlay.IsBound())
+		OnUiAnimPlay.Execute(false);
 }
 
 void UCMuseumComponent::RegisterRelic(const int32& InRelicTag)

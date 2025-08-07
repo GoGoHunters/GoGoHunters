@@ -9,6 +9,7 @@
 #include "LHM/Excavation/CollectionBox.h"
 #include "Kismet/GameplayStatics.h"
 #include "EngineUtils.h"
+#include "Engine/TextureRenderTarget2D.h"
 
 // Sets default values
 ARelicsManager::ARelicsManager()
@@ -26,6 +27,10 @@ ARelicsManager::ARelicsManager()
 	ExcavationLand_01->SetHiddenInGame(false);
 	ExcavationLand_02->SetHiddenInGame(true);
 
+	ExcavationLand_01->SetRelativeLocation(FVector(0,0, 80)); // (X=0.000000,Y=0.000000,Z=80.000000)
+	ExcavationLand_02->SetRelativeLocation(FVector(-27.5, 2.3, 154)); // (X=-27.577550,Y=2.345972,Z=154.206319)
+	ExcavationLand_02->SetRelativeScale3D(FVector(0.66, 0.66, 0.45));
+
 	ExcavationLand_02->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
 	ExcavationLand_02->SetCollisionObjectType(ECC_WorldStatic);
 	ExcavationLand_02->SetCollisionResponseToAllChannels(ECR_Block);
@@ -36,7 +41,7 @@ ARelicsManager::ARelicsManager()
 	RelicsChild = CreateDefaultSubobject<UChildActorComponent>(TEXT("Relics"));
 	RelicsChild->SetupAttachment(RootComponent);
 	RelicsChild->SetChildActorClass(RelicsClass);
-	//RelicsChild->SetRelativeLocation(FVector(0, 0, 65));
+	RelicsChild->SetRelativeLocation(FVector(0.8, 2.3, 182)); // (X=-0.822835,Y=2.345971,Z=182.604621)
 
 	static ConstructorHelpers::FClassFinder<ARelicsGround> GroundClassFinder(TEXT("/Game/LHM/BP/Excavation/BP_RelicsGround"));
 	if (GroundClassFinder.Succeeded())
@@ -62,6 +67,13 @@ ARelicsManager::ARelicsManager()
 		GroundChild1->SetChildActorClass(RelicsGroundClass);
 		GroundChild2->SetChildActorClass(RelicsGroundClass);
 		//GroundChild3->SetChildActorClass(RelicsGroundClass);
+
+		GroundChild1->SetRelativeLocation(FVector(-69, -13.6, 221)); // (X=-69.138980,Y=-13.695208,Z=221.159939)
+		GroundChild1->SetRelativeScale3D(FVector(0.41));
+
+		GroundChild2->SetRelativeLocation(FVector(-69, -13.6, 201)); // (X=-69.138980,Y=-13.695208,Z=201.159939)
+		GroundChild2->SetRelativeScale3D(FVector(0.28));
+
 		GroundChildActors.Add(GroundChild1);
 		GroundChildActors.Add(GroundChild2);
 		//GroundChildActors.Add(GroundChild3);
@@ -171,6 +183,7 @@ void ARelicsManager::NotifyGroundProgress(float Progress)
 		if (IsValid(CurrentLayer))
 		{
 			CurrentLayer->Destroy();
+			GroundLayers[CurrentLayerIndex] = nullptr;
 			UE_LOG(LogTemp, Log, TEXT("Destroyed Ground Layer %d"), CurrentLayerIndex + 1);
 		}
 
@@ -234,6 +247,11 @@ bool ARelicsManager::GetCurrentDigProgress(float& OutProgress) const
 		if(!IsValid(Ground)) // Destroy된 레이어는 파괴 완료로 간주
 		{
 			TotalProgress += 1.0f;
+		}
+		else if (!IsValid(Ground->HeightFieldRT) || !Ground->HeightFieldRT->GetResource())
+		{
+			UE_LOG(LogTemp, Warning, TEXT("Layer %d HeightFieldRT is invalid after destroy"), i);
+			TotalProgress += 1.0f; // 이미 파괴된 걸로 간주
 		}
 		else
 		{
