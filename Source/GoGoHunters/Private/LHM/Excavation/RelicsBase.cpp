@@ -130,6 +130,26 @@ void ARelicsBase::ActivateMarker()
 	if (Marker) Marker->ActivateMarker();
 }
 
+UStaticMeshComponent* ARelicsBase::GetClosestRelicMesh(const FVector& BrushLocation) const
+{
+    UStaticMeshComponent* ClosestMesh = nullptr;
+    float MinDist = FLT_MAX;
+
+    for (UStaticMeshComponent* Mesh : RelicsMeshes)
+    {
+        if (!Mesh) continue;
+
+        float Dist = FVector::Dist(BrushLocation, Mesh->GetComponentLocation());
+        if (Dist < MinDist)
+        {
+            MinDist = Dist;
+            ClosestMesh = Mesh;
+        }
+    }
+
+    return ClosestMesh;
+}
+
 void ARelicsBase::ReduceDustOpacity(const FVector& BrushLocation, float Amount, ABrushTool& BrushRef)
 {
     UDecalComponent* Closest = nullptr;

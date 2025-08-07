@@ -5,6 +5,7 @@
 #include "Components/BoxComponent.h"
 #include "LHM/Excavation/RelicsBase.h"
 #include "MotionControllerComponent.h"
+#include "Kismet/GameplayStatics.h"
 
 // Sets default values
 ATweezersTool::ATweezersTool()
@@ -84,6 +85,9 @@ void ATweezersTool::PickUpRelic()
 	CandidateMesh->SetSimulatePhysics(false);
 	CandidateMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 	CandidateMesh->AttachToComponent(PickupPoint, FAttachmentTransformRules::SnapToTargetIncludingScale);
+
+	// 사운드 재생
+	if (SoundFX) UGameplayStatics::PlaySoundAtLocation(this, SoundFX, PickupPoint->GetComponentLocation());
 
 	PickedRelic = RelicCandidate;
 

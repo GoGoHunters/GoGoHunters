@@ -42,6 +42,12 @@ protected:
 	
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="Effects")
 	class UHapticFeedbackEffect_Base* HapticEffect;
+	
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="Effects")
+	class UNiagaraSystem* BrushFX;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="Effects")
+    class USoundBase* SoundEffect;
 
 public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
@@ -68,4 +74,10 @@ public:
 
 	void SetIsBrushing(bool _bIsBrushing);
 	bool bIsBrushing = false;
+
+// 사운드 재생 쿨타임
+private:
+	float LastSoundPlayTime = 0.0f;
+	float SoundCooldown = 2.0f; // 최소 간격 1.0초 (사운드 길이)
+	bool bIsSoundPlaying = false;
 };
