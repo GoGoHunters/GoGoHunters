@@ -13,6 +13,7 @@
 #include "LHM/Excavation/RelicsGround.h"
 #include "LHM/Excavation/RelicsManager.h"
 #include "LHM/Excavation/ExcavationManager.h"
+#include "LHJ/Tutorial/CTutorialManager.h"
 
 // Sets default values
 ADetectorTool::ADetectorTool()
@@ -64,6 +65,8 @@ void ADetectorTool::Tick(float DeltaTime)
 
 	if (bIsDetecting)
 	{
+		PlayTami1();
+
 		UpdateDetection(DeltaTime);
 	}
 }
@@ -157,6 +160,8 @@ void ADetectorTool::UpdateDetection(float DeltaTime)
 		DetectionUI->UpdateUI(DetectionProgress, false);
 	}
 
+	if (DetectionProgress >= 50.f) PlayTami2();
+
 	if (DetectionProgress >= 100.f)
 	{
 		// 해당 Relics를 관리하는 Manager 찾기
@@ -195,3 +200,20 @@ void ADetectorTool::UpdateDetection(float DeltaTime)
 	}
 }
 
+void ADetectorTool::PlayTami1()
+{
+	// 탐지기 처음 사용 시 타미 대사1 재생
+	if (!DetectionComp->IsPlayingTami1())
+	{
+		DetectionComp->PlayTami1();
+	}
+}
+
+void ADetectorTool::PlayTami2()
+{
+	// 유물 발견 전
+	if (!DetectionComp->IsPlayingTami2())
+	{
+		DetectionComp->PlayTami2();
+	}
+}

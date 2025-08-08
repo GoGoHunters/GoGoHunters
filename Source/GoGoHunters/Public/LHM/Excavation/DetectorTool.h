@@ -23,12 +23,14 @@ public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
-public:
 	void SetIsDetecting(bool _bIsDetecting);
-	bool bIsDetecting = false;
 
+protected:
 	void UpdateDetection(float DeltaTime);
 	void StopDetection();
+
+	void PlayTami1();
+	void PlayTami2();
 
 public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
@@ -37,16 +39,19 @@ public:
 	UPROPERTY()
 	class ARelicsBase* Relics;
 
+protected:
 	UPROPERTY()
 	class UDetectionComponent* DetectionComp;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	class UWidgetComponent* DetectionWidgetComp;
-	//UPROPERTY()
-	//TSubclassOf<class UDetectionUI> DetectionUIClass;
+
+	float DetectionProgress = 0.0f;
+
+private:
 	UPROPERTY()
 	class UDetectionUI* DetectionUI;
 
-	float DetectionProgress = 0.0f;
+	bool bIsDetecting = false;
 
 };

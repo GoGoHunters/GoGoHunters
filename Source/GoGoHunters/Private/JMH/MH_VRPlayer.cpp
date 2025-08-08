@@ -161,7 +161,7 @@ void AMH_VRPlayer::BeginPlay()
 		{
 			TutorialManager->StartTutorial("KEY_GUIDE");
 		}
-	}	
+	}
 }
 
 // Called every frame
@@ -423,7 +423,7 @@ void AMH_VRPlayer::TriggerInteractCompleted()
 	if (CurrentLevel.ToLower().Contains("lobby"))
 	{
 		// WorldMap Interaction 초기화
-		ResetWorldMapInteraction();			
+		ResetWorldMapInteraction();
 	}
 }
 
@@ -458,6 +458,15 @@ void AMH_VRPlayer::ExcavationTool1()
 				DetectionTool->AttachToComponent(HandRight, FAttachmentTransformRules::SnapToTargetNotIncludingScale, "Socket_Tool1");
 
 				SetPlayerState(EPlayerVRState::UsingTool);
+
+				// 튜토리얼
+				if (TutorialManager)
+				{
+					if (CurrentLevel.ToLower().Contains("Excavation"))
+					{
+						TutorialManager->StartTutorial("UsingDetector");
+					}
+				}
 			}
 		}
 	}
@@ -506,6 +515,15 @@ void AMH_VRPlayer::ExcavationTool2()
 				}
 
 				SetPlayerState(EPlayerVRState::UsingTool);
+
+				// 튜토리얼
+				if (TutorialManager)
+				{
+					if (CurrentLevel.ToLower().Contains("Excavation"))
+					{
+						TutorialManager->StartTutorial("UsingShovel");
+					}
+				}
 			}
 		}
 	}
@@ -548,6 +566,15 @@ void AMH_VRPlayer::ExcavationTool3()
 				BrushTool->AttachToComponent(HandRight, FAttachmentTransformRules::SnapToTargetNotIncludingScale, "Socket_Tool3");
 
 				SetPlayerState(EPlayerVRState::UsingTool);
+
+				// 튜토리얼
+				if (TutorialManager)
+				{
+					if (CurrentLevel.ToLower().Contains("Excavation"))
+					{
+						TutorialManager->StartTutorial("UsingBrush");
+					}
+				}
 			}
 		}
 	}
@@ -592,6 +619,15 @@ void AMH_VRPlayer::ExcavationTool4()
 				TweezersTool->SetAttachBase(RHandController);
 
 				SetPlayerState(EPlayerVRState::UsingTool);
+
+				// 튜토리얼
+				if (TutorialManager)
+				{
+					if (CurrentLevel.ToLower().Contains("Excavation"))
+					{
+						TutorialManager->StartTutorial("UsingTweezers");
+					}
+				}
 			}
 		}
 	}
