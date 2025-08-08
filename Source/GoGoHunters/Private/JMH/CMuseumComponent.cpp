@@ -426,7 +426,7 @@ bool UCMuseumComponent::FindNearbyPlaceArea(const FVector& Location, float Searc
     if (!Nearest) return false;
 
     // 가장 가까운 영역 시각화 (초록색 박스)
-    DrawDebugBox(GetWorld(), Nearest->GetActorLocation(), FVector(60.f), FColor::Green, false, 5.0f, 0, 4.0f);
+    // DrawDebugBox(GetWorld(), Nearest->GetActorLocation(), FVector(60.f), FColor::Green, false, 5.0f, 0, 4.0f);
 
     const TArray<FGridCell>& Cells = Nearest->GetGridCells();
     float MinDist = TNumericLimits<float>::Max();
