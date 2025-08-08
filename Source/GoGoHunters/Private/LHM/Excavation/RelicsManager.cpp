@@ -18,16 +18,16 @@ ARelicsManager::ARelicsManager()
 	PrimaryActorTick.bCanEverTick = true;
 
 	RootComponent = CreateDefaultSubobject<USceneComponent>(TEXT("RootScene"));
-	ExcavationLand_01 = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("ExcavationLand_01"));
+	//ExcavationLand_01 = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("ExcavationLand_01"));
 	ExcavationLand_02 = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("ExcavationLand_02"));
 
-	ExcavationLand_01->SetupAttachment(RootComponent);
+	//ExcavationLand_01->SetupAttachment(RootComponent);
 	ExcavationLand_02->SetupAttachment(RootComponent);
 
-	ExcavationLand_01->SetHiddenInGame(false);
+	//ExcavationLand_01->SetHiddenInGame(false);
 	ExcavationLand_02->SetHiddenInGame(true);
 
-	ExcavationLand_01->SetRelativeLocation(FVector(0,0, 80)); // (X=0.000000,Y=0.000000,Z=80.000000)
+	//ExcavationLand_01->SetRelativeLocation(FVector(0,0, 80)); // (X=0.000000,Y=0.000000,Z=80.000000)
 	ExcavationLand_02->SetRelativeLocation(FVector(-27.5, 2.3, 154)); // (X=-27.577550,Y=2.345972,Z=154.206319)
 	ExcavationLand_02->SetRelativeScale3D(FVector(0.66, 0.66, 0.45));
 
@@ -35,7 +35,7 @@ ARelicsManager::ARelicsManager()
 	ExcavationLand_02->SetCollisionObjectType(ECC_WorldStatic);
 	ExcavationLand_02->SetCollisionResponseToAllChannels(ECR_Block);
 	
-	ExcavationLand_01->bReceivesDecals = false;
+	//ExcavationLand_01->bReceivesDecals = false;
 	ExcavationLand_02->bReceivesDecals = false;
 
 	RelicsChild = CreateDefaultSubobject<UChildActorComponent>(TEXT("Relics"));
@@ -162,8 +162,16 @@ void ARelicsManager::StartExcavation()
 	}
 
 	// Excavation 지형 변경
-	if (ExcavationLand_01)
-		ExcavationLand_01->DestroyComponent();
+	//if (ExcavationLand_01)
+	//	ExcavationLand_01->DestroyComponent();
+	for (TActorIterator<AActor> It(GetWorld(), AActor::StaticClass()); It; ++It)
+	{
+		if (IsValid(*It) && (*It)->ActorHasTag(FName("LandPrime")))
+		{
+			It->Destroy();
+			break;
+		}
+	}
 
 	if (ExcavationLand_02)
 		ExcavationLand_02->SetHiddenInGame(false);

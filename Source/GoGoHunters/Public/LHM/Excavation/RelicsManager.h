@@ -49,8 +49,8 @@ protected:
 	UPROPERTY(VisibleAnywhere)
 	class UChildActorComponent* RelicsChild;
 
-	UPROPERTY(EditAnywhere)
-	UStaticMeshComponent* ExcavationLand_01;
+	//UPROPERTY(EditAnywhere)
+	//UStaticMeshComponent* ExcavationLand_01;
 
 	UPROPERTY(EditAnywhere)
 	UStaticMeshComponent* ExcavationLand_02;
