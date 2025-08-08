@@ -107,4 +107,8 @@ protected:
 	
     UPROPERTY()
     class UBrushingUI* BrushingUI;
+
+// 타미 대사
+private:
+	void PlayTami(const FName& FunctionName);
 };

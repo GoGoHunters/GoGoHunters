@@ -30,14 +30,26 @@ private:
 	UHapticFeedbackEffect_Base* HapticEffect;
 	
 	UPROPERTY(EditAnywhere, Category = "Effects")
-    class USoundBase* SoundEffect1;
+    class USoundBase* DetectorSound1;
 
 	UPROPERTY(EditAnywhere, Category = "Effects")
-    class USoundBase* SoundEffect2;
+    class USoundBase* DetectorSound2;
 
 	FTimerHandle BeepTimerHandle;
 	float CurrentBeepInterval = 1.0f; // 초기값
 	float CurrentProgress = 0.f;
 
 	float LastTimerUpdateTime = 0.f;
+
+// 타미 대사
+public:
+	void PlayTami1();
+	bool IsPlayingTami1() const { return bIsPlayingTami1; }
+
+	void PlayTami2();
+	bool IsPlayingTami2() const { return bIsPlayingTami2; }
+
+private:
+	bool bIsPlayingTami1 = false;
+	bool bIsPlayingTami2 = false;
 };

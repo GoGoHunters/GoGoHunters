@@ -6,6 +6,7 @@
 #include "LHM/Excavation/RelicsBase.h"
 #include "MotionControllerComponent.h"
 #include "Kismet/GameplayStatics.h"
+#include "EngineUtils.h"
 
 // Sets default values
 ATweezersTool::ATweezersTool()
@@ -90,6 +91,9 @@ void ATweezersTool::PickUpRelic()
 	if (SoundFX) UGameplayStatics::PlaySoundAtLocation(this, SoundFX, PickupPoint->GetComponentLocation());
 
 	PickedRelic = RelicCandidate;
+
+	// 타미 음성
+	if(!bIsPlayingTami) PlayTami();
 
 	//UE_LOG(LogTemp, Log, TEXT("[TweezersTool] Picked up %s"), *CandidateMesh->GetName());
 
@@ -191,6 +195,30 @@ void ATweezersTool::SetAttachBase(USceneComponent* InAttachBase)
 	{
 		LastAttachLocation = AttachBase->GetComponentLocation();
 		//UE_LOG(LogTemp, Warning, TEXT("[TweezersTool] AttachBase set to: %s"), *AttachBase->GetName());
+	}
+}
+
+void ATweezersTool::PlayTami()
+{
+	bIsPlayingTami = true;
+
+	APawn* TamiAI = nullptr;
+
+	for (TActorIterator<APawn> It(GetWorld(), APawn::StaticClass()); It; ++It)
+	{
+		if (IsValid(*It) && (*It)->ActorHasTag(FName("Tami")))
+		{
+			TamiAI = *It;
+			break;
+		}
+	}
+
+	if (!TamiAI) return;
+
+	FName FunctionName(TEXT("PlayExcavationPhase5_ExplainUsingTweezers2"));
+	if (UFunction* Function = TamiAI->FindFunction(FunctionName))
+	{
+		TamiAI->ProcessEvent(Function, nullptr);
 	}
 }
 

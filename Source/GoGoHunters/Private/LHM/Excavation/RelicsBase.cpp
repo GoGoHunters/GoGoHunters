@@ -185,6 +185,12 @@ void ARelicsBase::ReduceDustOpacity(const FVector& BrushLocation, float Amount, 
     if (BrushingUI && TotalInitialOpacity > 0.0f)
     {
         float Progress = TotalRemainingOpacity / TotalInitialOpacity;
+
+        if (Progress >= Progress * 0.5f)
+        {
+            if(!bIsPlayingTami) PlayTami();
+        }
+
         BrushingUI->UpdateProgress(Progress);
     }
 
@@ -296,5 +302,26 @@ float ARelicsBase::GetDecalOpacity(UDecalComponent* Decal) const
         return Opacity;
     }
     return 1.0f;
+}
+
+void ARelicsBase::PlayTami()
+{
+    bIsPlayingTami = true;
+
+    for (TActorIterator<APawn> It(GetWorld(), APawn::StaticClass()); It; ++It)
+    {
+        if (IsValid(*It) && (*It)->ActorHasTag(FName("Tami")))
+        {
+            if (APawn* TamiAI = *It)
+            {
+                FName FunctionName(TEXT("PlayExcavationCompliment"));
+                if (UFunction* Function = TamiAI->FindFunction(FunctionName))
+                {
+                    TamiAI->ProcessEvent(Function, nullptr);
+                }
+            }
+            break;
+        }
+    }
 }
 

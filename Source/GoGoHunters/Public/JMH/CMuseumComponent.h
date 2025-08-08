@@ -103,4 +103,7 @@ private:
 
 	void PreviewMode();
 	void PreviewEnd();
+
+  // Data.PlaceArea를 신뢰하지 않고, 저장된 PlacedTransform 위치 기반으로 반경 내 PlaceArea와 셀 스케일을 찾는 헬퍼
+  bool FindNearbyPlaceArea(const FVector& Location, float SearchRadius, class ACMuseumPlaceArea*& OutArea, FVector& OutCellScale) const;
 };

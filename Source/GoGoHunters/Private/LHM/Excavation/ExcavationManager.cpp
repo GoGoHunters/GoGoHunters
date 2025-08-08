@@ -13,6 +13,7 @@
 #include "UIs/CUiActor.h"
 #include "LHM/UI/ExcavationPhaseUI.h"
 #include "LHM/Excavation/CollectionBox.h"
+#include "LHJ/Tutorial/CTutorialManager.h"
 
 // Sets default values
 AExcavationManager::AExcavationManager()
@@ -62,19 +63,25 @@ void AExcavationManager::NotifyDetectionCompleted(class ARelicsManager* FromMana
 	CurrentActiveManager = FromManager;
 	FromManager->StartExcavation();
 
+	// 타미 음성
+	PlayTami(TEXT("PlayExcavationPhase2_StartFlag"));
+
 	// Phase UI 가시화 (깃발 트리거)
 	// Phase UI에서 완료버튼 클릭하면 발굴 단계로 전환
-	PhaseUI->SetVisibilityFlagTrigger(true);
-
-	//// 삽질 단계로 전환
-	//SetCurrentPhase(EExcavationPhase::Digging);
-	//UE_LOG(LogTemp, Log, TEXT("[ExcavationManager] 유물 발견! 땅 파기 단계로 전환: %s"), *FromManager->GetName());
+	FTimerHandle PhaseUIVisibilityHandle;
+	GetWorldTimerManager().SetTimer(PhaseUIVisibilityHandle, [this]()
+	{
+		PhaseUI->SetVisibilityFlagTrigger(true);
+	}, 9.0f, false);
 }
 
 void AExcavationManager::NotifyExcavationCompleted(class ARelicsManager* FromManager)
 {
 	if (!IsValid(FromManager)) return;
 	if(!DiggingUI || !BrushingUI) return;
+
+	// 타미 음성
+	PlayTami(TEXT("PlayExcavationPhase4_DiscoveryRelic"));
 
 	DiggingUI->SetVisibility(ESlateVisibility::Hidden);
 	BrushingUI->SetVisibility(ESlateVisibility::Visible);
@@ -90,6 +97,9 @@ void AExcavationManager::NotifyDustingCompleted(class ARelicsManager* FromManage
 
 	FromManager->SpawnCollectionBox(); // 수거박스 생성 요청
 
+	// 타미 음성
+	PlayTami(TEXT("PlayExcavationPhase5_StartCollection"));
+
 	// 수거 단계로 전환
 	SetCurrentPhase(EExcavationPhase::Collection);
 	UE_LOG(LogTemp, Log, TEXT("[ExcavationManager] 붓질 완료! 수거 단계로 전환: %s"), *FromManager->GetName());
@@ -103,6 +113,8 @@ void AExcavationManager::NotifyCollectionCompleted(class ARelicsManager* FromMan
 
 	CurrentActiveManager = FromManager;
 	CollectionBox = FromCollectionBox;
+
+	PlayTami(TEXT("PlayExcavationCompleted1"));
 
 	// Phase UI 가시화 (수거함 완료 트리거)
 	// Phase UI에서 완료버튼 클릭하면 수거함 닫기
@@ -184,10 +196,12 @@ void AExcavationManager::ChangeExcavationPhase()
 	
 	CurrentActiveManager->GetRelics()->ActivateMarker();
 
+	PlayTami(TEXT("PlayExcavationPhase2_PlantedFlag"));
+
 	// Progress UI 가시화
 	PhaseUI->SetVisibilityFlagTrigger(false);
 	DiggingUI->SetVisibility(ESlateVisibility::Visible);
-	PlayPopupUiAnim(false);
+	//PlayPopupUiAnim(false);
 
 	// 삽질 단계로 전환
 	SetCurrentPhase(EExcavationPhase::Digging);
@@ -201,10 +215,13 @@ void AExcavationManager::ChangeCompletedPhase()
 
 	PhaseUI->SetVisibilityCloseLid(false);
 	BrushingUI->SetVisibility(ESlateVisibility::Hidden);
-	PlayPopupUiAnim(true);
+	//PlayPopupUiAnim(true);
 
 	// 수거함 닫기 애니메이션
 	CollectionBox->PlayBoxCloseAnimation();
+
+	// 타미 음성
+	PlayTami(TEXT("PlayExcavationCompleted2"));
 
 	// 게임 인스턴스에서 유물 등록
 	if (UGI_Base* GI = Cast<UGI_Base>(UGameplayStatics::GetGameInstance(GetWorld())))
@@ -261,5 +278,24 @@ void AExcavationManager::UpdateDiggingProgress()
 	{
 		float ProgressPercent = FMath::Clamp(DigProgress, 0.0f, 100.0f);
 		DiggingUI->UpdateUI(ProgressPercent);
+	}
+}
+
+void AExcavationManager::PlayTami(const FName& FunctionName)
+{
+	// 타미 음성
+	for (TActorIterator<APawn> It(GetWorld(), APawn::StaticClass()); It; ++It)
+	{
+		if (IsValid(*It) && (*It)->ActorHasTag(FName("Tami")))
+		{
+			if (APawn* TamiAI = *It)
+			{
+				if (UFunction* Function = TamiAI->FindFunction(FunctionName))
+				{
+					TamiAI->ProcessEvent(Function, nullptr);
+				}
+			}
+			break;
+		}
 	}
 }

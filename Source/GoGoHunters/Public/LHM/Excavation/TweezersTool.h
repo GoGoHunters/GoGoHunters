@@ -69,4 +69,9 @@ private:
 
 	UPROPERTY()
 	class UStaticMeshComponent* CandidateMesh = nullptr;
+
+// 타미 대사
+private:
+	void PlayTami();
+	bool bIsPlayingTami = false;
 };

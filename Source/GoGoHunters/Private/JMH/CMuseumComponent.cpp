@@ -14,6 +14,8 @@
 #include "JMH/MH_GrabComp.h"
 #include "LHJ/CMuseumPlaceArea.h"
 #include "LHJ/CRelicCollectionWidgetActor.h"
+#include "DrawDebugHelpers.h"
+#include "Engine/OverlapResult.h"
 
 UCMuseumComponent::UCMuseumComponent()
 {
@@ -48,22 +50,31 @@ void UCMuseumComponent::BeginPlay()
 				const FCRelicDetailData* Local_RelicDetailData = GI->GetRelicDetailDataByTag(Data.RelicTag);
 
 				if (!Local_RelicDetailData) continue;
-				
-				FActorSpawnParameters SpawnParams;
-				SpawnParams.Owner = OwnerPlayer;
-				SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
 
-				if (Data.PlaceArea)
-					Data.PlacedTransform.SetScale3D(Data.PlaceArea->CellUniformScale);
-				
-				ACRelicBase* RelicActor = GetWorld()->SpawnActor<ACRelicBase>(Local_RelicDetailData->RelicActorClass, Data.PlacedTransform, SpawnParams);
-				if (RelicActor)
+				// 저장된 PlaceArea 포인터에 의존하지 않고, PlacedTransform 위치 주변(반경 10)에서 PlaceArea를 탐색하여 스케일을 반영
+				ACMuseumPlaceArea* FoundArea = nullptr;
+				FVector FoundScale = FVector(1.f);
+				if (FindNearbyPlaceArea(Data.PlacedTransform.GetLocation(), 10.f, FoundArea, FoundScale))
 				{
-					RelicActor->SetActorScale3D(Data.PlacedTransform.GetScale3D());
-					RelicActor->InitializeAsset(Data, *Local_RelicDetailData);
-					RelicActor->Tags.Add("Grabable");
-					if (Data.PlaceArea) Data.PlaceArea->PlaceRelicAt(Data.PlacedTransform.GetLocation());
+					Data.PlacedTransform.SetScale3D(FoundScale);
+					Data.PlaceArea = FoundArea; // 유효하면 갱신
 				}
+
+				if (FoundArea)
+				{
+					FActorSpawnParameters SpawnParams;
+					SpawnParams.Owner = OwnerPlayer;
+					SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;                
+				
+					ACRelicBase* RelicActor = GetWorld()->SpawnActor<ACRelicBase>(Local_RelicDetailData->RelicActorClass, Data.PlacedTransform, SpawnParams);
+					if (RelicActor)
+					{
+						RelicActor->SetActorScale3D(Data.PlacedTransform.GetScale3D());
+						RelicActor->InitializeAsset(Data, *Local_RelicDetailData);
+						RelicActor->Tags.Add("Grabable");
+						if (Data.PlaceArea) Data.PlaceArea->PlaceRelicAt(Data.PlacedTransform.GetLocation());
+					}
+				}				
 			}
 		}
 	}
@@ -355,4 +366,85 @@ void UCMuseumComponent::GrabRelicEnd(ACRelicBase* GrabRelic, const FVector& Hand
 	// 5. 피직스 끄기
 	if (UPrimitiveComponent* PrimComp = Cast<UPrimitiveComponent>(GrabRelic->GetRootComponent()))
 		PrimComp->SetSimulatePhysics(false);	
+}
+
+bool UCMuseumComponent::FindNearbyPlaceArea(const FVector& Location, float SearchRadius, ACMuseumPlaceArea*& OutArea, FVector& OutCellScale) const
+{
+    OutArea = nullptr;
+    OutCellScale = FVector(1.f);
+
+    // 탐색 범위 시각화 (빨간색 구체)
+    // DrawDebugSphere(GetWorld(), Location, SearchRadius, 12, FColor::Red, false, 5.0f, 0, 2.0f);
+
+    TArray<ACMuseumPlaceArea*> CandidateAreas;
+
+    // 거리 대신 Overlap으로 탐지
+    TArray<FOverlapResult> Overlaps;
+    FCollisionObjectQueryParams ObjectQueryParams = FCollisionObjectQueryParams::AllObjects;
+    FCollisionQueryParams QueryParams;
+    QueryParams.bTraceComplex = false;
+    QueryParams.AddIgnoredActor(GetOwner());
+
+    const bool bAnyOverlap = GetWorld()->OverlapMultiByObjectType(
+        Overlaps,
+        Location,
+        FQuat::Identity,
+        ObjectQueryParams,
+        FCollisionShape::MakeSphere(SearchRadius),
+        QueryParams
+    );
+
+    if (bAnyOverlap)
+    {
+        for (const FOverlapResult& Result : Overlaps)
+        {
+            AActor* HitActor = Result.GetActor();
+            if (!HitActor) continue;
+            if (ACMuseumPlaceArea* Area = Cast<ACMuseumPlaceArea>(HitActor))
+            {
+                CandidateAreas.AddUnique(Area);
+                // 후보 영역 시각화 (파란색 박스)
+                // DrawDebugBox(GetWorld(), Area->GetActorLocation(), FVector(50.f), FColor::Blue, false, 5.0f, 0, 3.0f);
+            }
+        }
+    }
+
+    if (CandidateAreas.Num() == 0)
+    {
+        // 탐색 결과 없음 시각화 (노란색 구체)
+        // DrawDebugSphere(GetWorld(), Location, 20.f, 8, FColor::Yellow, false, 5.0f, 0, 1.0f);
+        return false;
+    }
+
+    Algo::SortBy(CandidateAreas, [Location](const ACMuseumPlaceArea* Area)
+    {
+        return FVector::Dist(Area->GetActorLocation(), Location);
+    });
+
+    // 가장 가까운 영역 선택 후, 해당 위치에 가장 가까운 GridCell의 스케일 가져오기
+    ACMuseumPlaceArea* Nearest = CandidateAreas[0];
+    if (!Nearest) return false;
+
+    // 가장 가까운 영역 시각화 (초록색 박스)
+    // DrawDebugBox(GetWorld(), Nearest->GetActorLocation(), FVector(60.f), FColor::Green, false, 5.0f, 0, 4.0f);
+
+    const TArray<FGridCell>& Cells = Nearest->GetGridCells();
+    float MinDist = TNumericLimits<float>::Max();
+    FVector ClosestScale = FVector(1.f);
+    for (const FGridCell& Cell : Cells)
+    {
+        const float Dist = FVector::Dist(Cell.Center, Location);
+        if (Dist < MinDist)
+        {
+            MinDist = Dist;
+            ClosestScale = Cell.Scale;
+        }
+    }
+
+    // 가장 가까운 셀 중심 시각화 (보라색 구체)
+    // DrawDebugSphere(GetWorld(), ClosestCellCenter, 15.f, 8, FColor::Purple, false, 5.0f, 0, 5.0f);
+
+    OutArea = Nearest;
+    OutCellScale = ClosestScale;
+    return true;
 }

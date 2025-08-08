@@ -4,6 +4,7 @@
 #include "LHM/Excavation/DetectionComponent.h"
 #include "Haptics/HapticFeedbackEffect_Base.h"
 #include "Kismet/GameplayStatics.h"
+#include "EngineUtils.h"
 
 // Sets default values for this component's properties
 UDetectionComponent::UDetectionComponent()
@@ -23,13 +24,13 @@ UDetectionComponent::UDetectionComponent()
 	static ConstructorHelpers::FObjectFinder<USoundBase> Sound1Asset(TEXT("/Game/LHM/Effects/Sound/Excavation/SW_Detector_1.SW_Detector_1"));
 	if(Sound1Asset.Succeeded())
 	{
-		SoundEffect1 = Sound1Asset.Object;
+		DetectorSound1 = Sound1Asset.Object;
 	}
 
 	static ConstructorHelpers::FObjectFinder<USoundBase> Sound2Asset(TEXT("/Game/LHM/Effects/Sound/Excavation/SW_Detector_2.SW_Detector_2"));
 	if (Sound2Asset.Succeeded())
 	{
-		SoundEffect2 = Sound2Asset.Object;
+		DetectorSound2 = Sound2Asset.Object;
 	}
 }
 
@@ -82,7 +83,7 @@ void UDetectionComponent::UpdateVisualFeedback(float Progress)
 
 void UDetectionComponent::PlaySoundFeedback(float Progress)
 {
-	if (!SoundEffect1 || !GetOwner()) return;
+	if (!DetectorSound1 || !GetOwner()) return;
 
 	UWorld* World = GetWorld();
 	if (!World) return;
@@ -129,7 +130,7 @@ void UDetectionComponent::PlaySoundFeedback(float Progress)
 
 void UDetectionComponent::PlayBeep()
 {
-	if (!SoundEffect1 || !SoundEffect2 || !GetOwner()) return;
+	if (!DetectorSound1 || !DetectorSound2 || !GetOwner()) return;
 	//UE_LOG(LogTemp, Log, TEXT("[DetectionComponent] PlayBeep - Progress: %.2f, Interval: %.2f"), CurrentProgress, CurrentBeepInterval);
 	
 	/*if (CurrentProgress >= 90.0f)
@@ -146,6 +147,54 @@ void UDetectionComponent::PlayBeep()
 	}*/
 
 	const float Volume = FMath::Lerp(0.3f, 1.0f, CurrentProgress / 100.f);
-	UGameplayStatics::PlaySoundAtLocation(this, SoundEffect1, GetOwner()->GetActorLocation(), Volume);
+	UGameplayStatics::PlaySoundAtLocation(this, DetectorSound1, GetOwner()->GetActorLocation(), Volume);
+}
+
+void UDetectionComponent::PlayTami1()
+{
+	bIsPlayingTami1 = true;
+
+	APawn* TamiAI = nullptr;
+
+	for (TActorIterator<APawn> It(GetWorld(), APawn::StaticClass()); It; ++It)
+	{
+		if (IsValid(*It) && (*It)->ActorHasTag(FName("Tami")))
+		{
+			TamiAI = *It;
+			break;
+		}
+	}
+
+	if(!TamiAI) return;
+
+	FName FunctionName(TEXT("PlayExcavationPhase1_DetectorPercent"));
+	if (UFunction* Function = TamiAI->FindFunction(FunctionName))
+	{
+		TamiAI->ProcessEvent(Function, nullptr);
+	}
+}
+
+void UDetectionComponent::PlayTami2()
+{
+	bIsPlayingTami2 = true;
+
+	APawn* TamiAI = nullptr;
+
+	for (TActorIterator<APawn> It(GetWorld(), APawn::StaticClass()); It; ++It)
+	{
+		if (IsValid(*It) && (*It)->ActorHasTag(FName("Tami")))
+		{
+			TamiAI = *It;
+			break;
+		}
+	}
+
+	if (!TamiAI) return;
+
+	FName FunctionName(TEXT("PlayExcavationPhase1_DetectorPercent100"));
+	if (UFunction* Function = TamiAI->FindFunction(FunctionName))
+	{
+		TamiAI->ProcessEvent(Function, nullptr);
+	}
 }
 
