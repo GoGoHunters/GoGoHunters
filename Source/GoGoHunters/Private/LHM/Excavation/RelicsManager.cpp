@@ -189,6 +189,26 @@ void ARelicsManager::NotifyGroundProgress(float Progress)
 
 		CurrentLayerIndex++;
 
+		// 타미 음성
+		if (CurrentLayerIndex == 1 && Progress >= 0.05f)
+		{
+			for (TActorIterator<APawn> It(GetWorld(), APawn::StaticClass()); It; ++It)
+			{
+				if (IsValid(*It) && (*It)->ActorHasTag(FName("Tami")))
+				{
+					if (APawn* TamiAI = *It)
+					{
+						FName FunctionName(TEXT("PlayExcavationPhase3_VisibleRelic"));
+						if (UFunction* Function = TamiAI->FindFunction(FunctionName))
+						{
+							TamiAI->ProcessEvent(Function, nullptr);
+						}
+					}
+					break;
+				}
+			}
+		}
+
 		UE_LOG(LogTemp, Log, TEXT("Destroyed Ground Layer %d / GroundLayers.num is %d"), CurrentLayerIndex + 1, GroundLayers.Num());
 
 		if (CurrentLayerIndex >= GroundLayers.Num())

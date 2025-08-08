@@ -114,4 +114,8 @@ public:
 protected:
 	UPROPERTY()
 	class UBrushingUI* BrushingUI;
+
+private:
+	void PlayTami();
+	bool bIsPlayingTami = false;
 };
