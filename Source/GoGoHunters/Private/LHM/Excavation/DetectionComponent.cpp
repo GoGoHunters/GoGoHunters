@@ -3,6 +3,7 @@
 
 #include "LHM/Excavation/DetectionComponent.h"
 #include "Haptics/HapticFeedbackEffect_Base.h"
+#include "Kismet/GameplayStatics.h"
 
 // Sets default values for this component's properties
 UDetectionComponent::UDetectionComponent()
@@ -17,15 +18,29 @@ UDetectionComponent::UDetectionComponent()
 	{
 		HapticEffect = HapticAsset.Object;
 	}
+
+	// 사운드 이펙트
+	static ConstructorHelpers::FObjectFinder<USoundBase> Sound1Asset(TEXT("/Game/LHM/Effects/Sound/Excavation/SW_Detector_1.SW_Detector_1"));
+	if(Sound1Asset.Succeeded())
+	{
+		SoundEffect1 = Sound1Asset.Object;
+	}
+
+	static ConstructorHelpers::FObjectFinder<USoundBase> Sound2Asset(TEXT("/Game/LHM/Effects/Sound/Excavation/SW_Detector_2.SW_Detector_2"));
+	if (Sound2Asset.Succeeded())
+	{
+		SoundEffect2 = Sound2Asset.Object;
+	}
 }
 
 void UDetectionComponent::UpdateFeedback(float Progress)
 {
+	CurrentProgress = Progress;
 	float Normalized = Progress / 100.f;
 
 	PlayVibration(Normalized);
 	UpdateVisualFeedback(Normalized);
-	PlaySoundFeedback(Normalized);
+	PlaySoundFeedback(Progress);
 }
 
 void UDetectionComponent::StopFeedback()
@@ -35,6 +50,13 @@ void UDetectionComponent::StopFeedback()
 	if (PC)
 	{
 		PC->StopHapticEffect(EControllerHand::Right);
+	}
+
+	// 타이머 초기화
+	if (GetOwner())
+	{
+		GetOwner()->GetWorldTimerManager().ClearTimer(BeepTimerHandle);
+		UE_LOG(LogTemp, Warning, TEXT("[DetectionComponent] Timer stopped in StopFeedback()"));
 	}
 }
 
@@ -48,7 +70,6 @@ void UDetectionComponent::PlayVibration(float Intensity)
 		if (HapticEffect)
 		{
 			PC->PlayHapticEffect(HapticEffect, EControllerHand::Right, ClampedIntensity, false);
-			//PC->PlayHapticEffect(HapticEffect, EControllerHand::Left, ClampedIntensity, false);
 		}
 	}
 }
@@ -61,8 +82,70 @@ void UDetectionComponent::UpdateVisualFeedback(float Progress)
 
 void UDetectionComponent::PlaySoundFeedback(float Progress)
 {
-	// 예시: 가까워질수록 음량/피치 변화
-	// SoundCue 또는 USoundBase 등 사용
-	// UGameplayStatics::PlaySoundAtLocation(GetWorld(), SoundCue, GetOwner()->GetActorLocation(), ...);
+	if (!SoundEffect1 || !GetOwner()) return;
+
+	UWorld* World = GetWorld();
+	if (!World) return;
+
+	// 1. 탐지율 너무 낮으면 사운드 정지
+	if (Progress < 10.f)
+	{
+		if (World->GetTimerManager().IsTimerActive(BeepTimerHandle))
+		{
+			World->GetTimerManager().ClearTimer(BeepTimerHandle);
+			UE_LOG(LogTemp, Warning, TEXT("[DetectionComponent] Progress < 10 → Timer cleared"));
+		}
+		return;
+	}
+
+	//// 2. Progress가 90 이상이면 한 번만 재생하고 끝
+	//if (Progress >= 90.0f)
+	//{
+	//	if (World->GetTimerManager().IsTimerActive(BeepTimerHandle))
+	//	{
+	//		PlayBeep();
+	//	}
+	//	return;
+	//}
+
+	// 2. 간격 계산
+	float NewInterval = FMath::Lerp(1.0f, 0.01f, Progress / 100.f);
+
+	// 3. 간격 변화가 0.05초 이상일 때만 타이머 재설정
+	if (FMath::Abs(CurrentBeepInterval - NewInterval) > 0.05f || !World->GetTimerManager().IsTimerActive(BeepTimerHandle))
+	{
+		CurrentBeepInterval = NewInterval;
+
+		// 기존 타이머 정리
+		World->GetTimerManager().ClearTimer(BeepTimerHandle);
+
+		// 새 타이머 설정
+		FTimerDelegate BeepDelegate = FTimerDelegate::CreateUObject(this, &UDetectionComponent::PlayBeep);
+		World->GetTimerManager().SetTimer(BeepTimerHandle, BeepDelegate, CurrentBeepInterval, true, 0.f);
+
+		//UE_LOG(LogTemp, Warning, TEXT("[DetectionComponent] Timer updated: Interval = %.2f, Progress = %.2f"), CurrentBeepInterval, Progress);
+	}
+}
+
+void UDetectionComponent::PlayBeep()
+{
+	if (!SoundEffect1 || !SoundEffect2 || !GetOwner()) return;
+	//UE_LOG(LogTemp, Log, TEXT("[DetectionComponent] PlayBeep - Progress: %.2f, Interval: %.2f"), CurrentProgress, CurrentBeepInterval);
+	
+	/*if (CurrentProgress >= 90.0f)
+	{
+		UWorld* World = GetWorld();
+		if (World && World->GetTimerManager().IsTimerActive(BeepTimerHandle))
+		{
+			World->GetTimerManager().ClearTimer(BeepTimerHandle);
+			UE_LOG(LogTemp, Warning, TEXT("[DetectionComponent] Final detection reached - Timer stopped, playing long beep"));
+		}
+
+		UGameplayStatics::PlaySoundAtLocation(this, SoundEffect2, GetOwner()->GetActorLocation(), 1.0f);
+		return;
+	}*/
+
+	const float Volume = FMath::Lerp(0.3f, 1.0f, CurrentProgress / 100.f);
+	UGameplayStatics::PlaySoundAtLocation(this, SoundEffect1, GetOwner()->GetActorLocation(), Volume);
 }
 
