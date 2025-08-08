@@ -24,8 +24,20 @@ private:
 	void PlayVibration(float Intensity);
 	void UpdateVisualFeedback(float Progress);
 	void PlaySoundFeedback(float Progress);
+	void PlayBeep();
 
-	UPROPERTY(EditAnywhere, Category = "Haptic")
+	UPROPERTY(EditAnywhere, Category = "Effects")
 	UHapticFeedbackEffect_Base* HapticEffect;
-		
+	
+	UPROPERTY(EditAnywhere, Category = "Effects")
+    class USoundBase* SoundEffect1;
+
+	UPROPERTY(EditAnywhere, Category = "Effects")
+    class USoundBase* SoundEffect2;
+
+	FTimerHandle BeepTimerHandle;
+	float CurrentBeepInterval = 1.0f; // 초기값
+	float CurrentProgress = 0.f;
+
+	float LastTimerUpdateTime = 0.f;
 };

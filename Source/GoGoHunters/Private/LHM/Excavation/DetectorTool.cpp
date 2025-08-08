@@ -134,16 +134,16 @@ void ADetectorTool::UpdateDetection(float DeltaTime)
 
 	if (Distance > MinDetectDistance && Distance <= MaxDetectDistance)
 	{
-		// 70%까지는 거리 기반 즉시 반영
+		// 90%까지는 거리 기반 즉시 반영
 		float Ratio = 1.f - (Distance - MinDetectDistance) / (MaxDetectDistance - MinDetectDistance);
-		float TargetProgress = FMath::Clamp(Ratio * 80.f, 0.f, 80.f);
+		float TargetProgress = FMath::Clamp(Ratio * 90.f, 0.f, 90.f);
 		DetectionProgress = TargetProgress;
 	}
 	else if (Distance <= MinDetectDistance)
 	{
-		// 40cm 이내로 들어왔으면 진행률이 서서히 차오름 (80~100%)
+		// 40cm 이내로 들어왔으면 진행률이 서서히 차오름 (90~100%)
 		DetectionProgress += FillSpeed * DeltaTime;
-		DetectionProgress = FMath::Clamp(DetectionProgress, 80.f, 100.f);
+		DetectionProgress = FMath::Clamp(DetectionProgress, 90.f, 100.f);
 	}
 	else
 	{

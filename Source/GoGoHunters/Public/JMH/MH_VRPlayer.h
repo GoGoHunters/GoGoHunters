@@ -324,11 +324,4 @@ private:
 	// 튜토리얼
 	UPROPERTY()
 	TObjectPtr<ACTutorialManager> TutorialManager;
-
-#pragma region Sound Effects
-protected:
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="Sounds")
-    class USoundBase* UIClicked;
-	
-#pragma endregion
 };
