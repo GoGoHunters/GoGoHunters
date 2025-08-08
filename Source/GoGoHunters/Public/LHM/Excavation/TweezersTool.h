@@ -57,6 +57,9 @@ protected:
 
 	class UMotionControllerComponent* OwnerMC;
 
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="Effects")
+    class USoundBase* SoundFX;
+
 private:
 	UPROPERTY()
 	class ARelicsBase* PickedRelic;

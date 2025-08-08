@@ -75,6 +75,7 @@ protected:
 
 // 붓 데칼
 public:
+	UStaticMeshComponent* GetClosestRelicMesh(const FVector& BrushLocation) const;
 	void ReduceDustOpacity(const FVector& BrushLocation, float Amount, class ABrushTool& BrushRef);
 	void CheckAllDelcalsRemoved();
 

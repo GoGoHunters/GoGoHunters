@@ -2,7 +2,6 @@
 
 
 #include "LHM/Excavation/RelicsGround.h"
-//#include "Engine/TextureRenderTarget2D.h"
 #include "Materials/MaterialInterface.h"
 #include "Materials/MaterialInstanceDynamic.h"
 #include "Kismet/GameplayStatics.h"

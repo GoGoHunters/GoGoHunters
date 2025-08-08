@@ -6,6 +6,7 @@
 #include "Components/BoxComponent.h"
 #include "Components/DecalComponent.h"
 #include "Kismet/GameplayStatics.h"
+#include "../../../../Plugins/FX/Niagara/Source/Niagara/Public/NiagaraFunctionLibrary.h"
 
 // Sets default values
 ABrushTool::ABrushTool()
@@ -79,10 +80,28 @@ void ABrushTool::CheckBrushSwipe(float DeltaTime)
 		&& SwipeSpeed < BrushSwipeThresholdMax)
 	{
 		ARelicsBase* Relic = Cast<ARelicsBase>(CurrentOverlappingRelic);
-		if (Relic)
+		if (!Relic) return;
+
+		// [1] 가장 가까운 메시
+		UStaticMeshComponent* ClosestMesh = Relic->GetClosestRelicMesh(BoxMesh->GetComponentLocation());
+		if (!ClosestMesh) return;
+
+		// [2] 데칼이 하나라도 남아 있는지 확인
+		bool bHasRemainingDecal = false;
+
+		for (const auto& Pair : Relic->DecalToMeshMap)
 		{
-			Relic->ReduceDustOpacity(BoxMesh->GetComponentLocation(), FadeSpeed * DeltaTime, *this);
+			if (Pair.Value == ClosestMesh)
+			{
+				bHasRemainingDecal = true;
+				break;
+			}
 		}
+		
+		// [3] 데칼이 남아 있지 않으면 return
+		if (!bHasRemainingDecal) return;		
+
+		Relic->ReduceDustOpacity(BoxMesh->GetComponentLocation(), FadeSpeed * DeltaTime, *this);
 	}
 }
 
@@ -118,12 +137,39 @@ void ABrushTool::PlayVibration(float Intensity)
 
 void ABrushTool::UpdateVisualFeedback(float Intensity)
 {
-
+	if(!BrushFX) return;
+	
+	UNiagaraFunctionLibrary::SpawnSystemAtLocation(
+		GetWorld(),
+		BrushFX,
+		BoxMesh->GetComponentLocation(),
+		FRotator::ZeroRotator,
+		FVector(Intensity),
+		true, true, ENCPoolMethod::AutoRelease, true
+	);
 }
 
 void ABrushTool::PlaySoundFeedback(float Intensity)
 {
+	if (!SoundEffect) return;
 
+	UWorld* World = GetWorld();
+	if (!World) return;
+
+	float CurrentTime = World->GetTimeSeconds();
+
+	// 쿨타임 체크
+	if (CurrentTime - LastSoundPlayTime < SoundCooldown) return;
+
+	//float Volume = FMath::Clamp(Intensity, 0.0f, 1.0f);
+	UGameplayStatics::PlaySoundAtLocation(
+		this,
+		SoundEffect,
+		GetActorLocation(),
+		Intensity
+	);
+
+	LastSoundPlayTime = CurrentTime;
 }
 
 void ABrushTool::SetIsBrushing(bool _bIsBrushing)
