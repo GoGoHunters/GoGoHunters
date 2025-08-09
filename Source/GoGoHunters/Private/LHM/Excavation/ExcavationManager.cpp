@@ -61,7 +61,7 @@ void AExcavationManager::NotifyDetectionCompleted(class ARelicsManager* FromMana
 	if (!PhaseUI) return;
 
 	CurrentActiveManager = FromManager;
-	FromManager->StartExcavation();
+	//FromManager->StartExcavation();
 
 	// 타미 음성
 	PlayTami(TEXT("PlayExcavationPhase2_StartFlag"));
@@ -195,6 +195,8 @@ void AExcavationManager::ChangeExcavationPhase()
 	if (!PhaseUI || !DiggingUI) return;
 	
 	CurrentActiveManager->GetRelics()->ActivateMarker();
+
+	CurrentActiveManager->StartExcavation();
 
 	PlayTami(TEXT("PlayExcavationPhase2_PlantedFlag"));
 
