@@ -257,6 +257,10 @@ void UCMuseumComponent::PlaceRelic()
 	auto placeActor = GetWorld()->SpawnActor<ACRelicBase>(RelicDetailData.RelicActorClass, BuildTransform, SpawnParams);
 	if (placeActor)
 	{
+		RelicData.PlacedTransform = BuildTransform;
+		RelicData.IsPlace = true;
+		RelicData.PlaceArea = PlaceArea;
+		
 		placeActor->SetActorScale3D(BuildTransform.GetScale3D());
 		PlaceArea->PlaceRelicAt(BuildTransform.GetLocation());
 		placeActor->InitializeAsset(RelicData, RelicDetailData);
@@ -266,10 +270,6 @@ void UCMuseumComponent::PlaceRelic()
 		// SaveGame 저장
 		if (UGI_Base* GI = Cast<UGI_Base>(UGameplayStatics::GetGameInstance(GetWorld())))
 		{
-			RelicData.PlacedTransform = BuildTransform;
-			RelicData.IsPlace = true;
-			RelicData.PlaceArea = PlaceArea;
-			
 			FRelicSaveData NewSaveData;
 			NewSaveData.RelicData = RelicData;
 			GI->SaveRelicData(NewSaveData);
