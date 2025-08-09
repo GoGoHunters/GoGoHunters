@@ -21,7 +21,7 @@ void UCRelicCollectionWidget::NativeConstruct()
 void UCRelicCollectionWidget::InitRelicWidgets()
 {
 	if (!GI) return;
-	
+
 	Grid_Relics->ClearChildren();
 
 	TArray<FCRelicData> RelicData = GI->GetAllRelicData();
@@ -41,10 +41,10 @@ void UCRelicCollectionWidget::InitRelicWidgets()
 	{
 		Txt_EmptyRelics->SetVisibility(ESlateVisibility::Hidden);
 		Grid_Relics->SetVisibility(ESlateVisibility::SelfHitTestInvisible);
-		
+
 		CurrentPage = 0;
 		MaxPage = FMath::CeilToInt((float)PlaceableRelics.Num() / ItemsPerPage);
-		ShowPage(CurrentPage);		
+		ShowPage(CurrentPage);
 	}
 
 	if (PlaceableRelics.Num() > 0)
@@ -63,7 +63,6 @@ void UCRelicCollectionWidget::ShowPage(int32 PageIndex)
 {
 	Grid_Relics->ClearChildren();
 
-	const int32 Columns = 2;
 	int32 StartIndex = PageIndex * ItemsPerPage;
 	int32 EndIndex = FMath::Min(StartIndex + ItemsPerPage, PlaceableRelics.Num());
 	int32 Row = 0;
@@ -76,7 +75,8 @@ void UCRelicCollectionWidget::ShowPage(int32 PageIndex)
 		if (!RelicWidget) break;
 		RelicWidget->SetRelicData(PlaceableRelics[i]);
 		UGridSlot* GridSlot = Grid_Relics->AddChildToGrid(RelicWidget, Row, Col);
-		GridSlot->SetPadding(FMargin(10));
+		GridSlot->SetPadding(FMargin(7.5, 0, 7.5, 0));
+		GridSlot->SetHorizontalAlignment(HAlign_Center);
 
 		if (++Col >= Columns)
 		{
