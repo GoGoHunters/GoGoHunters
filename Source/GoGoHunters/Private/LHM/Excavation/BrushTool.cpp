@@ -144,7 +144,7 @@ void ABrushTool::UpdateVisualFeedback(float Intensity)
 		BrushFX,
 		BoxMesh->GetComponentLocation(),
 		FRotator::ZeroRotator,
-		FVector(Intensity),
+		FVector(1.0f),
 		true, true, ENCPoolMethod::AutoRelease, true
 	);
 }
