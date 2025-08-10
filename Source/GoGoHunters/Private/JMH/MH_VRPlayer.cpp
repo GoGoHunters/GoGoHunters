@@ -151,17 +151,17 @@ void AMH_VRPlayer::BeginPlay()
 		TutorialManager = *It;
 	}
 
-	if (TutorialManager)
-	{
-		// 로비 레벨에서 조작키 가이드
-		// 타미가 인사 먼저 진행하고 가이드 나오면 좋을듯함.
-		// ex) 안녕? 나는 너를 고고학자로 성장시켜줄 타미라고해~
-		//		(이후 조작키 가이드) 
-		if (CurrentLevel.ToLower().Contains("lobby"))
-		{
-			TutorialManager->StartTutorial("KEY_GUIDE");
-		}
-	}
+	//if (TutorialManager)
+	//{
+	//	// 로비 레벨에서 조작키 가이드
+	//	// 타미가 인사 먼저 진행하고 가이드 나오면 좋을듯함.
+	//	// ex) 안녕? 나는 너를 고고학자로 성장시켜줄 타미라고해~
+	//	//		(이후 조작키 가이드) 
+	//	if (CurrentLevel.ToLower().Contains("lobby"))
+	//	{
+	//		TutorialManager->StartTutorial("KEY_GUIDE");
+	//	}
+	//}
 }
 
 // Called every frame
