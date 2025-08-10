@@ -33,6 +33,7 @@ private:
 
 	// 현재 상태
 	bool bIsActive = false;
+	UPROPERTY(blueprintReadOnly, meta=(AllowPrivateAccess))
 	FString CurrentStepID;
 	FCTutorialData CurrentStep;
 

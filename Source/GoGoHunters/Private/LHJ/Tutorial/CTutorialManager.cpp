@@ -58,12 +58,6 @@ void ACTutorialManager::EndTutorial()
 {
 	MarkTutorialCompleted(CurrentStepID); // 진행상황 저장
 	SaveTutorialProgress();
-
-	// 키 가이드가 종료되면 메뉴 가이드 바로 실행
-	if (CurrentStepID == "KEY_GUIDE")
-	{
-		StartTutorial("MENU_GUIDE");
-	}
 }
 
 void ACTutorialManager::LoadTutorialStep(const FString& StepID)
