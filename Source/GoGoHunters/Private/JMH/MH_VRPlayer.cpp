@@ -397,9 +397,9 @@ void AMH_VRPlayer::TriggerInteract(const FInputActionInstance& IA_Instance)
 	if (!bInteracteAnyComponent)
 	{
 		// 사정거리 끝까지 그림
-		End = RWidgetInteractionComponent->GetComponentLocation() + RWidgetInteractionComponent->GetForwardVector() * WidgetInteractionDistance;
+		// End = RWidgetInteractionComponent->GetComponentLocation() + RWidgetInteractionComponent->GetForwardVector() * WidgetInteractionDistance;
 		// DrawDebugLine(GetWorld(), Start, End, FColor::Red, false, 0.0f, 0.0f, 1.0f);
-		UpdateDrawLineTraceEffect(Start, End);
+		UpdateDrawLineTraceEffect(Start, Start);
 	}
 }
 
