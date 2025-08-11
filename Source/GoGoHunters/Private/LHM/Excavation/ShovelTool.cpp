@@ -87,7 +87,7 @@ void AShovelTool::UpdateDigSwingState(float DeltaTime)
 			bool bIsMovingDownward = FVector::DotProduct(NormalizedVelocity, FVector::DownVector) > 0.5f;				// -Z 방향
 			bool bIsMovingForward = FVector::DotProduct(NormalizedVelocity, HandController->GetForwardVector()) > 0.5f;	// X 방향
 
-			float SwingThreshold = 100.0f;
+			float SwingThreshold = 50.0f;
 			bool bFastEnough = Velocity.Size() > SwingThreshold;
 			bCanTriggerDigTrace = bFastEnough && bIsMovingDownward && bIsMovingForward;
 
