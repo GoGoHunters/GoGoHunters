@@ -59,11 +59,11 @@ public:
 	UPROPERTY()
 	class AActor* CurrentOverlappingRelic;
 
-	// 최소 스와이프 속도
+	// 최소/최대 스와이프 속도
 	UPROPERTY(EditAnywhere)
-	float BrushSwipeThresholdMin = 50.0f;
+	float BrushSwipeThresholdMin = 30.0f;
 	UPROPERTY(EditAnywhere)
-	float BrushSwipeThresholdMax = 200.0f;
+	float BrushSwipeThresholdMax = 300.0f;
 
 	// 데칼 페이드 속도
 	UPROPERTY(EditAnywhere)
