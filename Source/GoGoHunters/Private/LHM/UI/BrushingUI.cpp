@@ -40,7 +40,7 @@ void UBrushingUI::UpdateProgress(float Opacity)
     int32 Percent = FMath::RoundToInt(Progress * 100.0f);
 
     ProgressBar->SetPercent(Progress);
-    Txt_Percent->SetText(FText::Format(FText::FromString(TEXT("먼지 제거 진행률 {0}%")), FText::AsNumber(Percent)));
+    Txt_Percent->SetText(FText::Format(FText::FromString(TEXT("먼지 제거 진행률: {0}%")), FText::AsNumber(Percent)));
 }
 
 void UBrushingUI::SetCollectedImage(bool bCollected)
@@ -58,7 +58,7 @@ void UBrushingUI::SetCollectedImage(bool bCollected)
             if (!Img) continue;
             if (Img->GetVisibility() == ESlateVisibility::Visible) continue;
             Img->SetVisibility(ESlateVisibility::Visible);
-            Txt_Percent->SetText(FText::Format(FText::FromString(TEXT("수집 진행률 {0}/{1}")), FText::AsNumber(i+1), FText::AsNumber(CollectedImgsNum)));
+            Txt_Percent->SetText(FText::Format(FText::FromString(TEXT("수집 진행률: {0}/{1}")), FText::AsNumber(i+1), FText::AsNumber(CollectedImgsNum)));
             break;
 		}
     }
