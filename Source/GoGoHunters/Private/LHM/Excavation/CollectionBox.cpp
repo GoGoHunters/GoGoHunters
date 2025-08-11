@@ -90,6 +90,7 @@ void ACollectionBox::OnOverlapEnd(UPrimitiveComponent* OverlappedComp, AActor* O
 		if (OtherComp == Mesh)
 		{
 			// 수거 목록에서 제거
+			Mesh->ComponentTags.Remove(FName("Collected"));
 			CollectedMeshes.Remove(Mesh);
 
 			// UI 되돌리기
