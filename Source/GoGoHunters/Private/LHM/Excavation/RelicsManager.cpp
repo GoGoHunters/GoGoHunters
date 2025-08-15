@@ -185,6 +185,8 @@ void ARelicsManager::NotifyGroundProgress(float Progress)
 {
 	if (CurrentLayerIndex >= GroundLayers.Num()) return;
 
+	if (bPressedDevKey) Progress = 0.15f;
+
 	if (Progress >= 0.15f) // 15% 이상 파괴되었으면
 	{
 		auto CurrentLayer = GroundLayers[CurrentLayerIndex];

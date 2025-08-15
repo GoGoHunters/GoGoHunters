@@ -138,3 +138,22 @@ void ACollectionBox::PlayBoxCloseAnimation()
 	K2_CloseLid();
 }
 
+void ACollectionBox::PressedDevKey()
+{
+	for (UStaticMeshComponent* Mesh : TargetRelic->RelicsMeshes)
+	{
+		Mesh->ComponentTags.Add(FName("Collected"));
+		Mesh->SetCollisionProfileName(FName("Relic_Buried"));
+		Mesh->SetWorldLocation(GetActorLocation() + FVector(0, 10, 20));
+
+		CollectedMeshes.Add(Mesh);
+
+		if (TargetRelic->GetBrushingUI())
+		{
+			TargetRelic->GetBrushingUI()->SetAllCollected();
+		}
+	}
+
+	CheckAllCollected();
+}
+

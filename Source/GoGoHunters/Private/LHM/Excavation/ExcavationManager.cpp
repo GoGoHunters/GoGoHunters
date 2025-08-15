@@ -225,6 +225,14 @@ void AExcavationManager::ChangeCompletedPhase()
 	// 타미 음성
 	PlayTami(TEXT("PlayExcavationCompleted2"));
 
+	// Phase UI (로비/박물관 이동)
+	FTimerHandle PhaseUIVisibilityHandle;
+	GetWorldTimerManager().SetTimer(PhaseUIVisibilityHandle, [this]()
+	{
+		PhaseUI->SetVisibilityLobby(true);
+		PhaseUI->SetVisibilityMuseum(true);
+	}, 15.0f, false);
+
 	// 게임 인스턴스에서 유물 등록
 	if (UGI_Base* GI = Cast<UGI_Base>(UGameplayStatics::GetGameInstance(GetWorld())))
 	{

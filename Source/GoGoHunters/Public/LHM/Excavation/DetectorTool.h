@@ -54,4 +54,8 @@ private:
 
 	bool bIsDetecting = false;
 
+// 개발자 키
+public:
+	UPROPERTY(BlueprintReadWrite)
+	bool bPressedDevKey = false;
 };

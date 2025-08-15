@@ -58,9 +58,9 @@ void ABrushTool::Tick(float DeltaTime)
 
 void ABrushTool::OnBeginOverlap(UPrimitiveComponent* Overlapped, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 BodyIndex, bool bFromSweep, const FHitResult& Hit)
 {
-	if (ARelicsBase* Relic = Cast<ARelicsBase>(OtherActor))
+	if (ARelicsBase* RelicRef = Cast<ARelicsBase>(OtherActor))
 	{
-		CurrentOverlappingRelic = Relic;
+		CurrentOverlappingRelic = RelicRef;
 	}
 }
 
@@ -79,7 +79,7 @@ void ABrushTool::CheckBrushSwipe(float DeltaTime)
 	if (SwipeSpeed > BrushSwipeThresholdMin
 		&& SwipeSpeed < BrushSwipeThresholdMax)
 	{
-		ARelicsBase* Relic = Cast<ARelicsBase>(CurrentOverlappingRelic);
+		Relic = Cast<ARelicsBase>(CurrentOverlappingRelic);
 		if (!Relic) return;
 
 		// [1] 가장 가까운 메시

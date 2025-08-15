@@ -154,6 +154,9 @@ void ADetectorTool::UpdateDetection(float DeltaTime)
 		DetectionProgress = 0.f;
 	}
 
+	// 개발자 키: 탐지 진행률 100%
+	if(bPressedDevKey) DetectionProgress = 100.f;
+
 	if (DetectionComp && DetectionUI)
 	{
 		DetectionComp->UpdateFeedback(DetectionProgress);
@@ -186,13 +189,6 @@ void ADetectorTool::UpdateDetection(float DeltaTime)
 				break;
 			}
 		}
-
-		//// 마커 표시
-		//if (Relics && Relics->Marker)
-		//{
-		//	Relics->Marker->ActivateMarker();
-		//	Relics = nullptr;
-		//}
 
 		UE_LOG(LogTemp, Log, TEXT("[DetectorTool] 탐지 완료 및 UI & 탐지 상태 초기화"));
 

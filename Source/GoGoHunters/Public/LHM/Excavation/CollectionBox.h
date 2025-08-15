@@ -1,4 +1,4 @@
-// Fill out your copyright notice in the Description page of Project Settings.
+﻿// Fill out your copyright notice in the Description page of Project Settings.
 
 #pragma once
 
@@ -58,4 +58,8 @@ public:
 
 	UFUNCTION(BlueprintImplementableEvent)
     void K2_CloseLid();
+
+// 개발자 키
+	UFUNCTION(BlueprintCallable)
+	void PressedDevKey();
 };

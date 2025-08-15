@@ -118,4 +118,9 @@ protected:
 private:
 	void PlayTami();
 	bool bIsPlayingTami = false;
+
+// 개발자 키
+public:
+	UFUNCTION(BlueprintCallable)
+	void PressedDevKey();
 };
