@@ -59,6 +59,9 @@ public:
 	UPROPERTY()
 	class AActor* CurrentOverlappingRelic;
 
+	UPROPERTY(BlueprintReadOnly)
+	class ARelicsBase* Relic;
+
 	// 최소/최대 스와이프 속도
 	UPROPERTY(EditAnywhere)
 	float BrushSwipeThresholdMin = 30.0f;

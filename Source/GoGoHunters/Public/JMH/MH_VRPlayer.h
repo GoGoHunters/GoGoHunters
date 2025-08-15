@@ -155,25 +155,25 @@ public:
 	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Excavation")
 	TSubclassOf<class ADetectorTool> DetectionToolClass;
-	UPROPERTY()
+	UPROPERTY(BlueprintReadOnly)
 	class ADetectorTool* DetectionTool;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Excavation")
 	TSubclassOf<class AShovelTool> ShovelToolClass;
-	UPROPERTY()
+	UPROPERTY(BlueprintReadOnly)
 	class AShovelTool* ShovelTool;
 	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Excavation")
 	TSubclassOf<class ABrushTool> BrushToolClass;
-	UPROPERTY()
+	UPROPERTY(BlueprintReadOnly)
 	class ABrushTool* BrushTool;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Excavation")
 	TSubclassOf<class ATweezersTool> TweezersToolClass;
-	UPROPERTY()
+	UPROPERTY(BlueprintReadOnly)
 	class ATweezersTool* TweezersTool;
 
-	UPROPERTY()
+	UPROPERTY(BlueprintReadOnly)
 	TArray<class ARelicsGround*> RelicsGroundRefs;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Excavation")

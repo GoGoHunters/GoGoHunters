@@ -45,6 +45,9 @@ public:
 
     TArray<class UImage*> CollectedImgs;
 
+// 개발자 키
+    void SetAllCollected();
+
 #pragma region DecalProgressUI
 protected:
     virtual void BeginDestroy() override;

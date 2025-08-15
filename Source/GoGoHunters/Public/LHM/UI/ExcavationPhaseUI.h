@@ -19,20 +19,34 @@ public:
 
 	void SetVisibilityFlagTrigger(bool bVisible);
 	void SetVisibilityCloseLid(bool bVisible);
+	void SetVisibilityLobby(bool bVisible);
+	void SetVisibilityMuseum(bool bVisible);
 
 protected:
 	UFUNCTION()
 	void OnClick_FlagTrigger();
-	
-	UPROPERTY(meta = (BindWidget))
-	class UButton* Btn_FlagTrigger;
 
 	UFUNCTION()
 	void OnClick_CloseLid();
 	
+	UFUNCTION()
+	void OnClick_Lobby();
+	
+	UFUNCTION()
+	void OnClick_Museum();
+
+	UPROPERTY(meta = (BindWidget))
+	class UButton* Btn_FlagTrigger;
+	
 	UPROPERTY(meta = (BindWidget))
 	class UButton* Btn_CloseLid;
 	
+	UPROPERTY(meta = (BindWidget))
+	class UButton* Btn_Lobby;
+	
+	UPROPERTY(meta = (BindWidget))
+	class UButton* Btn_Museum;
+
 private:
 	// ExcavationManager 찾기 및 연결
 	void FindAndConnectExcavationManager();

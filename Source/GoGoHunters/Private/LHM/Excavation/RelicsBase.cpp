@@ -325,3 +325,33 @@ void ARelicsBase::PlayTami()
     }
 }
 
+void ARelicsBase::PressedDevKey()
+{
+    BrushingUI->UpdateProgress(0);
+
+    for (UDecalComponent* Decal : DustDecals)
+    {
+		if (UStaticMeshComponent* ParentMesh = DecalToMeshMap.FindRef(Decal))
+		{
+            UMaterialInterface* MatInterface = ParentMesh->GetOverlayMaterial();
+            if (MatInterface)
+            {
+                UMaterialInstanceDynamic* OverlayMID = Cast<UMaterialInstanceDynamic>(MatInterface);
+                if (!OverlayMID)
+                {
+                    OverlayMID = UMaterialInstanceDynamic::Create(MatInterface, this);
+                    ParentMesh->SetOverlayMaterial(OverlayMID);
+                }
+                OverlayMID->SetVectorParameterValue(FName("Color"), FLinearColor(1.0f, 1.0f, 1.0f, 1.0f));
+            }
+		}
+		Decal->DestroyComponent();
+    }
+
+    DustDecals.Empty();
+    DecalMIDs.Empty();
+    DecalToMeshMap.Empty();
+
+    CheckAllDelcalsRemoved();
+}
+
