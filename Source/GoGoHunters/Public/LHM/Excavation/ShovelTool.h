@@ -30,16 +30,25 @@ public:
 	class USceneComponent* SplatPoint;
 
 	UFUNCTION(BlueprintCallable, Category = "Digging")
-	void SetIsDigging(bool bNewIsDigging) { bIsDigging = bNewIsDigging; }
+	void SetIsDigging(bool bNewIsDigging);
+	
+	UFUNCTION(BlueprintCallable, Category = "Digging")
+	void OnDigActionCompleted();
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Digging")
 	bool bIsDigging;
 
-public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Digging")
 	bool bCanTriggerDigTrace = false;
+
+	float CooldownTime = 1.0f;
 	bool bWasDiggingLastFrame = false;
 	FVector PreviousLocation;
+	
+	// 찔르기 동작 완료 후 재시작을 위한 변수들
+	bool bDigActionCompleted = false;
+	float DigActionCooldown = 0.5f; // 찔르기 동작 완료 후 0.5초 대기
+	float DigActionTimer = 0.0f;
 
     /*UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Digging")
 	bool bIsShovelLifting = false;

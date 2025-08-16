@@ -47,7 +47,7 @@ void AShovelTool::BeginPlay()
 void AShovelTool::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-
+	
 	UpdateDigSwingState(DeltaTime);
 
 	/*if (bIsDigHoldState)
@@ -61,10 +61,39 @@ void AShovelTool::Tick(float DeltaTime)
 	}*/
 }
 
+void AShovelTool::SetIsDigging(bool bNewIsDigging)
+{
+	bIsDigging = bNewIsDigging;
+	
+	if (!bIsDigging)
+	{
+		bWasDiggingLastFrame = false;
+		bCanTriggerDigTrace = false;
+		bDigActionCompleted = false;
+		DigActionTimer = 0.0f;
+	}
+}
+
 void AShovelTool::UpdateDigSwingState(float DeltaTime)
 {
 	if (bIsDigging)
 	{
+		// 찔르기 동작 완료 후 쿨다운 처리
+		if (bDigActionCompleted)
+		{
+			DigActionTimer += DeltaTime;
+			if (DigActionTimer >= DigActionCooldown)
+			{
+				bDigActionCompleted = false;
+				DigActionTimer = 0.0f;
+			}
+			else
+			{
+				bCanTriggerDigTrace = false;
+				return;
+			}
+		}
+
 		AMH_VRPlayer* VRPlayer = Cast<AMH_VRPlayer>(this->GetAttachParentActor());
 		if (VRPlayer)
 		{
@@ -89,12 +118,24 @@ void AShovelTool::UpdateDigSwingState(float DeltaTime)
 
 			float SwingThreshold = 50.0f;
 			bool bFastEnough = Velocity.Size() > SwingThreshold;
-			bCanTriggerDigTrace = bFastEnough && bIsMovingDownward && bIsMovingForward;
+			bool bCanDigNow = bFastEnough && bIsMovingDownward && bIsMovingForward;
+			
+			// 찔르기 조건이 만족되면 한 번만 true로 설정
+			if (bCanDigNow && !bCanTriggerDigTrace && !bDigActionCompleted)
+			{
+				bCanTriggerDigTrace = true;
+			}
+			// 찔르기 조건이 만족되지 않으면 false로 설정
+			else if (!bCanDigNow)
+			{
+				bCanTriggerDigTrace = false;
+			}
 
-			UE_LOG(LogTemp, Log, TEXT("Speed: %.1f | DownDot: %.2f | ForwardDot: %.2f"),
+			/*UE_LOG(LogTemp, Log, TEXT("Speed: %.1f | DownDot: %.2f | ForwardDot: %.2f | CanDig: %s"),
 				   Velocity.Size(),
 				   FVector::DotProduct(NormalizedVelocity, FVector::DownVector),
-				   FVector::DotProduct(NormalizedVelocity, VRPlayer->GetActorForwardVector()));
+				   FVector::DotProduct(NormalizedVelocity, VRPlayer->GetActorForwardVector()),
+				   bCanTriggerDigTrace ? TEXT("True") : TEXT("False"));*/
 		}
 	}
 	else
@@ -151,9 +192,19 @@ void AShovelTool::UpdateDigSwingState(float DeltaTime)
 //		   Speed, Dot, *NormalizedVelocity.ToString(), *UpDirection.ToString());
 //}
 
+void AShovelTool::OnDigActionCompleted()
+{
+	bDigActionCompleted = true;
+	DigActionTimer = 0.0f;
+	bCanTriggerDigTrace = false;
+}
+
 void AShovelTool::UpdateFeedback(FVector ImpactLocation)
 {
 	if (!bIsDigging) return;
+
+	// 찔르기 동작 완료 처리
+	OnDigActionCompleted();
 
 	// 햅틱 피드백 재생
 	APlayerController* PC = UGameplayStatics::GetPlayerController(this, 0);
