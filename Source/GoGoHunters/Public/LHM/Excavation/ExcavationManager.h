@@ -98,9 +98,9 @@ public:
 
 	void SetBrushingUI(class UBrushingUI* InBrushingUI) { BrushingUI = InBrushingUI; }
 
-protected:
-    UPROPERTY()
+    UPROPERTY(BlueprintReadOnly)
     class UExcavationPhaseUI* PhaseUI;
+protected:
 
     UPROPERTY()
     class UDiggingUI* DiggingUI;

@@ -17,9 +17,15 @@ class GOGOHUNTERS_API UExcavationPhaseUI : public UUserWidget
 public:
 	virtual void NativeConstruct() override;
 
+	UFUNCTION(BlueprintCallable)
 	void SetVisibilityFlagTrigger(bool bVisible);
+
 	void SetVisibilityCloseLid(bool bVisible);
+
+	UFUNCTION(BlueprintCallable)
 	void SetVisibilityLobby(bool bVisible);
+
+	UFUNCTION(BlueprintCallable)
 	void SetVisibilityMuseum(bool bVisible);
 
 protected:
