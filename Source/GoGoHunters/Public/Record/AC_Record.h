@@ -59,7 +59,7 @@ private:
 
 	float minVolume = 0.05f;
 	bool isRecording = false; // 음성 감지에 따른 녹음 로직 (WebSocket 전송)
-	double startRecordTime = 0.0f;
+	double startRecordTime = 0.005f;
 
 	int historyCount = 0;
 
