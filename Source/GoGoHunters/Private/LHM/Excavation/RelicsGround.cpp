@@ -45,8 +45,7 @@ void ARelicsGround::TriggerOnGroundDug(FVector ImpactLocation)
 
 	if (Shovel_Ref)
 	{
-		//Shovel_Ref->SetIsDigging(false);
-		Shovel_Ref->bCanTriggerDigTrace = false;
+		Shovel_Ref->OnDigActionCompleted();
 	}
 
 	// 파괴량 측정은 한 프레임 지연 후
