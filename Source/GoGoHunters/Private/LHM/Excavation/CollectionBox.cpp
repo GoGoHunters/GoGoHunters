@@ -140,11 +140,68 @@ void ACollectionBox::PlayBoxCloseAnimation()
 
 void ACollectionBox::PressedDevKey()
 {
+	/*for (UStaticMeshComponent* Mesh : TargetRelic->RelicsMeshes)
+	{
+		if (Mesh->ComponentTags.Contains("Collected")) Mesh->SetCollisionProfileName(FName("Relic_Buried"));
+	}*/
+	
 	for (UStaticMeshComponent* Mesh : TargetRelic->RelicsMeshes)
 	{
-		Mesh->ComponentTags.Add(FName("Collected"));
-		Mesh->SetCollisionProfileName(FName("Relic_Buried"));
-		Mesh->SetWorldLocation(GetActorLocation() + FVector(0, 10, 20));
+		if (Mesh->ComponentTags.Contains("Collected")) continue;
+		else Mesh->ComponentTags.Add(FName("Collected"));
+
+		Mesh->SetSimulatePhysics(true);
+		Mesh->SetCollisionProfileName(FName("Relic_Physics"));
+		Mesh->SetGenerateOverlapEvents(true);
+		Mesh->BodyInstance.bUseCCD = true; // 빠르게 낙하 시 충돌 누락 방지
+
+		FVector Loc = GetActorLocation();
+		FRotator Rot = GetActorRotation();
+
+		// 위치 조정
+		if (Mesh->GetName().Contains("RelicMesh_1"))
+		{
+			Loc += FVector(-0.5, 20, 55);
+			Rot += FRotator(-60, -90, 90);
+		}
+		else if (Mesh->GetName().Contains("RelicMesh_2"))
+		{
+			Loc += FVector(21, 11, 10);
+			Rot += FRotator(-63, 0, 0);
+		}
+		else if (Mesh->GetName().Contains("RelicMesh_3"))
+		{
+			Loc += FVector(-1, 5, 12);
+			Rot += FRotator(-75, 137, 223);
+		}
+		else if (Mesh->GetName().Contains("RelicMesh_4"))
+		{
+			Loc += FVector(-18, -20, 10);
+			Rot += FRotator(-84, 130, 118);
+		}
+		else if (Mesh->GetName().Contains("RelicMesh_5"))
+		{
+			Loc += FVector(15.5, -23, 11);
+			Rot += FRotator(-72, -20, 20);
+		}
+		else if (Mesh->GetName().Contains("RelicMesh_6"))
+		{
+			Loc += FVector(18, -21, 14.5);
+			Rot += FRotator(-61, -41, 37);
+		}
+		else if (Mesh->GetName().Contains("RelicMesh_7"))
+		{
+			Loc += FVector(21, -5.7, 8);
+			Rot += FRotator(-87, 0, 0);
+		}
+		else if (Mesh->GetName().Contains("RelicMesh_8"))
+		{
+			Loc += FVector(2, -5.6, 13);
+			Rot += FRotator(67, 111, 110);
+		}
+
+		Mesh->SetWorldLocation(Loc);
+		Mesh->SetWorldRotation(Rot);
 
 		CollectedMeshes.Add(Mesh);
 
