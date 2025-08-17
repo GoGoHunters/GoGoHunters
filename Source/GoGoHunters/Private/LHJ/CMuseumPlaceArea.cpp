@@ -80,9 +80,18 @@ void ACMuseumPlaceArea::CreateGridMeshComponents()
 	}
 	GridMeshComponents.Empty();
 
+	// TODO
+	// 1. 매시 블루프린트 참조로 변경
+	// 2. 머티리얼 블루프린트 참조로 변경
+	// 3. 머티리얼 에셋 생성
+
 	// 큐브 스태틱 메시 로드
 	UStaticMesh* CubeMesh = LoadObject<UStaticMesh>(nullptr, TEXT("/Engine/BasicShapes/Cube"));
 	if (!CubeMesh) return;
+
+	// 기본 머터리얼 로드
+	UMaterial* BaseMaterial = LoadObject<UMaterial>(nullptr, TEXT("/Engine/BasicShapes/BasicShapeMaterial"));
+	if (!BaseMaterial) return;
 
 	// 각 그리드 셀에 대해 StaticMeshComponent 생성
 	for (int32 i = 0; i < GridCells.Num(); ++i)
@@ -98,6 +107,8 @@ void ACMuseumPlaceArea::CreateGridMeshComponents()
 		MeshComp->SetWorldScale3D(FVector(CellSize / 100.f, CellSize / 100.f, 0.1f)); // 100은 기본 큐브 크기
 
 		// 다이나믹 머티리얼 만들어서 색 추가
+		UMaterialInstanceDynamic* DynamicMaterial = UMaterialInstanceDynamic::Create(BaseMaterial, MeshComp);
+		MeshComp->SetMaterial(0, DynamicMaterial);
 		
 		GridMeshComponents.Add(MeshComp);
 	}
@@ -111,7 +122,24 @@ void ACMuseumPlaceArea::UpdateGridMeshComponents() const
 		{
 			GridMeshComponents[i]->SetVisibility(true);
 			FColor Color = GridCells[i].bOccupied ? FColor::Red : FColor::Green;
+			
 			// 색 적용 추가
+			UMaterialInstanceDynamic* DynamicMaterial = Cast<UMaterialInstanceDynamic>(GridMeshComponents[i]->GetMaterial(0));
+			if (DynamicMaterial)
+			{
+				DynamicMaterial->SetVectorParameterValue(TEXT("Color"), FLinearColor(Color));
+			}
+		}
+	}
+	else
+	{
+		// 데코모드가 아닐 때는 모든 메시 컴포넌트 숨김
+		for (UStaticMeshComponent* MeshComp : GridMeshComponents)
+		{
+			if (MeshComp)
+			{
+				MeshComp->SetVisibility(false);
+			}
 		}
 	}
 }
