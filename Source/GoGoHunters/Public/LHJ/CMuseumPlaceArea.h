@@ -2,6 +2,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
+#include "Components/StaticMeshComponent.h"
 #include "CMuseumPlaceArea.generated.h"
 
 class ACRelicBase;
@@ -47,6 +48,9 @@ private:
 	UPROPERTY(VisibleAnywhere)
 	TArray<FGridCell> GridCells;
 
+	UPROPERTY()
+	TArray<UStaticMeshComponent*> GridMeshComponents;
+
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta=(AllowPrivateAccess))
 	int32 GridXCount = 10;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta=(AllowPrivateAccess))
@@ -60,10 +64,10 @@ private:
 	
 	ACMuseumPlaceArea();
 	virtual void BeginPlay() override;
+	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
 	virtual void Tick(float DeltaTime) override;
 
 	void CreateGrid();
-	void DrawGridDebug() const;
-
-	bool GetCell(const FVector& WorldLocation, FGridCell& outCell);
+	void CreateGridMeshComponents();
+	void UpdateGridMeshComponents() const;
 };

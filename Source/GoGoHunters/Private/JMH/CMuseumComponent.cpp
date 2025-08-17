@@ -94,6 +94,11 @@ void UCMuseumComponent::TickComponent(float DeltaTime, ELevelTick TickType,
 	{
 		PreviewMode();
 	}
+
+	if (bIsGrabbing)
+	{
+		SetRelicScaleToGrabScale();
+	}
 }
 
 void UCMuseumComponent::SetupPlayerInputComponent(UEnhancedInputComponent* EnhancedInput)
@@ -307,6 +312,13 @@ void UCMuseumComponent::RegisterRelic(const int32& InRelicTag)
 	}
 }
 
+void UCMuseumComponent::GrabRelic(ACRelicBase* GrabRelic)
+{
+	if (!GrabRelic) return;
+	GrabbedRelic = GrabRelic;
+	bIsGrabbing = true;
+}
+
 void UCMuseumComponent::PreviewEnd()
 {
 	if (Relic) Relic->Destroy();
@@ -447,4 +459,31 @@ bool UCMuseumComponent::FindNearbyPlaceArea(const FVector& Location, float Searc
     OutArea = Nearest;
     OutCellScale = ClosestScale;
     return true;
+}
+
+void UCMuseumComponent::SetRelicScaleToGrabScale()
+{
+	if (!GrabbedRelic)
+	{
+		bIsGrabbing = false;
+		return;
+	}
+
+	// 현재 스케일과 목표 스케일 사이를 Lerp로 부드럽게 보간
+	FVector CurrentScale = GrabbedRelic->GetActorScale3D();
+	FVector TargetScale = GrabRelicScale;
+		
+	FVector NewScale = FMath::Lerp(CurrentScale, TargetScale, LerpScale);
+	
+	// NewScale이 GrabRelicScale과 0.1 이상 차이가 나지 않으면 GrabRelicScale로 직접 설정
+	if (FVector::Dist(NewScale, TargetScale) <= 0.1f)
+	{
+		GrabbedRelic->SetActorScale3D(TargetScale);
+		bIsGrabbing = false;
+		GrabbedRelic = nullptr;
+	}
+	else
+	{
+		GrabbedRelic->SetActorScale3D(NewScale);
+	}
 }

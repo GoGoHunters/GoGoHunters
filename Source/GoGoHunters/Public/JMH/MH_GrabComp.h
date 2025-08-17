@@ -33,6 +33,7 @@ public:
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 
 	bool TryGrab(UPrimitiveComponent* TargetComp);
+	void RelicGrab(UPrimitiveComponent* TargetComp);
 	void TryUnGrab();
 	void RelicUnGrab();
 	void ReleaseGrabbedComponent();

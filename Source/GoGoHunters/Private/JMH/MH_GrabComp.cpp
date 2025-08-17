@@ -58,7 +58,22 @@ bool UMH_GrabComp::TryGrab(UPrimitiveComponent* TargetComp)
 	PendingGrabComponent = TargetComp;
 	bIsPulling = true;
 
+	RelicGrab(TargetComp);
+
 	return true;
+}
+
+void UMH_GrabComp::RelicGrab(UPrimitiveComponent* TargetComp)
+{
+	if (!GrabbedComponent) return;
+	if (!MuseumComponent) return;
+	if (!OwnerPlayer) return;
+	if (!OwnerPlayer->GrabRelicActor) return;
+
+	if (OwnerPlayer->GrabRelicActor->IsA(ACRelicBase::StaticClass()))
+	{
+		MuseumComponent->GrabRelic(Cast<ACRelicBase>(OwnerPlayer->GrabRelicActor));
+	}
 }
 
 void UMH_GrabComp::TryUnGrab()
