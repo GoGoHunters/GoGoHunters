@@ -54,14 +54,22 @@ void ACMuseumPlaceArea::CreateGrid()
 
 void ACMuseumPlaceArea::DrawGridDebug() const
 {
-	if (MuseumComp->GetMuseumState()==Decorate)
+	// GetWorld() null 체크 추가
+	UWorld* World = GetWorld();
+	if (!World)
+	{
+		return;
+	}
+	
+	if (MuseumComp && MuseumComp->GetMuseumState() == Decorate)
 	{
 		for (const FGridCell& Cell : GridCells)
 		{
 			FColor Color = Cell.bOccupied ? FColor::Red : FColor::Green;
-			DrawDebugBox(GetWorld(), Cell.Center, FVector(CellSize/2, CellSize/2, 10.f), Color, false, .1, 0, 2);
+			DrawDebugBox(World, Cell.Center, FVector(CellSize/2, CellSize/2, 10.f), Color, false, 0.1f, 0, 2.0f);
 		}
 	}
+	
 }
 
 bool ACMuseumPlaceArea::CanPlaceRelicAt(const FVector& WorldLocation) const
@@ -139,3 +147,4 @@ void ACMuseumPlaceArea::UnregisterRelic(const ACRelicBase* Relic)
 		}
 	}
 }
+
