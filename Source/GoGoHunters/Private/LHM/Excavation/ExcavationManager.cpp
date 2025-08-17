@@ -61,7 +61,6 @@ void AExcavationManager::NotifyDetectionCompleted(class ARelicsManager* FromMana
 	if (!PhaseUI) return;
 
 	CurrentActiveManager = FromManager;
-	//FromManager->StartExcavation();
 
 	// 타미 음성
 	PlayTami(TEXT("PlayExcavationPhase2_StartFlag"));
@@ -71,6 +70,7 @@ void AExcavationManager::NotifyDetectionCompleted(class ARelicsManager* FromMana
 	FTimerHandle PhaseUIVisibilityHandle;
 	GetWorldTimerManager().SetTimer(PhaseUIVisibilityHandle, [this]()
 	{
+		if (PhaseUI->bUseFlagTrigger) return; // 이미 가시화된 경우 중복 실행 방지
 		PhaseUI->SetVisibilityFlagTrigger(true);
 	}, 9.0f, false);
 }
@@ -229,6 +229,7 @@ void AExcavationManager::ChangeCompletedPhase()
 	FTimerHandle PhaseUIVisibilityHandle;
 	GetWorldTimerManager().SetTimer(PhaseUIVisibilityHandle, [this]()
 	{
+		if(bUseBtnLobbynMuseum) return;
 		PhaseUI->SetVisibilityLobby(true);
 		PhaseUI->SetVisibilityMuseum(true);
 	}, 15.0f, false);

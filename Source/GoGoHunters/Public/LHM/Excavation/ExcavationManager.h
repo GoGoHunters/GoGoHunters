@@ -100,8 +100,8 @@ public:
 
     UPROPERTY(BlueprintReadOnly)
     class UExcavationPhaseUI* PhaseUI;
-protected:
 
+protected:
     UPROPERTY()
     class UDiggingUI* DiggingUI;
 	
@@ -111,4 +111,8 @@ protected:
 // 타미 대사
 private:
 	void PlayTami(const FName& FunctionName);
+
+public:
+	UPROPERTY(BlueprintReadWrite)
+	bool bUseBtnLobbynMuseum = false;
 };

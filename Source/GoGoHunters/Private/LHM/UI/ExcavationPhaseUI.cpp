@@ -41,7 +41,7 @@ void UExcavationPhaseUI::NativeConstruct()
 void UExcavationPhaseUI::SetVisibilityFlagTrigger(bool bVisible)
 {
 	if (!Btn_FlagTrigger || !OwningWidgetActor) return;
-
+	
 	Btn_FlagTrigger->SetVisibility(bVisible ? ESlateVisibility::Visible : ESlateVisibility::Hidden);
 	OwningWidgetActor->SetActorEnableCollision(bVisible ? true : false);
 }
