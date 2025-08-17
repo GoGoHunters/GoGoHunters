@@ -152,6 +152,8 @@ void UDetectionComponent::PlayBeep()
 
 void UDetectionComponent::PlayTami1()
 {
+	if (!GetWorld()->GetMapName().ToLower().Contains("Excavation")) return; // 발굴 레벨에서만 실행
+
 	bIsPlayingTami1 = true;
 
 	APawn* TamiAI = nullptr;
@@ -165,7 +167,7 @@ void UDetectionComponent::PlayTami1()
 		}
 	}
 
-	if(!TamiAI) return;
+	if (!TamiAI) return;
 
 	FName FunctionName(TEXT("PlayExcavationPhase1_DetectorPercent"));
 	if (UFunction* Function = TamiAI->FindFunction(FunctionName))
