@@ -355,7 +355,14 @@ void AMH_VRPlayer::TriggerInteract(const FInputActionInstance& IA_Instance)
 	bInteracteAnyComponent = false;
 	if (IsPointingAtWidget())
 	{
-		SetClickAndWidgetActivation(true);
+		if (RWidgetInteractionComponent->IsOverInteractableWidget())
+		{
+			SetClickAndWidgetActivation(true);
+		}
+		else
+		{
+			SetClickAndWidgetActivation(false);
+		}
 		// Hit된 위치로 LineTraceEffect를 그림
 		bInteracteAnyComponent = true;
 		End = RWidgetInteractionComponent->GetLastHitResult().ImpactPoint;
@@ -998,7 +1005,7 @@ void AMH_VRPlayer::SetWidgetInteractionUsing(bool bUsing)
 bool AMH_VRPlayer::IsPointingAtWidget()
 {
 	if (!RWidgetInteractionComponent) return false;
-	return RWidgetInteractionComponent->IsOverInteractableWidget();
+	return RWidgetInteractionComponent->GetHoveredWidgetComponent() ? true : false;
 }
 
 void AMH_VRPlayer::SetClickAndWidgetActivation(bool bUsing)
