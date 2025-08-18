@@ -33,6 +33,8 @@ protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
+	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
+
 public:	
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
@@ -113,6 +115,11 @@ private:
 	void PlayTami(const FName& FunctionName);
 
 public:
+	UFUNCTION()
+	void ShowLobbyMuseumButtons();
+
 	UPROPERTY(BlueprintReadWrite)
 	bool bUseBtnLobbynMuseum = false;
+
+	FTimerHandle LobbyMuseumTimerHandle;
 };

@@ -186,8 +186,8 @@ void ARelicsBase::ReduceDustOpacity(const FVector& BrushLocation, float Amount, 
     {
         float Progress = TotalRemainingOpacity / TotalInitialOpacity;
 
-		// Progress가 0.7 이하일 때 Tami 음성 재생
-        if (Progress <= 0.7f)
+		// Progress가 0.75 이하일 때 Tami 음성 재생
+        if (Progress <= 0.8f)
         {
             if(!bIsPlayingTami) PlayTami();
         }
