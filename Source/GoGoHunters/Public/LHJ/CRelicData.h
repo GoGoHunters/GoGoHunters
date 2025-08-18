@@ -20,9 +20,9 @@ struct FCRelicData : public FTableRowBase
 	uint32 RelicTag = -1;
 	UPROPERTY(EditAnywhere)
 	TObjectPtr<ACMuseumPlaceArea> PlaceArea;
-	UPROPERTY(EditAnywhere)
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	FDateTime DropDate; // 획득 날짜,시간
-	UPROPERTY(BlueprintReadWrite)
+	UPROPERTY(EditAnywhere)
 	FTransform PlacedTransform; // 배치 위치
 	UPROPERTY(EditAnywhere)
 	bool IsPlace = false; // 박물관 배치 유무
@@ -33,13 +33,13 @@ struct FCRelicDetailData : public FTableRowBase
 {
 	GENERATED_BODY()
 	
-	UPROPERTY(EditAnywhere)
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	FText RelicName; // 유물 이름 (PK)
 	UPROPERTY(EditAnywhere)
 	uint32 RelicTag = 0;
-	UPROPERTY(EditAnywhere)
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	FText RelicDesc; // 유물 설명
-	UPROPERTY(EditAnywhere)
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	FText ContinentName; // 대륙 이름
 	UPROPERTY(EditAnywhere)
 	UTexture2D* RelicImage; // 유물 이미지
@@ -47,4 +47,17 @@ struct FCRelicDetailData : public FTableRowBase
 	TSubclassOf<ACRelicBase> RelicActorClass; // 유물 액터 클래스
 	UPROPERTY(EditAnywhere)
 	bool IsDrop = false; // 획득 유무	
+};
+
+USTRUCT(Atomic, BlueprintType)
+struct FCRelicDataParam : public FTableRowBase
+{
+	GENERATED_BODY()
+
+	UPROPERTY(BlueprintReadOnly)
+	FCRelicData RelicData;
+	UPROPERTY(BlueprintReadOnly)
+	FCRelicDetailData RelicDetailData;
+	UPROPERTY(BlueprintReadOnly)
+	bool IsUpdate = false;
 };
