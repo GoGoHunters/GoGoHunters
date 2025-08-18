@@ -80,17 +80,10 @@ void ACMuseumPlaceArea::CreateGridMeshComponents()
 	}
 	GridMeshComponents.Empty();
 
-	// TODO
-	// 1. 매시 블루프린트 참조로 변경
-	// 2. 머티리얼 블루프린트 참조로 변경
-	// 3. 머티리얼 에셋 생성
-
 	// 큐브 스태틱 메시 로드
-	UStaticMesh* CubeMesh = LoadObject<UStaticMesh>(nullptr, TEXT("/Engine/BasicShapes/Cube"));
 	if (!CubeMesh) return;
 
 	// 기본 머터리얼 로드
-	UMaterial* BaseMaterial = LoadObject<UMaterial>(nullptr, TEXT("/Engine/BasicShapes/BasicShapeMaterial"));
 	if (!BaseMaterial) return;
 
 	// 각 그리드 셀에 대해 StaticMeshComponent 생성
@@ -166,6 +159,7 @@ void ACMuseumPlaceArea::SetPlaceRelicAtLocation(ACRelicBase* Relic, const FVecto
 		if (FVector::Dist2D(Cell.Center, WorldLocation) < CellSize * 0.5f)
 		{
 			Relic->SetActorScale3D(Cell.Scale);
+			Relic->SetActorRotation(FRotator::ZeroRotator);
 			break;
 		}
 	}

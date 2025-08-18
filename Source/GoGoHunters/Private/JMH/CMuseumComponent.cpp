@@ -73,6 +73,13 @@ void UCMuseumComponent::BeginPlay()
 						RelicActor->InitializeAsset(Data, *Local_RelicDetailData);
 						RelicActor->Tags.Add("Grabable");
 						if (Data.PlaceArea) Data.PlaceArea->PlaceRelicAt(Data.PlacedTransform.GetLocation());
+
+						RelicActor->SimulatePhysics(true);
+						FTimerHandle hnd;
+						GetWorld()->GetTimerManager().SetTimer(hnd, [RelicActor]()
+						{
+							RelicActor->SimulatePhysics(false);
+						}, 0.4f, false);						
 					}
 				}				
 			}
@@ -204,7 +211,7 @@ void UCMuseumComponent::SwitchState()
 	case EMuseumState::Decorate:
 		OwnerPlayer->RWidgetInteractionComponent->SetActive(true);
 		OwnerPlayer->RWidgetInteractionComponent->bEnableHitTesting = true;
-		GrabComponent->RelicUnGrab();
+		GrabComponent->TryUnGrab();
 		break;
 	}
 }
@@ -332,6 +339,8 @@ void UCMuseumComponent::PreviewEnd()
 
 void UCMuseumComponent::GrabRelicEnd(ACRelicBase* GrabRelic, const FVector& HandComponentLocation)
 {
+	GrabbedRelic = nullptr;
+	
 	// 1. 범위 내 ACMuseumPlaceArea 찾기
 	TArray<ACMuseumPlaceArea*> NearbyAreas;
 	for (TActorIterator<ACMuseumPlaceArea> It(GetWorld()); It; ++It)
@@ -365,6 +374,16 @@ void UCMuseumComponent::GrabRelicEnd(ACRelicBase* GrabRelic, const FVector& Hand
 			Area->PlaceRelicAt(EmptySlotLocation);
 			Area->SetPlaceRelicAtLocation(GrabRelic, EmptySlotLocation);
 			bPlaced = true;
+
+			// 배치 위치 업데이트
+			FCRelicData PlacedRelicData = GrabRelic->UpdateRelicLocation(EmptySlotLocation);
+			if (UGI_Base* GI = Cast<UGI_Base>(UGameplayStatics::GetGameInstance(GetWorld())))
+			{
+				FRelicSaveData NewSaveData;
+				NewSaveData.RelicData = PlacedRelicData;
+				GI->SaveRelicData(NewSaveData);
+			}
+			
 			break;
 		}
 	}
@@ -475,8 +494,8 @@ void UCMuseumComponent::SetRelicScaleToGrabScale()
 		
 	FVector NewScale = FMath::Lerp(CurrentScale, TargetScale, LerpScale);
 	
-	// NewScale이 GrabRelicScale과 0.1 이상 차이가 나지 않으면 GrabRelicScale로 직접 설정
-	if (FVector::Dist(NewScale, TargetScale) <= 0.1f)
+	// NewScale이 GrabRelicScale과 0.01 이상 차이가 나지 않으면 GrabRelicScale로 직접 설정
+	if (FVector::Dist(NewScale, TargetScale) <= 0.01)
 	{
 		GrabbedRelic->SetActorScale3D(TargetScale);
 		bIsGrabbing = false;

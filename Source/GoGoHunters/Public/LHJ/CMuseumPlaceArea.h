@@ -48,7 +48,7 @@ private:
 	UPROPERTY(VisibleAnywhere)
 	TArray<FGridCell> GridCells;
 
-	UPROPERTY()
+	UPROPERTY(VisibleInstanceOnly)
 	TArray<UStaticMeshComponent*> GridMeshComponents;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta=(AllowPrivateAccess))
@@ -61,6 +61,11 @@ private:
 
 	UPROPERTY()
 	TObjectPtr<UCMuseumComponent> MuseumComp;
+
+	UPROPERTY(EditDefaultsOnly)
+	TObjectPtr<UStaticMesh> CubeMesh;
+	UPROPERTY(EditDefaultsOnly)
+	TObjectPtr<UMaterial> BaseMaterial;
 	
 	ACMuseumPlaceArea();
 	virtual void BeginPlay() override;
