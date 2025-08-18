@@ -2,6 +2,7 @@
 
 #include "Components/BoxComponent.h"
 #include "Components/StaticMeshComponent.h"
+#include "Components/WidgetComponent.h"
 #include "Engine/StaticMesh.h"
 #include "Materials/MaterialInstanceDynamic.h"
 #include "Utilities/CHelpers.h"
@@ -19,9 +20,6 @@ ACMuseumPlaceArea::ACMuseumPlaceArea()
 void ACMuseumPlaceArea::BeginPlay()
 {
 	Super::BeginPlay();
-	CreateGrid();
-	CreateGridMeshComponents();
-
 	MuseumComp = GetWorld()->GetFirstPlayerController()->GetPawn()->GetComponentByClass<UCMuseumComponent>();
 }
 
@@ -34,12 +32,30 @@ void ACMuseumPlaceArea::EndPlay(const EEndPlayReason::Type EndPlayReason)
 			MeshComp->DestroyComponent();
 		}
 	}
+	for (UWidgetComponent* WidgetComp : DescriptionWidgetComponents)
+	{
+		if (WidgetComp)
+		{
+			WidgetComp->DestroyComponent();
+		}
+	}
 	Super::EndPlay(EndPlayReason);
 }
 
 void ACMuseumPlaceArea::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
+
+	if (MuseumComp && !StartCreateCell)
+	{
+		if (MuseumComp->bBeginPlayEnded)
+		{
+			CreateGrid();
+			CreateGridMeshComponents();
+			StartCreateCell = true;
+		}
+	}
+	
 	UpdateGridMeshComponents();
 }
 
@@ -94,6 +110,7 @@ void ACMuseumPlaceArea::CreateGridMeshComponents()
 		MeshComp->SetStaticMesh(CubeMesh);
 		MeshComp->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 		MeshComp->SetVisibility(false); // 초기에는 숨김
+		MeshComp->SetCastShadow(false);
 		
 		// 위치와 스케일 설정
 		MeshComp->SetWorldLocation(GridCells[i].Center);
@@ -104,7 +121,25 @@ void ACMuseumPlaceArea::CreateGridMeshComponents()
 		MeshComp->SetMaterial(0, DynamicMaterial);
 		
 		GridMeshComponents.Add(MeshComp);
+
+		if (DescriptionWidget)
+		{
+			UWidgetComponent* WidgetComp = NewObject<UWidgetComponent>(this);
+			WidgetComp->RegisterComponent();
+			WidgetComp->SetWidget(CreateWidget(GetWorld(), DescriptionWidget));
+			WidgetComp->SetWidgetSpace(EWidgetSpace::World);
+			WidgetComp->SetDrawSize(DescWidgetDrawSize);
+			WidgetComp->SetWorldLocation(GridCells[i].Center + MoveDescWidget);
+			WidgetComp->SetWorldRotation(RotateDescWidget);
+			WidgetComp->SetCastShadow(false);
+			WidgetComp->SetWorldScale3D(DescWidgetScale);
+			DescriptionWidgetComponents.Add(WidgetComp);
+			UpdateDescriptionWidget(i, false);
+		}
 	}
+
+	if (MuseumComp)
+		MuseumComp->OnMakeGridCompleted.ExecuteIfBound();
 }
 
 void ACMuseumPlaceArea::UpdateGridMeshComponents() const
@@ -137,6 +172,25 @@ void ACMuseumPlaceArea::UpdateGridMeshComponents() const
 	}
 }
 
+void ACMuseumPlaceArea::UpdateDescriptionWidget(int32 idx, bool bUpdate, FCRelicData InRelicData, FCRelicDetailData InRelicDetailData)
+{
+	if (DescriptionWidgetComponents.Num() < idx + 1) return;;
+	if (!DescriptionWidgetComponents[idx]) return;;
+	UUserWidget* WBPDescriptionWidget = DescriptionWidgetComponents[idx]->GetWidget();
+	if (!WBPDescriptionWidget) return;
+			
+	FName FunctionName(TEXT("UpdateData"));
+	UFunction* Function = WBPDescriptionWidget->FindFunction(FunctionName);
+	if (Function)
+	{
+		FCRelicDataParam param;
+		param.RelicData = InRelicData;
+		param.RelicDetailData = InRelicDetailData;
+		param.IsUpdate = bUpdate;
+		WBPDescriptionWidget->ProcessEvent(Function, &param);
+	}
+}
+
 bool ACMuseumPlaceArea::CanPlaceRelicAt(const FVector& WorldLocation) const
 {
 	for (const FGridCell& Cell : GridCells)
@@ -149,29 +203,29 @@ bool ACMuseumPlaceArea::CanPlaceRelicAt(const FVector& WorldLocation) const
 	return false;
 }
 
-void ACMuseumPlaceArea::SetPlaceRelicAtLocation(ACRelicBase* Relic, const FVector& WorldLocation)
+void ACMuseumPlaceArea::SetPlaceRelicAtLocation(ACRelicBase* Relic, const FVector& WorldLocation, const int32 PlaceIdx)
 {
 	if (!Relic) return;
-	Relic->SetActorLocation(WorldLocation);
+	FCRelicData PlaceRelicData = Relic->GetRelicData();
+	FCRelicDetailData PlaceRelicDetailData = Relic->GetRelicDetailData();
 	
-	for (FGridCell& Cell : GridCells)
-	{
-		if (FVector::Dist2D(Cell.Center, WorldLocation) < CellSize * 0.5f)
-		{
-			Relic->SetActorScale3D(Cell.Scale);
-			Relic->SetActorRotation(FRotator::ZeroRotator);
-			break;
-		}
-	}
+	Relic->SetActorLocation(WorldLocation);
+	Relic->SetActorScale3D(GridCells[PlaceIdx].Scale);
+	Relic->SetActorRotation(FRotator::ZeroRotator);
+	UpdateDescriptionWidget(PlaceIdx, true, PlaceRelicData, PlaceRelicDetailData);
 }
 
-void ACMuseumPlaceArea::PlaceRelicAt(const FVector& WorldLocation)
+void ACMuseumPlaceArea::PlaceRelicAt(const ACRelicBase* InPlaceRelic)
 {
-	for (FGridCell& Cell : GridCells)
-	{
-		if (FVector::Dist2D(Cell.Center, WorldLocation) < CellSize * 0.5f)
+	const FVector PlaceRelicLocation = InPlaceRelic->GetActorLocation();
+	FCRelicData PlaceRelicData = InPlaceRelic->GetRelicData();
+	FCRelicDetailData PlaceRelicDetailData = InPlaceRelic->GetRelicDetailData();
+	for (int32 i = 0; i < GridCells.Num(); ++i)
+	{		
+		if (FVector::Dist2D(GridCells[i].Center, PlaceRelicLocation) < CellSize * 0.5f)
 		{
-			Cell.bOccupied = true;
+			GridCells[i].bOccupied = true;
+			UpdateDescriptionWidget(i, true, PlaceRelicData, PlaceRelicDetailData);
 			break;
 		}
 	}
@@ -204,11 +258,12 @@ void ACMuseumPlaceArea::UnregisterRelic(const ACRelicBase* Relic)
 {
 	if (!Relic) return;
 
-	for (FGridCell& Cell : GridCells)
+	for (int32 i = 0; i < GridCells.Num(); ++i)
 	{
-		if (FVector::Dist2D(Cell.Center, Relic->GetRelicPlaceLocation()) < CellSize * 0.5f)
+		if (FVector::Dist2D(GridCells[i].Center, Relic->GetRelicPlaceLocation()) < CellSize * 0.5f)
 		{
-			Cell.bOccupied = false;
+			GridCells[i].bOccupied = false;
+			UpdateDescriptionWidget(i, false);
 			break;
 		}
 	}

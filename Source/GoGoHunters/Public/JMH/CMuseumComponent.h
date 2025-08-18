@@ -18,6 +18,7 @@ struct FCRelicDetailData;
 
 DECLARE_DELEGATE(FRelicPlaceDel);
 DECLARE_DELEGATE_OneParam(FUiAnimPlay, bool);
+DECLARE_DYNAMIC_DELEGATE(FMakeGridCompleted);
 
 UENUM(BlueprintType)
 enum EMuseumState : uint8
@@ -35,6 +36,9 @@ class GOGOHUNTERS_API UCMuseumComponent : public UActorComponent
 public:
 	FRelicPlaceDel OnRelicPlace;
 	FUiAnimPlay OnUiAnimPlay;
+	FMakeGridCompleted OnMakeGridCompleted;
+
+	bool bBeginPlayEnded = false;
 
 	UFUNCTION(BlueprintCallable)
 	const EMuseumState GetMuseumState() { return MuseumState; }
@@ -102,6 +106,8 @@ private:
 	UPROPERTY()
 	TObjectPtr<ACRelicBase> GrabbedRelic = nullptr;
 
+	int32 MakeGridCompletedCount = 0;
+
 	UCMuseumComponent();
 	virtual void BeginPlay() override;
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType,
@@ -120,4 +126,7 @@ private:
 	                         FVector& OutCellScale) const;
 
 	void SetRelicScaleToGrabScale();
+
+	UFUNCTION()
+	void LoadPlacedRelic();
 };
