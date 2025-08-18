@@ -57,9 +57,9 @@ private:
 
 	TArray<float> CapturedPCMBuffer; // 캡처된 float 데이터를 임시로 저장할 버퍼
 
-	float minVolume = 0.05f;
+	float minVolume = 0.005f;
 	bool isRecording = false; // 음성 감지에 따른 녹음 로직 (WebSocket 전송)
-	double startRecordTime = 0.005f;
+	double startRecordTime = 0.01f;
 
 	int historyCount = 0;
 
