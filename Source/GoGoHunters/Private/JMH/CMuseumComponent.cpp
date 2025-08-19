@@ -35,54 +35,14 @@ void UCMuseumComponent::BeginPlay()
 			Subsystem->AddMappingContext(IMC_Museum, 1);
 		}
 	}
-
-	// LV_MH_MyMuseum 레벨에서만 SaveGame 로드 및 유물 스폰
-	if (UGameplayStatics::GetCurrentLevelName(GetWorld()).Contains(MuseumLevelName))
-	{
-		if (UGI_Base* GI = Cast<UGI_Base>(UGameplayStatics::GetGameInstance(GetWorld())))
-		{
-			TArray<FCRelicData> RelicArray = GI->GetAllRelicData();
-			for (FCRelicData& Data : RelicArray)
-			{
-				if (!Data.IsPlace) continue;
-				if (Data.RelicTag == -1) continue;
-				
-				const FCRelicDetailData* Local_RelicDetailData = GI->GetRelicDetailDataByTag(Data.RelicTag);
-
-				if (!Local_RelicDetailData) continue;
-
-				// 저장된 PlaceArea 포인터에 의존하지 않고, PlacedTransform 위치 주변(반경 10)에서 PlaceArea를 탐색하여 스케일을 반영
-				ACMuseumPlaceArea* FoundArea = nullptr;
-				FVector FoundScale = FVector(1.f);
-				if (FindNearbyPlaceArea(Data.PlacedTransform.GetLocation(), 10.f, FoundArea, FoundScale))
-				{
-					Data.PlacedTransform.SetScale3D(FoundScale);
-					Data.PlaceArea = FoundArea; // 유효하면 갱신
-				}
-
-				if (FoundArea)
-				{
-					FActorSpawnParameters SpawnParams;
-					SpawnParams.Owner = OwnerPlayer;
-					SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;                
-				
-					ACRelicBase* RelicActor = GetWorld()->SpawnActor<ACRelicBase>(Local_RelicDetailData->RelicActorClass, Data.PlacedTransform, SpawnParams);
-					if (RelicActor)
-					{
-						RelicActor->SetActorScale3D(Data.PlacedTransform.GetScale3D());
-						RelicActor->InitializeAsset(Data, *Local_RelicDetailData);
-						RelicActor->Tags.Add("Grabable");
-						if (Data.PlaceArea) Data.PlaceArea->PlaceRelicAt(Data.PlacedTransform.GetLocation());
-					}
-				}				
-			}
-		}
-	}
-
+	
 	if (OwnerPlayer)
 	{
 		GrabComponent = OwnerPlayer->GetComponentByClass<UMH_GrabComp>();
 	}
+
+	OnMakeGridCompleted.BindUFunction(this, FName("LoadPlacedRelic"));
+	bBeginPlayEnded = true;
 }
 
 void UCMuseumComponent::TickComponent(float DeltaTime, ELevelTick TickType,
@@ -93,6 +53,11 @@ void UCMuseumComponent::TickComponent(float DeltaTime, ELevelTick TickType,
 	if (bIsPreviewMode)
 	{
 		PreviewMode();
+	}
+
+	if (bIsGrabbing)
+	{
+		SetRelicScaleToGrabScale();
 	}
 }
 
@@ -199,7 +164,7 @@ void UCMuseumComponent::SwitchState()
 	case EMuseumState::Decorate:
 		OwnerPlayer->RWidgetInteractionComponent->SetActive(true);
 		OwnerPlayer->RWidgetInteractionComponent->bEnableHitTesting = true;
-		GrabComponent->RelicUnGrab();
+		GrabComponent->TryUnGrab();
 		break;
 	}
 }
@@ -262,7 +227,7 @@ void UCMuseumComponent::PlaceRelic()
 		RelicData.PlaceArea = PlaceArea;
 		
 		placeActor->SetActorScale3D(BuildTransform.GetScale3D());
-		PlaceArea->PlaceRelicAt(BuildTransform.GetLocation());
+		PlaceArea->PlaceRelicAt(placeActor);
 		placeActor->InitializeAsset(RelicData, RelicDetailData);
 		placeActor->SetRelicMaterial();
 		placeActor->Tags.Add("Grabable");
@@ -307,6 +272,13 @@ void UCMuseumComponent::RegisterRelic(const int32& InRelicTag)
 	}
 }
 
+void UCMuseumComponent::GrabRelic(ACRelicBase* GrabRelic)
+{
+	if (!GrabRelic) return;
+	GrabbedRelic = GrabRelic;
+	bIsGrabbing = true;
+}
+
 void UCMuseumComponent::PreviewEnd()
 {
 	if (Relic) Relic->Destroy();
@@ -320,6 +292,8 @@ void UCMuseumComponent::PreviewEnd()
 
 void UCMuseumComponent::GrabRelicEnd(ACRelicBase* GrabRelic, const FVector& HandComponentLocation)
 {
+	GrabbedRelic = nullptr;
+	
 	// 1. 범위 내 ACMuseumPlaceArea 찾기
 	TArray<ACMuseumPlaceArea*> NearbyAreas;
 	for (TActorIterator<ACMuseumPlaceArea> It(GetWorld()); It; ++It)
@@ -339,26 +313,40 @@ void UCMuseumComponent::GrabRelicEnd(ACRelicBase* GrabRelic, const FVector& Hand
 
 	// 2. 빈 칸 찾기 및 등록
 	bool bPlaced = false;
-	for (ACMuseumPlaceArea* Area : NearbyAreas)
+	int32 PlaceAreaIndex = 0;
+	FVector EmptySlotLocation;
+	for (int32 i = 0; i < NearbyAreas.Num(); ++i)
 	{
-		FVector EmptySlotLocation = Area->FindEmptySlot(HandComponentLocation);
+		EmptySlotLocation = NearbyAreas[i]->FindEmptySlot(HandComponentLocation);
 		if (EmptySlotLocation != FVector::ZeroVector)
 		{
-			// 3-1. 원래 칸에서 Relic 해제
-			if (GrabRelic->GetPlaceAreaActor())
-			{
-				GrabRelic->GetPlaceAreaActor()->UnregisterRelic(GrabRelic);
-			}
-			// 3-2. 새 칸에 등록
-			Area->PlaceRelicAt(EmptySlotLocation);
-			Area->SetPlaceRelicAtLocation(GrabRelic, EmptySlotLocation);
 			bPlaced = true;
+			PlaceAreaIndex = i;
 			break;
 		}
 	}
 
+	if (bPlaced)
+	{
+		// 3-1. 원래 칸에서 Relic 해제
+		if (GrabRelic->GetPlaceAreaActor())
+		{
+			GrabRelic->GetPlaceAreaActor()->UnregisterRelic(GrabRelic);
+		}
+		// 3-2. 새 칸에 등록
+		// NearbyAreas[PlaceAreaIndex]->PlaceRelicAt(GrabRelic);
+		NearbyAreas[PlaceAreaIndex]->SetPlaceRelicAtLocation(GrabRelic, EmptySlotLocation, PlaceAreaIndex);
+		// 배치 위치 업데이트
+		FCRelicData PlacedRelicData = GrabRelic->UpdateRelicLocation(EmptySlotLocation);
+		if (UGI_Base* GI = Cast<UGI_Base>(UGameplayStatics::GetGameInstance(GetWorld())))
+		{
+			FRelicSaveData NewSaveData;
+			NewSaveData.RelicData = PlacedRelicData;
+			GI->SaveRelicData(NewSaveData);
+		}
+	}
 	// 4. 빈 칸이 없으면 원래 위치로 이동
-	if (!bPlaced)
+	else if (!bPlaced)
 	{
 		GrabRelic->ReturnToOriginalLocation();
 	}
@@ -447,4 +435,94 @@ bool UCMuseumComponent::FindNearbyPlaceArea(const FVector& Location, float Searc
     OutArea = Nearest;
     OutCellScale = ClosestScale;
     return true;
+}
+
+void UCMuseumComponent::SetRelicScaleToGrabScale()
+{
+	if (!GrabbedRelic)
+	{
+		bIsGrabbing = false;
+		return;
+	}
+
+	// 현재 스케일과 목표 스케일 사이를 Lerp로 부드럽게 보간
+	FVector CurrentScale = GrabbedRelic->GetActorScale3D();
+	FVector TargetScale = GrabRelicScale;
+		
+	FVector NewScale = FMath::Lerp(CurrentScale, TargetScale, LerpScale);
+	
+	// NewScale이 GrabRelicScale과 0.01 이상 차이가 나지 않으면 GrabRelicScale로 직접 설정
+	if (FVector::Dist(NewScale, TargetScale) <= 0.01)
+	{
+		GrabbedRelic->SetActorScale3D(TargetScale);
+		bIsGrabbing = false;
+		GrabbedRelic = nullptr;
+	}
+	else
+	{
+		GrabbedRelic->SetActorScale3D(NewScale);
+	}
+}
+
+void UCMuseumComponent::LoadPlacedRelic()
+{
+	++MakeGridCompletedCount;
+	
+	int32 PlaceAreaCount = 0;
+	for (TActorIterator<ACMuseumPlaceArea> It(OwnerPlayer->GetWorld(), ACMuseumPlaceArea::StaticClass()); It; ++It)
+	{
+		++PlaceAreaCount;
+	}	
+
+	if (PlaceAreaCount != MakeGridCompletedCount) return;
+	
+	// LV_MH_MyMuseum 레벨에서만 SaveGame 로드 및 유물 스폰
+	if (UGameplayStatics::GetCurrentLevelName(GetWorld()).Contains(MuseumLevelName))
+	{
+		if (UGI_Base* GI = Cast<UGI_Base>(UGameplayStatics::GetGameInstance(GetWorld())))
+		{
+			TArray<FCRelicData> RelicArray = GI->GetAllRelicData();
+			for (FCRelicData& Data : RelicArray)
+			{
+				if (!Data.IsPlace) continue;
+				if (Data.RelicTag == -1) continue;
+				
+				const FCRelicDetailData* Local_RelicDetailData = GI->GetRelicDetailDataByTag(Data.RelicTag);
+
+				if (!Local_RelicDetailData) continue;
+
+				// 저장된 PlaceArea 포인터에 의존하지 않고, PlacedTransform 위치 주변(반경 10)에서 PlaceArea를 탐색하여 스케일을 반영
+				ACMuseumPlaceArea* FoundArea = nullptr;
+				FVector FoundScale = FVector(1.f);
+				if (FindNearbyPlaceArea(Data.PlacedTransform.GetLocation(), 10.f, FoundArea, FoundScale))
+				{
+					Data.PlacedTransform.SetScale3D(FoundScale);
+					Data.PlaceArea = FoundArea; // 유효하면 갱신
+				}
+
+				if (FoundArea)
+				{
+					FActorSpawnParameters SpawnParams;
+					SpawnParams.Owner = OwnerPlayer;
+					SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;                
+				
+					ACRelicBase* RelicActor = GetWorld()->SpawnActor<ACRelicBase>(Local_RelicDetailData->RelicActorClass, Data.PlacedTransform, SpawnParams);
+					if (RelicActor)
+					{
+						RelicActor->SetActorScale3D(Data.PlacedTransform.GetScale3D());
+						RelicActor->InitializeAsset(Data, *Local_RelicDetailData);
+						RelicActor->Tags.Add("Grabable");
+						FoundArea->PlaceRelicAt(RelicActor);
+
+						RelicActor->SimulatePhysics(true);
+						FTimerHandle hnd;
+						GetWorld()->GetTimerManager().SetTimer(hnd, [RelicActor]()
+						{
+							RelicActor->SimulatePhysics(false);
+						}, 0.4f, false);						
+					}
+				}				
+			}
+		}
+	}
 }

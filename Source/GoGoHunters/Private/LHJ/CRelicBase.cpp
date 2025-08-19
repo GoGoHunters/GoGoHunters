@@ -41,4 +41,5 @@ void ACRelicBase::SetRelicMaterial()
 void ACRelicBase::ReturnToOriginalLocation()
 {
 	SetActorLocationAndRotation(RelicData.PlacedTransform.GetLocation(), RelicData.PlacedTransform.GetRotation());
+	SetActorScale3D(RelicData.PlacedTransform.GetScale3D());
 }

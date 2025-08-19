@@ -33,6 +33,8 @@ protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
+	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
+
 public:	
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
@@ -100,8 +102,8 @@ public:
 
     UPROPERTY(BlueprintReadOnly)
     class UExcavationPhaseUI* PhaseUI;
-protected:
 
+protected:
     UPROPERTY()
     class UDiggingUI* DiggingUI;
 	
@@ -111,4 +113,13 @@ protected:
 // 타미 대사
 private:
 	void PlayTami(const FName& FunctionName);
+
+public:
+	UFUNCTION()
+	void ShowLobbyMuseumButtons();
+
+	UPROPERTY(BlueprintReadWrite)
+	bool bUseBtnLobbynMuseum = false;
+
+	FTimerHandle LobbyMuseumTimerHandle;
 };

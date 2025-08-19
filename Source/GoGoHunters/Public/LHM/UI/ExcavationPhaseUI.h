@@ -66,4 +66,8 @@ public:
 private:
 	UPROPERTY()
 	class AExcavationWidgetActor* OwningWidgetActor;
+
+public:
+	UPROPERTY(BlueprintReadWrite)
+	bool bUseFlagTrigger = false; // Flag Trigger 버튼 사용 여부
 };

@@ -150,18 +150,6 @@ void AMH_VRPlayer::BeginPlay()
 	{
 		TutorialManager = *It;
 	}
-
-	//if (TutorialManager)
-	//{
-	//	// 로비 레벨에서 조작키 가이드
-	//	// 타미가 인사 먼저 진행하고 가이드 나오면 좋을듯함.
-	//	// ex) 안녕? 나는 너를 고고학자로 성장시켜줄 타미라고해~
-	//	//		(이후 조작키 가이드) 
-	//	if (CurrentLevel.ToLower().Contains("lobby"))
-	//	{
-	//		TutorialManager->StartTutorial("KEY_GUIDE");
-	//	}
-	//}
 }
 
 // Called every frame
@@ -367,7 +355,14 @@ void AMH_VRPlayer::TriggerInteract(const FInputActionInstance& IA_Instance)
 	bInteracteAnyComponent = false;
 	if (IsPointingAtWidget())
 	{
-		SetClickAndWidgetActivation(true);
+		if (RWidgetInteractionComponent->IsOverInteractableWidget())
+		{
+			SetClickAndWidgetActivation(true);
+		}
+		else
+		{
+			SetClickAndWidgetActivation(false);
+		}
 		// Hit된 위치로 LineTraceEffect를 그림
 		bInteracteAnyComponent = true;
 		End = RWidgetInteractionComponent->GetLastHitResult().ImpactPoint;
@@ -1010,7 +1005,7 @@ void AMH_VRPlayer::SetWidgetInteractionUsing(bool bUsing)
 bool AMH_VRPlayer::IsPointingAtWidget()
 {
 	if (!RWidgetInteractionComponent) return false;
-	return RWidgetInteractionComponent->IsOverInteractableWidget();
+	return RWidgetInteractionComponent->GetHoveredWidgetComponent() ? true : false;
 }
 
 void AMH_VRPlayer::SetClickAndWidgetActivation(bool bUsing)

@@ -248,9 +248,6 @@ void UAC_Record::HandleAudioEnvelopeValue(const float Volume)
         startRecordTime = GetWorld()->GetTimeSeconds();
         if (isRecording)
             return;
-        isRecording = true;
-        OnRecordingStateChanged.Broadcast(true);
-
         // StartRecordFile();
         StartRecordingVoice();
     }
@@ -262,9 +259,6 @@ void UAC_Record::HandleAudioEnvelopeValue(const float Volume)
         {
             //StopRecordFile();
             StopRecordingVoice();
-            historyCount += 1;
-            isRecording = false;
-            OnRecordingStateChanged.Broadcast(false);
         }
     }
 }
@@ -294,6 +288,8 @@ void UAC_Record::StartRecordingVoice()
 {
     if (isRecording)
         return;
+    isRecording = true;
+    OnRecordingStateChanged.Broadcast(true);
     CapturedPCMBuffer.Empty();
     UE_LOG(LogTemp, Display, TEXT("AC_Record: Voice recording started (via FAudioCapture)."));
 }
@@ -302,6 +298,9 @@ void UAC_Record::StopRecordingVoice()
 {
     if (!isRecording)
         return;
+    historyCount += 1;
+    isRecording = false;
+    OnRecordingStateChanged.Broadcast(false);
     ProcessAndBroadcastCapturedData(CurrentSampleRate, CurrentNumChannels);
     
     EndRecordingVoice();

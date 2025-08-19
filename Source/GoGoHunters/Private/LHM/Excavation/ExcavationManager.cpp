@@ -43,6 +43,14 @@ void AExcavationManager::BeginPlay()
 	SetCurrentPhase(EExcavationPhase::Detection);
 }
 
+void AExcavationManager::EndPlay(const EEndPlayReason::Type EndPlayReason)
+{
+	GetWorldTimerManager().ClearTimer(LobbyMuseumTimerHandle);
+	GetWorldTimerManager().ClearAllTimersForObject(this);
+
+	Super::EndPlay(EndPlayReason);
+}
+
 // Called every frame
 void AExcavationManager::Tick(float DeltaTime)
 {
@@ -61,7 +69,6 @@ void AExcavationManager::NotifyDetectionCompleted(class ARelicsManager* FromMana
 	if (!PhaseUI) return;
 
 	CurrentActiveManager = FromManager;
-	//FromManager->StartExcavation();
 
 	// 타미 음성
 	PlayTami(TEXT("PlayExcavationPhase2_StartFlag"));
@@ -71,6 +78,7 @@ void AExcavationManager::NotifyDetectionCompleted(class ARelicsManager* FromMana
 	FTimerHandle PhaseUIVisibilityHandle;
 	GetWorldTimerManager().SetTimer(PhaseUIVisibilityHandle, [this]()
 	{
+		if (PhaseUI->bUseFlagTrigger) return; // 이미 가시화된 경우 중복 실행 방지
 		PhaseUI->SetVisibilityFlagTrigger(true);
 	}, 9.0f, false);
 }
@@ -226,12 +234,22 @@ void AExcavationManager::ChangeCompletedPhase()
 	PlayTami(TEXT("PlayExcavationCompleted2"));
 
 	// Phase UI (로비/박물관 이동)
-	FTimerHandle PhaseUIVisibilityHandle;
-	GetWorldTimerManager().SetTimer(PhaseUIVisibilityHandle, [this]()
-	{
-		PhaseUI->SetVisibilityLobby(true);
-		PhaseUI->SetVisibilityMuseum(true);
-	}, 15.0f, false);
+	
+	//FTimerHandle PhaseUIVisibilityHandle;
+	//GetWorldTimerManager().SetTimer(PhaseUIVisibilityHandle, [this]()
+	//{
+	//	if(bUseBtnLobbynMuseum) return;
+	//	PhaseUI->SetVisibilityLobby(true);
+	//	PhaseUI->SetVisibilityMuseum(true);
+	//}, 15.0f, false);
+	
+	// 기존 람다 타이머 제거 → 안전한 바인딩 사용
+	GetWorldTimerManager().ClearTimer(LobbyMuseumTimerHandle);
+
+	// BindUObject 사용: UObject 생명주기와 함께 안전해짐
+	FTimerDelegate D;
+	D.BindUObject(this, &AExcavationManager::ShowLobbyMuseumButtons);
+	GetWorldTimerManager().SetTimer(LobbyMuseumTimerHandle, D, 15.0f, false);
 
 	// 게임 인스턴스에서 유물 등록
 	if (UGI_Base* GI = Cast<UGI_Base>(UGameplayStatics::GetGameInstance(GetWorld())))
@@ -308,4 +326,11 @@ void AExcavationManager::PlayTami(const FName& FunctionName)
 			break;
 		}
 	}
+}
+
+void AExcavationManager::ShowLobbyMuseumButtons()
+{
+	if (!IsValid(this) || !IsValid(PhaseUI) || bUseBtnLobbynMuseum) return;
+	PhaseUI->SetVisibilityLobby(true);
+	PhaseUI->SetVisibilityMuseum(true);
 }
