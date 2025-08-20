@@ -266,7 +266,9 @@ public:
 	void UpdateDrawLineTraceEffect(const FVector& Start, const FVector& End);
 	const float GetWidgetInteractionDistance() const { return WidgetInteractionDistance; }
 	void SetUseLineTraceEffect(bool bUse);
-	
+
+	UFUNCTION(BlueprintImplementableEvent)
+	void CameraFade();
 private:
 	UPROPERTY()
 	TObjectPtr<ACWorldMap> CachedWorldMap = nullptr;
