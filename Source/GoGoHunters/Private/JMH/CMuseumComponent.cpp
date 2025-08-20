@@ -227,8 +227,8 @@ void UCMuseumComponent::PlaceRelic()
 		RelicData.PlaceArea = PlaceArea;
 		
 		placeActor->SetActorScale3D(BuildTransform.GetScale3D());
-		PlaceArea->PlaceRelicAt(placeActor);
 		placeActor->InitializeAsset(RelicData, RelicDetailData);
+		PlaceArea->PlaceRelicAt(placeActor);
 		placeActor->SetRelicMaterial();
 		placeActor->Tags.Add("Grabable");
 		
