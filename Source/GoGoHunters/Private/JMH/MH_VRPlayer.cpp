@@ -305,6 +305,8 @@ void AMH_VRPlayer::F_TeleportEnd(const struct FInputActionValue& Value)
 		FVector OutLocation;
 		if (TeleportComponent->CompleteTeleport(OutLocation))
 		{
+			CameraFade();
+
 			FVector AddHeight = FVector(
 				0, 0, GetCapsuleComponent()->GetScaledCapsuleHalfHeight() + AdditiveTeleportHeight);
 			SetActorLocation(OutLocation + AddHeight);
