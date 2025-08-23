@@ -283,10 +283,10 @@ void UCMuseumComponent::GrabRelicEnd(ACRelicBase* GrabRelic, const FVector& Hand
 	GrabbedRelic = nullptr;
 	
 	// 1. 범위 내 ACMuseumPlaceArea 찾기
-	TArray<ACMuseumPlaceArea*> NearbyAreas;
-	for (TActorIterator<ACMuseumPlaceArea> It(GetWorld()); It; ++It)
+	TArray<ACRelicPlaceActor*> NearbyAreas;
+	for (TActorIterator<ACRelicPlaceActor> It(GetWorld()); It; ++It)
 	{
-		ACMuseumPlaceArea* Area = *It;
+		ACRelicPlaceActor* Area = *It;
 		if (FVector::Dist(Area->GetActorLocation(), HandComponentLocation) <= RePlaceAreaSearchRange)
 		{
 			NearbyAreas.Add(Area);
@@ -294,7 +294,7 @@ void UCMuseumComponent::GrabRelicEnd(ACRelicBase* GrabRelic, const FVector& Hand
 	}
 
 	// 가까운 순서대로 정렬
-	Algo::SortBy(NearbyAreas, [HandComponentLocation](const ACMuseumPlaceArea* Area)
+	Algo::SortBy(NearbyAreas, [HandComponentLocation](const ACRelicPlaceActor* Area)
 	{
 		return FVector::Dist(Area->GetActorLocation(), HandComponentLocation);
 	});
@@ -302,30 +302,29 @@ void UCMuseumComponent::GrabRelicEnd(ACRelicBase* GrabRelic, const FVector& Hand
 	// 2. 빈 칸 찾기 및 등록
 	bool bPlaced = false;
 	int32 PlaceAreaIndex = 0;
-	FVector EmptySlotLocation;
 	for (int32 i = 0; i < NearbyAreas.Num(); ++i)
 	{
-		EmptySlotLocation = NearbyAreas[i]->FindEmptySlot(HandComponentLocation);
-		if (EmptySlotLocation != FVector::ZeroVector)
-		{
-			bPlaced = true;
-			PlaceAreaIndex = i;
-			break;
-		}
+		bPlaced = NearbyAreas[i]->CanPlaceRelic();
+		if (!bPlaced) continue;
+		
+		PlaceAreaIndex = i;
+		break;
 	}
 
 	if (bPlaced)
 	{
+		ACRelicPlaceActor* FoundArea = nullptr;
+		FVector FoundScale = FVector(1.f);
 		// 3-1. 원래 칸에서 Relic 해제
-		if (GrabRelic->GetPlaceAreaActor())
+		if (FindNearbyPlaceArea(GrabRelic->GetRelicPlaceLocation(), 10.f, FoundArea, FoundScale))
 		{
-			GrabRelic->GetPlaceAreaActor()->UnRegisterRelic(GrabRelic); 
+			FoundArea->UnRegisterRelic(GrabRelic);
 		}
 		// 3-2. 새 칸에 등록
-		// NearbyAreas[PlaceAreaIndex]->PlaceRelicAt(GrabRelic);
-		NearbyAreas[PlaceAreaIndex]->SetPlaceRelicAtLocation(GrabRelic, EmptySlotLocation, PlaceAreaIndex);
+		NearbyAreas[PlaceAreaIndex]->RegisterRelic(GrabRelic);
+		NearbyAreas[PlaceAreaIndex]->SetPlaceRelicAtLocation(GrabRelic, PlaceAreaIndex);
 		// 배치 위치 업데이트
-		FCRelicData PlacedRelicData = GrabRelic->UpdateRelicLocation(EmptySlotLocation);
+		FCRelicData PlacedRelicData = GrabRelic->UpdateRelicLocation(NearbyAreas[PlaceAreaIndex]->GetActorLocation());
 		if (UGI_Base* GI = Cast<UGI_Base>(UGameplayStatics::GetGameInstance(GetWorld())))
 		{
 			FRelicSaveData NewSaveData;
@@ -399,13 +398,9 @@ bool UCMuseumComponent::FindNearbyPlaceArea(const FVector& Location, float Searc
 
     // 가장 가까운 영역 선택 후, 해당 위치에 가장 가까운 GridCell의 스케일 가져오기
     ACRelicPlaceActor* Nearest = CandidateAreas[0];
-    if (!Nearest) return false;
 
     // 가장 가까운 영역 시각화 (초록색 박스)
     // DrawDebugBox(GetWorld(), Nearest->GetActorLocation(), FVector(60.f), FColor::Green, false, 5.0f, 0, 4.0f);
-
-    // 가장 가까운 셀 중심 시각화 (보라색 구체)
-    // DrawDebugSphere(GetWorld(), ClosestCellCenter, 15.f, 8, FColor::Purple, false, 5.0f, 0, 5.0f);
 
     OutArea = Nearest;
     OutCellScale = OutArea->GetPlaceMeshScale();
@@ -440,17 +435,7 @@ void UCMuseumComponent::SetRelicScaleToGrabScale()
 }
 
 void UCMuseumComponent::LoadPlacedRelic()
-{
-	// ++MakeGridCompletedCount;
-	//
-	// int32 PlaceAreaCount = 0;
-	// for (TActorIterator<ACMuseumPlaceArea> It(OwnerPlayer->GetWorld(), ACMuseumPlaceArea::StaticClass()); It; ++It)
-	// {
-	// 	++PlaceAreaCount;
-	// }	
-	//
-	// if (PlaceAreaCount != MakeGridCompletedCount) return;
-	
+{	
 	// LV_MH_MyMuseum 레벨에서만 SaveGame 로드 및 유물 스폰
 	if (UGameplayStatics::GetCurrentLevelName(GetWorld()).Contains(MuseumLevelName))
 	{
