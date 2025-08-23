@@ -19,7 +19,7 @@ public:
 	void UnRegisterRelic(const ACRelicBase* InUnRegisterRelic);
 
 	FVector GetPlaceMeshScale() const { return PlaceRelicScale; }
-	void SetPlaceRelicAtLocation(ACRelicBase* Relic, int32 PlaceIdx);
+	void SetPlaceRelicAtLocation(ACRelicBase* Relic);
 	
 private:
 	UPROPERTY(EditDefaultsOnly)
@@ -28,6 +28,8 @@ private:
 	UBoxComponent* DetectCollision;
 	UPROPERTY(EditDefaultsOnly)
 	UStaticMeshComponent* PlaceMesh;
+	UPROPERTY(EditDefaultsOnly)
+	UChildActorComponent* DescWidget;
 
 	UPROPERTY(VisibleAnywhere, Category = "Param|DetectCollision", meta = (ToolTip = "이 카테고리는 DetectCollision의 Transform 설정을 위한 파라미터들을 모아둡니다."))
 	bool bDetectCollisionCategoryDescriptionHelper;
@@ -46,6 +48,15 @@ private:
 	FRotator PlaceMeshRotation = FRotator::ZeroRotator;
 	UPROPERTY(EditAnywhere, Category="Param|PlaceMesh", BlueprintReadOnly, meta=(AllowPrivateAccess=true, ToolTip="PlaceMesh 크기 설정"))
 	FVector PlaceMeshSize = FVector(.7, .7, .1);
+
+	UPROPERTY(VisibleAnywhere, Category = "Param|PlaceMesh", meta = (ToolTip = "이 카테고리는 DescWidget의 Transform 설정을 위한 파라미터들을 모아둡니다."))
+	bool bDescWidgetCompCategoryDescriptionHelper;
+	UPROPERTY(EditAnywhere, Category="Param|DescWidget", BlueprintReadOnly, meta=(AllowPrivateAccess=true, ToolTip="DescWidget 위치 설정"))
+	FVector DescWidgetCompLocation = FVector::ZeroVector;
+	UPROPERTY(EditAnywhere, Category="Param|DescWidget", BlueprintReadOnly, meta=(AllowPrivateAccess=true, ToolTip="DescWidget 회전 설정"))
+	FRotator DescWidgetCompRotation = FRotator::ZeroRotator;
+	UPROPERTY(EditAnywhere, Category="Param|DescWidget", BlueprintReadOnly, meta=(AllowPrivateAccess=true, ToolTip="DescWidget 크기 설정"))
+	FVector DescWidgetCompSize = FVector(1);
 
 	UPROPERTY(EditAnywhere, Category="Param|Relic" ,meta=(ToolTip="배치한 유물의 크기 설정"))
 	FVector PlaceRelicScale = FVector(1, 1, 1);

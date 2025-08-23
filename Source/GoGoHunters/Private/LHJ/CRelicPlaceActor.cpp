@@ -3,6 +3,7 @@
 #include "Components/BoxComponent.h"
 #include "JMH/CMuseumComponent.h"
 #include "LHJ/CRelicBase.h"
+#include "LHJ/CRelicDescActor.h"
 
 ACRelicPlaceActor::ACRelicPlaceActor()
 {
@@ -16,7 +17,7 @@ ACRelicPlaceActor::ACRelicPlaceActor()
 	PlaceMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 	PlaceMesh->SetCastShadow(false);
 
-	// TODO 위젯 추가
+	CHelpers::CreateComponent<UChildActorComponent>(this, &DescWidget, "DescWidget", RootComponent);
 }
 
 void ACRelicPlaceActor::RerunConstructionScripts()
@@ -24,13 +25,18 @@ void ACRelicPlaceActor::RerunConstructionScripts()
 	Super::RerunConstructionScripts();
 	DetectCollision->SetRelativeLocationAndRotation(DetectCollisionLocation, DetectCollisionRotation);
 	DetectCollision->SetRelativeScale3D(DetectCollisionSize);
+	
 	PlaceMesh->SetRelativeLocationAndRotation(PlaceMeshLocation, PlaceMeshRotation);
 	PlaceMesh->SetRelativeScale3D(PlaceMeshSize);
+	
+	DescWidget->SetRelativeLocationAndRotation(DescWidgetCompLocation, DescWidgetCompRotation);
+	DescWidget->SetRelativeScale3D(DescWidgetCompSize);
 }
 
 void ACRelicPlaceActor::BeginPlay()
 {
 	Super::BeginPlay();
+	Cast<ACRelicDescActor>(DescWidget->GetChildActor())->UpdateDescriptionWidget(false);
 	MuseumComp = GetWorld()->GetFirstPlayerController()->GetPawn()->GetComponentByClass<UCMuseumComponent>();
 
 	// 다이나믹 머티리얼 만들어서 색 추가
@@ -68,8 +74,7 @@ void ACRelicPlaceActor::RegisterRelic(const ACRelicBase* InRegisterRelic)
 	FCRelicDetailData PlaceRelicDetailData = InRegisterRelic->GetRelicDetailData();
 	bRegisterRelic = true;
 
-	// TODO 위젯 업데이트
-	// UpdateDescriptionWidget(i, true, PlaceRelicData, PlaceRelicDetailData);
+	Cast<ACRelicDescActor>(DescWidget->GetChildActor())->UpdateDescriptionWidget(true, PlaceRelicData, PlaceRelicDetailData);
 }
 
 void ACRelicPlaceActor::UnRegisterRelic(const ACRelicBase* InUnRegisterRelic)
@@ -77,11 +82,10 @@ void ACRelicPlaceActor::UnRegisterRelic(const ACRelicBase* InUnRegisterRelic)
 	if (!InUnRegisterRelic) return;
 	bRegisterRelic = false;
 
-	// TODO 위젯 업데이트
-	// UpdateDescriptionWidget(i, false);
+	Cast<ACRelicDescActor>(DescWidget->GetChildActor())->UpdateDescriptionWidget(false);
 }
 
-void ACRelicPlaceActor::SetPlaceRelicAtLocation(ACRelicBase* Relic, int32 PlaceIdx)
+void ACRelicPlaceActor::SetPlaceRelicAtLocation(ACRelicBase* Relic)
 {
 	if (!Relic) return;
 	FCRelicData PlaceRelicData = Relic->GetRelicData();
@@ -91,6 +95,5 @@ void ACRelicPlaceActor::SetPlaceRelicAtLocation(ACRelicBase* Relic, int32 PlaceI
 	Relic->SetActorScale3D(PlaceRelicScale);
 	Relic->SetActorRotation(FRotator::ZeroRotator);
 
-	// TODO 위젯 업데이트
-	// UpdateDescriptionWidget(PlaceIdx, true, PlaceRelicData, PlaceRelicDetailData);
+	Cast<ACRelicDescActor>(DescWidget->GetChildActor())->UpdateDescriptionWidget(true, PlaceRelicData, PlaceRelicDetailData);
 }

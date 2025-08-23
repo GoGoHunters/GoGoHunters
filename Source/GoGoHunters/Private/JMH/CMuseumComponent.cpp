@@ -322,7 +322,7 @@ void UCMuseumComponent::GrabRelicEnd(ACRelicBase* GrabRelic, const FVector& Hand
 		}
 		// 3-2. 새 칸에 등록
 		NearbyAreas[PlaceAreaIndex]->RegisterRelic(GrabRelic);
-		NearbyAreas[PlaceAreaIndex]->SetPlaceRelicAtLocation(GrabRelic, PlaceAreaIndex);
+		NearbyAreas[PlaceAreaIndex]->SetPlaceRelicAtLocation(GrabRelic);
 		// 배치 위치 업데이트
 		FCRelicData PlacedRelicData = GrabRelic->UpdateRelicLocation(NearbyAreas[PlaceAreaIndex]->GetActorLocation());
 		if (UGI_Base* GI = Cast<UGI_Base>(UGameplayStatics::GetGameInstance(GetWorld())))
