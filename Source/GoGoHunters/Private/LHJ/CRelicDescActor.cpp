@@ -6,7 +6,10 @@ ACRelicDescActor::ACRelicDescActor()
 {
 	PrimaryActorTick.bCanEverTick = true;
 	CHelpers::CreateComponent<UStaticMeshComponent>(this, &MeshComp, "MeshComp");
+	MeshComp->SetCastShadow(false);
+	
 	CHelpers::CreateComponent<UWidgetComponent>(this, &DescWidget, "DescWidget", RootComponent);
+	DescWidget->SetCastShadow(false);
 }
 
 void ACRelicDescActor::BeginPlay()
