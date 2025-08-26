@@ -281,6 +281,15 @@ void UCMuseumComponent::PreviewEnd()
 void UCMuseumComponent::GrabRelicEnd(ACRelicBase* GrabRelic, const FVector& HandComponentLocation)
 {
 	GrabbedRelic = nullptr;
+
+	// 관람 모드일때는 유물 이동이 안되도록 변경
+	if (MuseumState==Display)
+	{
+		GrabRelic->ReturnToOriginalLocation();
+		if (UPrimitiveComponent* PrimComp = Cast<UPrimitiveComponent>(GrabRelic->GetRootComponent()))
+			PrimComp->SetSimulatePhysics(false);
+		return;
+	}
 	
 	// 1. 범위 내 ACMuseumPlaceArea 찾기
 	TArray<ACRelicPlaceActor*> NearbyAreas;

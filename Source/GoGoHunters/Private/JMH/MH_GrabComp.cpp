@@ -51,7 +51,6 @@ void UMH_GrabComp::TickComponent(float DeltaTime, ELevelTick TickType, FActorCom
 bool UMH_GrabComp::TryGrab(UPrimitiveComponent* TargetComp)
 {
 	if (!TargetComp) return false;
-	if (MuseumComponent && MuseumComponent->GetMuseumState() != Display) return false;
 	
 	TargetComp->SetSimulatePhysics(false);
 	TargetComp->SetCollisionEnabled(ECollisionEnabled::NoCollision);
@@ -79,8 +78,7 @@ void UMH_GrabComp::RelicGrab(UPrimitiveComponent* TargetComp)
 void UMH_GrabComp::TryUnGrab()
 {
 	if (!bIsGrabbing || !GrabbedComponent) return;
-	if (MuseumComponent && MuseumComponent->GetMuseumState() != Display) return;
-
+	
 	ReleaseGrabbedComponent();
 	RelicUnGrab();
 

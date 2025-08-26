@@ -807,7 +807,6 @@ void AMH_VRPlayer::UpdateInteractionLine()
 void AMH_VRPlayer::TryGrab(const struct FInputActionValue& Value)
 {
 	if (GetPlayerState() == EPlayerVRState::UsingTool || GetPlayerState() == EPlayerVRState::Excavating) return;
-	if (CurrentLevel.ToLower().Contains("museum") && MuseumComponent->GetMuseumState() != Display) return;
 	if (!FocusedGrabbableActor) return;
 
 	UPrimitiveComponent* HitComp = Cast<UPrimitiveComponent>(
@@ -834,7 +833,7 @@ void AMH_VRPlayer::TryGrab(const struct FInputActionValue& Value)
 void AMH_VRPlayer::TryUnGrab(const struct FInputActionValue& Value)
 {
 	if (GetPlayerState() == EPlayerVRState::UsingTool || GetPlayerState() == EPlayerVRState::Excavating) return;
-	if (CurrentLevel.ToLower().Contains("museum") && MuseumComponent->GetMuseumState() != Display) return;
+	
 	if (GrabComponent)
 	{
 		GrabComponent->TryUnGrab();
