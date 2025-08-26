@@ -205,6 +205,8 @@ void AMH_VRPlayer::SetupPlayerInputComponent(UInputComponent* PlayerInputCompone
 	EnhancedInput->BindAction(IA_ExcavationCollect, ETriggerEvent::Triggered, this, &AMH_VRPlayer::ExcavationCollectStart);
 	EnhancedInput->BindAction(IA_ExcavationCollect, ETriggerEvent::Completed, this, &AMH_VRPlayer::ExcavationCollectEnd);
 
+	EnhancedInput->BindAction(IA_MHStand, ETriggerEvent::Completed, this, &AMH_VRPlayer::SitOrStand);
+
 	if (MuseumComponent) MuseumComponent->SetupPlayerInputComponent(EnhancedInput);
 }
 
@@ -710,6 +712,12 @@ void AMH_VRPlayer::ExcavationCollectEnd()
 
 	TweezersTool->SetIsPickingUp(false);
 	SetPlayerState(EPlayerVRState::UsingTool);
+}
+
+void AMH_VRPlayer::SitOrStand()
+{
+	bStanding = !bStanding;
+	SetPlayerStandOrSit(bStanding);
 }
 
 void AMH_VRPlayer::UpdateInteractionLine()

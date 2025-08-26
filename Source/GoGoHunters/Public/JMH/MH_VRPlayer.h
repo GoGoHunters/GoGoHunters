@@ -139,6 +139,8 @@ public:
 	UInputAction* IA_ExcavationBrush;
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Input")
 	UInputAction* IA_ExcavationCollect;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Input")
+	UInputAction* IA_MHStand;
 
 	void ExcavationTool1();
 	void ExcavationTool2();
@@ -152,6 +154,7 @@ public:
 	void ExcavationBrushEnd();
 	void ExcavationCollectStart();
 	void ExcavationCollectEnd();
+	void SitOrStand();
 	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Excavation")
 	TSubclassOf<class ADetectorTool> DetectionToolClass;
@@ -267,8 +270,11 @@ public:
 	const float GetWidgetInteractionDistance() const { return WidgetInteractionDistance; }
 	void SetUseLineTraceEffect(bool bUse);
 
-	UFUNCTION(BlueprintImplementableEvent)
+	UFUNCTION(BlueprintImplementableEvent, BlueprintCallable)
 	void CameraFade();
+
+	UFUNCTION(BlueprintCallable, BlueprintImplementableEvent)
+	void SetPlayerStandOrSit(bool bStand);
 private:
 	UPROPERTY()
 	TObjectPtr<ACWorldMap> CachedWorldMap = nullptr;
@@ -326,4 +332,8 @@ private:
 	// 튜토리얼
 	UPROPERTY()
 	TObjectPtr<ACTutorialManager> TutorialManager;
+
+	// 앉기 서기
+	UPROPERTY(BlueprintReadWrite, meta=(AllowPrivateAccess=true))
+	bool bStanding = false;
 };
