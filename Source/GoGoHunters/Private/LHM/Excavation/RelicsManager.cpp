@@ -18,16 +18,12 @@ ARelicsManager::ARelicsManager()
 	PrimaryActorTick.bCanEverTick = true;
 
 	RootComponent = CreateDefaultSubobject<USceneComponent>(TEXT("RootScene"));
-	//ExcavationLand_01 = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("ExcavationLand_01"));
 	ExcavationLand_02 = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("ExcavationLand_02"));
 
-	//ExcavationLand_01->SetupAttachment(RootComponent);
 	ExcavationLand_02->SetupAttachment(RootComponent);
 
-	//ExcavationLand_01->SetHiddenInGame(false);
 	ExcavationLand_02->SetHiddenInGame(true);
 
-	//ExcavationLand_01->SetRelativeLocation(FVector(0,0, 80)); // (X=0.000000,Y=0.000000,Z=80.000000)
 	ExcavationLand_02->SetRelativeLocation(FVector(-27.5, 2.3, 154)); // (X=-27.577550,Y=2.345972,Z=154.206319)
 	ExcavationLand_02->SetRelativeScale3D(FVector(0.66, 0.66, 0.45));
 
@@ -35,7 +31,6 @@ ARelicsManager::ARelicsManager()
 	ExcavationLand_02->SetCollisionObjectType(ECC_WorldStatic);
 	ExcavationLand_02->SetCollisionResponseToAllChannels(ECR_Block);
 	
-	//ExcavationLand_01->bReceivesDecals = false;
 	ExcavationLand_02->bReceivesDecals = false;
 
 	RelicsChild = CreateDefaultSubobject<UChildActorComponent>(TEXT("Relics"));
@@ -60,13 +55,12 @@ ARelicsManager::ARelicsManager()
 
 		GroundChild1 = CreateDefaultSubobject<UChildActorComponent>(TEXT("GroundLayer_1"));
 		GroundChild2 = CreateDefaultSubobject<UChildActorComponent>(TEXT("GroundLayer_2"));
-		//GroundChild3 = CreateDefaultSubobject<UChildActorComponent>(TEXT("GroundLayer_3"));
+
 		GroundChild1->SetupAttachment(RootComponent);
 		GroundChild2->SetupAttachment(RootComponent);
-		//GroundChild3->SetupAttachment(RootComponent);
+
 		GroundChild1->SetChildActorClass(RelicsGroundClass);
 		GroundChild2->SetChildActorClass(RelicsGroundClass);
-		//GroundChild3->SetChildActorClass(RelicsGroundClass);
 
 		GroundChild1->SetRelativeLocation(FVector(-69, -13.6, 221)); // (X=-69.138980,Y=-13.695208,Z=221.159939)
 		GroundChild1->SetRelativeScale3D(FVector(0.41));
@@ -76,11 +70,6 @@ ARelicsManager::ARelicsManager()
 
 		GroundChildActors.Add(GroundChild1);
 		GroundChildActors.Add(GroundChild2);
-		//GroundChildActors.Add(GroundChild3);
-	}
-	else
-	{
-		UE_LOG(LogTemp, Error, TEXT("RelicsGroundClass not found!"));
 	}
 
 	CurrentLayerIndex = 0;
@@ -92,49 +81,21 @@ ARelicsManager::ARelicsManager()
 void ARelicsManager::BeginPlay()
 {
 	Super::BeginPlay();
-	
-	//GroundLayers.Empty();
-	//for (auto Child: GroundChildActors)
-	//{
-	//	if (Child)
-	//	{
-	//		if (Child->GetChildActor())
-	//		{
-	//			if (auto* Ground = Cast<ARelicsGround>(Child->GetChildActor()))
-	//			{
-	//				GroundLayers.Add(Ground);
-	//				Ground->SetActorHiddenInGame(true); // 시작 시 숨김
-	//				Ground->SetRelicsManager(this);
-	//				UE_LOG(LogTemp, Log, TEXT("[RelicsManager] Ground Layer %d: %s"), GroundLayers.Num(), *Ground->GetName());
-	//				UE_LOG(LogTemp, Log, TEXT("[RelicsManager] Child Actor Class: %s"), *Child->GetChildActorClass()->GetName());
-	//				UE_LOG(LogTemp, Log, TEXT("[RelicsManager] Child Actor Name: %s"), *Child->GetChildActor()->GetName());
-	//			}
-	//		}
-	//	}
-	//	else
-	//	{
-	//		UE_LOG(LogTemp, Log, TEXT("Child is null..."));
-	//	}
-	//}
 
 	GroundLayers.Empty();
 
-	if (GroundChild1 /*&& GroundChild2 && GroundChild3*/)
+	if (GroundChild1 && GroundChild2)
 	{
 		Ground1 = Cast<ARelicsGround>(GroundChild1->GetChildActor());
 		Ground2 = Cast<ARelicsGround>(GroundChild2->GetChildActor());
-		//Ground3 = Cast<ARelicsGround>(GroundChild3->GetChildActor());
 
 		GroundLayers.Add(Ground1);
 		GroundLayers.Add(Ground2);
-		//GroundLayers.Add(Ground3);
 
 		Ground1->SetActorHiddenInGame(true); // 시작 시 숨김
 		Ground2->SetActorHiddenInGame(true); // 시작 시 숨김
-		//Ground3->SetActorHiddenInGame(true); // 시작 시 숨김
 		Ground1->SetRelicsManager(this);
 		Ground2->SetRelicsManager(this);
-		//Ground3->SetRelicsManager(this);
 	}
 
 	if (RelicsChild)
@@ -162,8 +123,6 @@ void ARelicsManager::StartExcavation()
 	}
 
 	// Excavation 지형 변경
-	//if (ExcavationLand_01)
-	//	ExcavationLand_01->DestroyComponent();
 	for (TActorIterator<AActor> It(GetWorld(), AActor::StaticClass()); It; ++It)
 	{
 		if (IsValid(*It) && (*It)->ActorHasTag(FName("LandPrime")))
@@ -185,9 +144,9 @@ void ARelicsManager::NotifyGroundProgress(float Progress)
 {
 	if (CurrentLayerIndex >= GroundLayers.Num()) return;
 
-	if (bPressedDevKey) Progress = 0.075f;
+	if (bPressedDevKey) Progress = 0.05f;
 
-	if (Progress >= 0.075f) // 15% 이상 파괴되었으면
+	if (Progress >= 0.05f) // 5% 이상 파괴되었으면
 	{
 		auto CurrentLayer = GroundLayers[CurrentLayerIndex];
 		if (IsValid(CurrentLayer))
@@ -200,7 +159,7 @@ void ARelicsManager::NotifyGroundProgress(float Progress)
 		CurrentLayerIndex++;
 
 		// 타미 음성
-		if (CurrentLayerIndex == 1 && Progress >= 0.025f)
+		if (CurrentLayerIndex == 1 && Progress >= 0.01f)
 		{
 			for (TActorIterator<APawn> It(GetWorld(), APawn::StaticClass()); It; ++It)
 			{
@@ -286,7 +245,7 @@ bool ARelicsManager::GetCurrentDigProgress(float& OutProgress) const
 		else
 		{
 			float Destruction = Ground->CalculateDestructionFromRenderTarget();
-			float Normalized = FMath::Clamp(Destruction / 0.15f, 0.0f, 1.0f); // 15% 기준으로 정규화
+			float Normalized = FMath::Clamp(Destruction / 0.05f, 0.0f, 1.0f); // layer[0]: 5%/layer[i]: 1% 기준으로 정규화
 			TotalProgress += Normalized;
 		}
 	}

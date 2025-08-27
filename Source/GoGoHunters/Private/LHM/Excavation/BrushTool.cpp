@@ -114,8 +114,6 @@ void ABrushTool::UpdateFeedback(float Intensity)
 
 void ABrushTool::StopFeedback()
 {
-	bIsBrushing = false;
-
 	// 햅틱 중지
 	APlayerController* PC = UGameplayStatics::GetPlayerController(this, 0);
 	if (PC)
