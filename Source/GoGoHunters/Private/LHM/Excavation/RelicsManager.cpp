@@ -146,7 +146,7 @@ void ARelicsManager::NotifyGroundProgress(float Progress)
 
 	if (bPressedDevKey) Progress = 0.075f;
 
-	if (Progress >= 0.075f) // 15% 이상 파괴되었으면
+	if (Progress >= 0.05f) // 15% 이상 파괴되었으면
 	{
 		auto CurrentLayer = GroundLayers[CurrentLayerIndex];
 		if (IsValid(CurrentLayer))
@@ -159,7 +159,7 @@ void ARelicsManager::NotifyGroundProgress(float Progress)
 		CurrentLayerIndex++;
 
 		// 타미 음성
-		if (CurrentLayerIndex == 1 && Progress >= 0.025f)
+		if (CurrentLayerIndex == 1 && Progress >= 0.01f)
 		{
 			for (TActorIterator<APawn> It(GetWorld(), APawn::StaticClass()); It; ++It)
 			{
