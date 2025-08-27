@@ -152,6 +152,7 @@ void ACollectionBox::PressedDevKey()
 
 		Mesh->SetSimulatePhysics(true);
 		Mesh->SetCollisionProfileName(FName("Relic_Physics"));
+		Mesh->SetCollisionResponseToChannel( ECollisionChannel::ECC_GameTraceChannel10, ECollisionResponse::ECR_Ignore);
 		Mesh->SetGenerateOverlapEvents(true);
 		Mesh->BodyInstance.bUseCCD = true; // 빠르게 낙하 시 충돌 누락 방지
 
