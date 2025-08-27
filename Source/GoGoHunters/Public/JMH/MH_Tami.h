@@ -6,6 +6,7 @@
 #include "Blueprint/UserWidget.h"
 #include "MH_Tami.generated.h"
 
+class UButton;
 /**
  * 
  */

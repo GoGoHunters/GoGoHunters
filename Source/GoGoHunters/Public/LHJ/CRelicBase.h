@@ -17,7 +17,7 @@ public:
 	void SetRelicMaterial();
 	void ReturnToOriginalLocation();
 	
-	ACMuseumPlaceArea* GetPlaceAreaActor() { return RelicData.PlaceArea; }
+	ACRelicPlaceActor* GetPlaceAreaActor() { return RelicData.PlaceArea; }
 	FVector GetRelicPlaceLocation() const { return RelicData.PlacedTransform.GetLocation(); }
 	const FCRelicData UpdateRelicLocation(FVector NewRelicLocation) { RelicData.PlacedTransform.SetLocation(NewRelicLocation); return RelicData; }
 

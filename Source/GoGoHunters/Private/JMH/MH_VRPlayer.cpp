@@ -205,6 +205,8 @@ void AMH_VRPlayer::SetupPlayerInputComponent(UInputComponent* PlayerInputCompone
 	EnhancedInput->BindAction(IA_ExcavationCollect, ETriggerEvent::Triggered, this, &AMH_VRPlayer::ExcavationCollectStart);
 	EnhancedInput->BindAction(IA_ExcavationCollect, ETriggerEvent::Completed, this, &AMH_VRPlayer::ExcavationCollectEnd);
 
+	EnhancedInput->BindAction(IA_MHStand, ETriggerEvent::Completed, this, &AMH_VRPlayer::SitOrStand);
+
 	if (MuseumComponent) MuseumComponent->SetupPlayerInputComponent(EnhancedInput);
 }
 
@@ -712,6 +714,12 @@ void AMH_VRPlayer::ExcavationCollectEnd()
 	SetPlayerState(EPlayerVRState::UsingTool);
 }
 
+void AMH_VRPlayer::SitOrStand()
+{
+	bStanding = !bStanding;
+	SetPlayerStandOrSit(bStanding);
+}
+
 void AMH_VRPlayer::UpdateInteractionLine()
 {
 	if (CurrentState != EPlayerVRState::Idle && CurrentState != EPlayerVRState::Teleporting)
@@ -833,6 +841,7 @@ void AMH_VRPlayer::TryGrab(const struct FInputActionValue& Value)
 void AMH_VRPlayer::TryUnGrab(const struct FInputActionValue& Value)
 {
 	if (GetPlayerState() == EPlayerVRState::UsingTool || GetPlayerState() == EPlayerVRState::Excavating) return;
+	
 	if (GrabComponent)
 	{
 		GrabComponent->TryUnGrab();

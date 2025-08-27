@@ -5,6 +5,7 @@
 #include "LHJ/CRelicData.h"
 #include "CMuseumComponent.generated.h"
 
+class ACRelicPlaceActor;
 class ACMuseumPlaceArea;
 class UInputMappingContext;
 class UEnhancedInputComponent;
@@ -70,7 +71,7 @@ private:
 	FString MuseumLevelName = TEXT("Museum");
 
 	UPROPERTY()
-	TObjectPtr<ACMuseumPlaceArea> PlaceArea = nullptr;
+	TObjectPtr<ACRelicPlaceActor> PlaceArea = nullptr;
 	UPROPERTY()
 	TObjectPtr<AActor> SelectedActor = nullptr; // 선택된 오브젝트 저장
 
@@ -122,7 +123,7 @@ private:
 	void PreviewEnd();
 
 	// Data.PlaceArea를 신뢰하지 않고, 저장된 PlacedTransform 위치 기반으로 반경 내 PlaceArea와 셀 스케일을 찾는 헬퍼
-	bool FindNearbyPlaceArea(const FVector& Location, float SearchRadius, class ACMuseumPlaceArea*& OutArea,
+	bool FindNearbyPlaceArea(const FVector& Location, float SearchRadius, ACRelicPlaceActor*& OutArea,
 	                         FVector& OutCellScale) const;
 
 	void SetRelicScaleToGrabScale();
