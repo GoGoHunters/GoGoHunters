@@ -23,6 +23,7 @@ class GOGOHUNTERS_API UMH_GrabComp : public UActorComponent
 public:	
 	// Sets default values for this component's properties
 	UMH_GrabComp();
+	bool SetGrab(UPrimitiveComponent* GrabComp);
 
 protected:
 	// Called when the game starts
@@ -33,9 +34,9 @@ public:
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 
 	bool TryGrab(UPrimitiveComponent* TargetComp);
-	void RelicGrab(UPrimitiveComponent* TargetComp);
+	void RelicGrab(AActor* Relic);
 	void TryUnGrab();
-	void RelicUnGrab();
+	void RelicUnGrab(AActor* Relic);
 	void ReleaseGrabbedComponent();
 
 	UPROPERTY(EditAnywhere, Category="Grab")

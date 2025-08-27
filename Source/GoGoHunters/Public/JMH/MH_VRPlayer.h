@@ -102,6 +102,8 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Input")
 	UInputAction* IA_MHGrab;
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Input")
+	UInputAction* IA_MHGrab_L;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Input")
 	UInputAction* IA_MHInteract;
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Input")
 	UInputAction* IA_MHInteract_L;
@@ -203,8 +205,8 @@ public:
 	class UMH_GrabComp* GrabComponent;
 	
 	// 잡기 함수들
-	void TryGrab(const struct FInputActionValue& Value);
-	void TryUnGrab(const struct FInputActionValue& Value);
+	void TryGrab(const FInputActionInstance& IA_Instance);
+	void TryUnGrab(const FInputActionInstance& IA_Instance);
 	
 	// 썸스틱 입력 저장
 	FVector2D HeldObjectStickInput = FVector2D::ZeroVector;
@@ -329,6 +331,7 @@ private:
 	UPROPERTY(EditDefaultsOnly)
 	float AdditiveTeleportHeight = 10.f;
 
+private:
 	// 튜토리얼
 	UPROPERTY()
 	TObjectPtr<ACTutorialManager> TutorialManager;
@@ -336,4 +339,12 @@ private:
 	// 앉기 서기
 	UPROPERTY(BlueprintReadWrite, meta=(AllowPrivateAccess=true))
 	bool bStanding = false;
+
+	// 그랩 수정
+	UPROPERTY(EditDefaultsOnly, Category=Grab)
+	float GrabRadius = 12;
+	UPROPERTY(VisibleAnywhere, Category=Grab)
+	TObjectPtr<AActor> GrabedObject;
+	AActor* GetNearGrabableObject(USceneComponent* GrabController);
+	void ObjectGrab(AActor* GrabObject, UMotionControllerComponent* GrabController, bool IsPulling);
 };

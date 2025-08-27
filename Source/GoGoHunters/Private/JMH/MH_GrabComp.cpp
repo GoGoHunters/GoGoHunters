@@ -58,21 +58,16 @@ bool UMH_GrabComp::TryGrab(UPrimitiveComponent* TargetComp)
 	PendingGrabComponent = TargetComp;
 	bIsPulling = true;
 
-	RelicGrab(TargetComp);
+	// RelicGrab(TargetComp);
 
 	return true;
 }
 
-void UMH_GrabComp::RelicGrab(UPrimitiveComponent* TargetComp)
+void UMH_GrabComp::RelicGrab(AActor* Relic)
 {
 	if (!MuseumComponent) return;
-	if (!OwnerPlayer) return;
-	if (!OwnerPlayer->GrabRelicActor) return;
 
-	if (OwnerPlayer->GrabRelicActor->IsA(ACRelicBase::StaticClass()))
-	{
-		MuseumComponent->GrabRelic(Cast<ACRelicBase>(OwnerPlayer->GrabRelicActor));
-	}
+	MuseumComponent->GrabRelic(Cast<ACRelicBase>(Relic));
 }
 
 void UMH_GrabComp::TryUnGrab()
@@ -80,7 +75,7 @@ void UMH_GrabComp::TryUnGrab()
 	if (!bIsGrabbing || !GrabbedComponent) return;
 	
 	ReleaseGrabbedComponent();
-	RelicUnGrab();
+	RelicUnGrab(OwnerPlayer->GrabRelicActor);
 
 	GrabbedComponent = nullptr;
 	bIsGrabbing = false;
@@ -88,18 +83,15 @@ void UMH_GrabComp::TryUnGrab()
 	UE_LOG(LogTemp, Warning, TEXT("[GrabComp] Grab 해제됨"));
 }
 
-void UMH_GrabComp::RelicUnGrab()
+void UMH_GrabComp::RelicUnGrab(AActor* Relic)
 {
-	if (!GrabbedComponent) return;
 	if (!MuseumComponent) return;
-	if (!OwnerPlayer) return;
-	if (!OwnerPlayer->GrabRelicActor) return;
+	if (!Relic) return;
 	
-	if (OwnerPlayer->GrabRelicActor->IsA(ACRelicBase::StaticClass()))
+	if (Relic->IsA(ACRelicBase::StaticClass()))
 	{
-		MuseumComponent->GrabRelicEnd(Cast<ACRelicBase>(OwnerPlayer->GrabRelicActor), HandComponent->GetComponentLocation());
+		MuseumComponent->GrabRelicEnd(Cast<ACRelicBase>(Relic), HandComponent->GetComponentLocation());
 	}
-	OwnerPlayer->GrabRelicActor = nullptr;
 }
 
 void UMH_GrabComp::ReleaseGrabbedComponent()
@@ -120,4 +112,10 @@ void UMH_GrabComp::RotateGrabbedObject(const FVector2D& Input)
 	GrabbedComponent->AddWorldRotation(DeltaRot);
 }
 
-
+bool UMH_GrabComp::SetGrab(UPrimitiveComponent* GrabComp)
+{
+	if (!GrabComp) return false;
+	PendingGrabComponent = GrabComp;
+	bIsPulling = true;
+	return true;
+}
