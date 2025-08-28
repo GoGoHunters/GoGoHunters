@@ -16,6 +16,7 @@ class GOGOHUNTERS_API UCPickupActorComponent : public UActorComponent
 public:
 	virtual void Pickup(USceneComponent* AttachTo, bool IsPulling);
 	virtual void Drop(USceneComponent* DropFrom);
+	bool GetGrabActorSimulate() {return PendingGrabComponent->IsSimulatingPhysics();}
 
 protected:
 	UPROPERTY(VisibleAnywhere, Category="PickUp")
@@ -25,7 +26,7 @@ protected:
 	UPROPERTY(EditAnywhere, Category="Pickup")
 	bool CanTwoHandGrab = false;
 	UPROPERTY(EditAnywhere, Category="Pickup")
-	float GrabPullSpeed = 5.0f;
+	float GrabPullSpeed = 5.0f;	
 	
 	UPROPERTY()
 	TObjectPtr<AActor> OwnerActor = nullptr;
@@ -50,4 +51,9 @@ protected:
 private:
 	bool bSetPlayerComp = false;
 	bool bIsPulling = false;
+	FRotator GrabRotation = FRotator::ZeroRotator;
+	FName OriginProfileName;
+	
+	const FName GrabProfileName = FName("GrabbingObject");
+	FCollisionResponseContainer GrabCollisionResponse;
 };

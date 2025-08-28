@@ -2,6 +2,7 @@
 
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
+#include "DrawDebugHelpers.h"
 #include "InputActionValue.h"
 #include "IXRTrackingSystem.h"
 #include "Camera/CameraComponent.h"
@@ -842,40 +843,30 @@ AActor* AMH_VRPlayer::GetNearGrabableObject(USceneComponent* GrabController)
 		return nullptr;
 	}
 
-	TArray<AActor*> OutActors;
-	TArray<AActor*> Ignore;
-	Ignore.Add(this);
-
 	const FVector Center = GrabController->GetComponentLocation();
-
-	TArray<TEnumAsByte<EObjectTypeQuery>> ObjTypes;
-	for (int32 Channel = 0; Channel < ECC_MAX; ++Channel)
-	{
-		if (Channel == ECC_OverlapAll_Deprecated) continue; // 구형 채널 제외
-		ObjTypes.Add(UEngineTypes::ConvertToObjectType(static_cast<ECollisionChannel>(Channel)));
-	}
-
-	TSubclassOf<AActor> FilterClass = nullptr;
-
-	UKismetSystemLibrary::SphereOverlapActors(
-			this, Center, GrabRadius,
-			ObjTypes, FilterClass,
-			Ignore, OutActors
-		);
-
+	ECollisionChannel CollisionChannel = ECC_GameTraceChannel4;
+	TArray<FHitResult> OutHits;
+	TArray<AActor*> ActorsToIgnore;
+	ActorsToIgnore.Add(this);
+	bool bRtn = UKismetSystemLibrary::SphereTraceMulti(GetWorld(), Center, Center, GrabRadius,
+												  UEngineTypes::ConvertToTraceType(ECC_GameTraceChannel12), false,
+												  ActorsToIgnore, EDrawDebugTrace::ForDuration, OutHits,
+												  true);
+	
 	AActor* NearestActor = nullptr;
 	float NearestDistSq = TNumericLimits<float>::Max();
 
-	for (AActor* Actor : OutActors)
+	for (FHitResult& Hit : OutHits)
 	{
-		if (!Actor) continue;
-		if (!Actor->GetComponentByClass(UCPickupActorComponent::StaticClass())) continue;
+		if (!Hit.GetActor()) continue;
+		if (!Hit.GetActor()->GetComponentByClass(UCPickupActorComponent::StaticClass())) continue;
 
-		const float DistSq = FVector::DistSquared(Actor->GetActorLocation(), Center);
+		const float DistSq = FVector::DistSquared(Hit.GetActor()->GetActorLocation(), Center);
+		
 		if (DistSq < NearestDistSq)
 		{
 			NearestDistSq = DistSq;
-			NearestActor = Actor;
+			NearestActor = Hit.GetActor();
 		}
 	}
 
@@ -889,25 +880,69 @@ void AMH_VRPlayer::ObjectGrab(AActor* GrabObject, UMotionControllerComponent* Gr
 	if (!ActorComp) return;
 	UCPickupActorComponent* PickupComp = Cast<UCPickupActorComponent>(ActorComp);
 	if (!PickupComp) return;
-	// TODO 수정되야함
-	GrabedObject = GrabObject; 
+	if (GrabController==RHandController)
+		RGrabedObject = GrabObject;
+	else
+		LGrabedObject = GrabObject;
 	PickupComp->Pickup(GrabController, IsPulling);
 }
 
 void AMH_VRPlayer::TryUnGrab(const FInputActionInstance& IA_Instance)
 {
 	if (GetPlayerState() == EPlayerVRState::UsingTool || GetPlayerState() == EPlayerVRState::Excavating) return;
-	if (!GrabedObject) return;
-
-	UMotionControllerComponent* GrabController = IA_Instance.GetSourceAction() == IA_MHGrab ? RHandController : LHandController;
 	
-	UActorComponent* ActorComp = GrabedObject->GetComponentByClass(UCPickupActorComponent::StaticClass());
+	AActor* GrabObject = nullptr;
+	UMotionControllerComponent* GrabController= IA_Instance.GetSourceAction() == IA_MHGrab ? RHandController : LHandController;
+	
+	if (GrabController==RHandController)
+		GrabObject = RGrabedObject;
+	else
+		GrabObject = LGrabedObject;
+	if (!GrabObject) return;
+	
+	UActorComponent* ActorComp = GrabObject->GetComponentByClass(UCPickupActorComponent::StaticClass());
 	if (!ActorComp) return;
 	UCPickupActorComponent* PickupComp = Cast<UCPickupActorComponent>(ActorComp);
 	if (!PickupComp) return;
 	PickupComp->Drop(GrabController);
-	GrabedObject = nullptr;
-	SetPlayerState(EPlayerVRState::Idle);
+	
+	if (GrabController==RHandController)
+		RGrabedObject = nullptr;
+	else
+		LGrabedObject = nullptr;
+
+	if (!RGrabedObject && !LGrabedObject)
+		SetPlayerState(EPlayerVRState::Idle);
+}
+
+void AMH_VRPlayer::DropForMuseumStateChange()
+{
+	Drop(RHandController);
+	Drop(LHandController);
+}
+
+void AMH_VRPlayer::Drop(UMotionControllerComponent* GrabController)
+{
+	AActor* GrabObject = nullptr;
+	if (GrabController==RHandController)
+		GrabObject = RGrabedObject;
+	else
+		GrabObject = LGrabedObject;
+	if (!GrabObject) return;
+	
+	UActorComponent* ActorComp = GrabObject->GetComponentByClass(UCPickupActorComponent::StaticClass());
+	if (!ActorComp) return;
+	UCPickupActorComponent* PickupComp = Cast<UCPickupActorComponent>(ActorComp);
+	if (!PickupComp) return;
+	PickupComp->Drop(GrabController);
+	
+	if (GrabController==RHandController)
+		RGrabedObject = nullptr;
+	else
+		LGrabedObject = nullptr;
+
+	if (!RGrabedObject && !LGrabedObject)
+		SetPlayerState(EPlayerVRState::Idle);
 }
 
 void AMH_VRPlayer::TestTurn(const FInputActionValue& Value)

@@ -152,7 +152,7 @@ void UCMuseumComponent::SwitchState()
 	case EMuseumState::Decorate:
 		OwnerPlayer->RWidgetInteractionComponent->SetActive(true);
 		OwnerPlayer->RWidgetInteractionComponent->bEnableHitTesting = true;
-		GrabComponent->TryUnGrab();
+		OwnerPlayer->DropForMuseumStateChange();
 		break;
 	}
 }

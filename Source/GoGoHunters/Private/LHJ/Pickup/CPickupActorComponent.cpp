@@ -1,8 +1,6 @@
 #include "LHJ/Pickup/CPickupActorComponent.h"
-
 #include "JMH/MH_GrabComp.h"
 #include "JMH/MH_VRPlayer.h"
-#include "Kismet/KismetMathLibrary.h"
 
 UCPickupActorComponent::UCPickupActorComponent()
 {
@@ -19,6 +17,16 @@ void UCPickupActorComponent::BeginPlay()
 			GetComponentsByTag(UPrimitiveComponent::StaticClass(), PickupName);
 		if (tmpArr.Num() > 0)
 			PendingGrabComponent = Cast<UPrimitiveComponent>(tmpArr[0]);
+	}
+
+	if (!PendingGrabComponent)
+	{
+		UE_LOG(LogTemp, Error, TEXT("PendingGrabComponent is null"));
+	}
+	else
+	{
+		OriginProfileName = PendingGrabComponent->GetCollisionProfileName();
+		GrabCollisionResponse = PendingGrabComponent->GetCollisionResponseToChannels();
 	}
 }
 
@@ -64,23 +72,37 @@ void UCPickupActorComponent::TickComponent(float DeltaTime, ELevelTick TickType,
 	{
 		if (FirstHandComponent && SecondHandComponent)
 		{
-			FTransform ActorTransform = OwnerActor->GetActorTransform();
-			FRotator ActorInverseRotator = ActorTransform.GetRotation().Rotator().GetInverse();
+			FVector FirstHandLocation = FirstHandComponent->GetComponentLocation();
+			FVector SecondHandLocation = SecondHandComponent->GetComponentLocation();
+			FRotator FindLookAtRotation = FRotationMatrix::MakeFromX(SecondHandLocation - FirstHandLocation).Rotator();
 
-			FVector InverseTransformPosition = FirstHandComponent->GetComponentTransform().InverseTransformPosition(SecondHandComponent->GetComponentLocation());
+			FRotator FirstHandRotation = FirstHandComponent->GetComponentRotation();
 
-			float Dot = FVector::DotProduct(ActorTransform.GetLocation(), InverseTransformPosition);
-			float Selectflt = Dot < 0.f ? 1.f : -1.f;
+			FRotator MakeRotator(FindLookAtRotation.Pitch-10, FindLookAtRotation.Yaw, FirstHandRotation.Roll);
 
-			FVector Multi = InverseTransformPosition * Selectflt;
-			FRotator MakeFromZ = FRotationMatrix::MakeFromZ(Multi).Rotator();
-			
-			FQuat AQuat = FQuat(ActorInverseRotator);
-			FQuat BQuat = FQuat(MakeFromZ);
+			FQuat AQuat = FQuat(GrabRotation);
+			FQuat BQuat = FQuat(MakeRotator);
 			FRotator CombineRotators = FRotator(BQuat*AQuat);
-
-			FVector RotateVector = CombineRotators.RotateVector(ActorTransform.GetLocation());
-			OwnerActor->SetActorLocationAndRotation(RotateVector, MakeFromZ);
+			
+			OwnerActor->SetActorRotation(CombineRotators);
+			
+			// FTransform ActorTransform = OwnerActor->GetActorTransform();
+			// FRotator ActorInverseRotator = ActorTransform.GetRotation().Rotator().GetInverse();
+			//
+			// FVector InverseTransformPosition = FirstHandComponent->GetComponentTransform().InverseTransformPosition(SecondHandComponent->GetComponentLocation());
+			//
+			// float Dot = FVector::DotProduct(ActorTransform.GetLocation(), InverseTransformPosition);
+			// float Selectflt = Dot < 0.f ? 1.f : -1.f;
+			//
+			// FVector Multi = InverseTransformPosition * Selectflt;
+			// FRotator MakeFromZ = FRotationMatrix::MakeFromZ(Multi).Rotator();
+			//
+			// FQuat AQuat = FQuat(ActorInverseRotator);
+			// FQuat BQuat = FQuat(MakeFromZ);
+			// FRotator CombineRotators = FRotator(BQuat*AQuat);
+			//
+			// FVector RotateVector = CombineRotators.RotateVector(ActorTransform.GetLocation());
+			// OwnerActor->SetActorLocationAndRotation(RotateVector, MakeFromZ);
 		}
 	}
 }
@@ -101,10 +123,16 @@ void UCPickupActorComponent::Pickup(USceneComponent* AttachTo, bool IsPulling)
 		{
 			FirstHandComponent = AttachTo;
 			PendingGrabComponent->SetSimulatePhysics(false);
-			PendingGrabComponent->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+			PendingGrabComponent->SetCollisionProfileName(GrabProfileName);
 			bIsPulling = IsPulling;
+
+			if (!bIsPulling)
+				PendingGrabComponent->AttachToComponent(FirstHandComponent, FAttachmentTransformRules::KeepWorldTransform);
+			
 			GrabUsingForRelic();
 			Player->SetPlayerState(EPlayerVRState::GrabbingObject);
+			
+			GrabRotation = OwnerActor->GetActorRotation();
 		}
 	}
 	// 한손 그랩 가능
@@ -112,7 +140,8 @@ void UCPickupActorComponent::Pickup(USceneComponent* AttachTo, bool IsPulling)
 	{
 		FirstHandComponent = AttachTo;
 		PendingGrabComponent->SetSimulatePhysics(false);
-		PendingGrabComponent->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+		PendingGrabComponent->SetCollisionProfileName(GrabProfileName);
+		// PendingGrabComponent->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 		bIsPulling = IsPulling;
 		GrabUsingForRelic();
 		Player->SetPlayerState(EPlayerVRState::GrabbingObject);
@@ -123,6 +152,7 @@ void UCPickupActorComponent::Drop(USceneComponent* DropFrom)
 {
 	if (DropFrom == SecondHandComponent)
 	{
+		OwnerActor->SetActorRelativeRotation(FRotator::ZeroRotator);
 		SecondHandComponent = nullptr;
 	}
 	else
@@ -139,7 +169,8 @@ void UCPickupActorComponent::Drop(USceneComponent* DropFrom)
 		else
 		{
 			PendingGrabComponent->SetSimulatePhysics(true);
-			PendingGrabComponent->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+			PendingGrabComponent->SetCollisionProfileName(OriginProfileName);
+			PendingGrabComponent->SetCollisionResponseToChannels(GrabCollisionResponse);
 			ReleaseUsingForRelic();
 		}
 	}

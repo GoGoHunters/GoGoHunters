@@ -19,7 +19,6 @@ void UCRelicPickupActorComponent::TickComponent(float DeltaTime, enum ELevelTick
 
 void UCRelicPickupActorComponent::Pickup(USceneComponent* AttachTo, bool IsPulling)
 {
-	PendingGrabComponent->SetSimulatePhysics(true);
 	Super::Pickup(AttachTo, IsPulling);
 }
 

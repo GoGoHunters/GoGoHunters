@@ -207,7 +207,8 @@ public:
 	// 잡기 함수들
 	void TryGrab(const FInputActionInstance& IA_Instance);
 	void TryUnGrab(const FInputActionInstance& IA_Instance);
-	
+	void DropForMuseumStateChange();
+		
 	// 썸스틱 입력 저장
 	FVector2D HeldObjectStickInput = FVector2D::ZeroVector;
 
@@ -344,7 +345,10 @@ private:
 	UPROPERTY(EditDefaultsOnly, Category=Grab)
 	float GrabRadius = 12;
 	UPROPERTY(VisibleAnywhere, Category=Grab)
-	TObjectPtr<AActor> GrabedObject;
+	TObjectPtr<AActor> RGrabedObject;
+	UPROPERTY(VisibleAnywhere, Category=Grab)
+	TObjectPtr<AActor> LGrabedObject;
 	AActor* GetNearGrabableObject(USceneComponent* GrabController);
 	void ObjectGrab(AActor* GrabObject, UMotionControllerComponent* GrabController, bool IsPulling);
+	void Drop(UMotionControllerComponent* GrabController); // 박물관 상태 변환용
 };
