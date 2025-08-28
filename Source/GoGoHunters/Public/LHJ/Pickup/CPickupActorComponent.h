@@ -17,6 +17,7 @@ public:
 	virtual void Pickup(USceneComponent* AttachTo, bool IsPulling);
 	virtual void Drop(USceneComponent* DropFrom);
 	bool GetGrabActorSimulate() {return PendingGrabComponent->IsSimulatingPhysics();}
+	void SetGrabActorScale(const FVector& Scale3D);
 
 protected:
 	UPROPERTY(VisibleAnywhere, Category="PickUp")

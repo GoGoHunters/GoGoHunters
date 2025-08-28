@@ -5,6 +5,8 @@
 #include "CRelicData.h"
 #include "CRelicBase.generated.h"
 
+class UCRelicPickupActorComponent;
+
 UCLASS()
 class GOGOHUNTERS_API ACRelicBase : public ACMuseumActorBase
 {
@@ -24,12 +26,15 @@ public:
 	void SimulatePhysics(bool bOn) { RelicMesh->SetSimulatePhysics(bOn); }
 	const FCRelicData GetRelicData() const { return RelicData; }
 	const FCRelicDetailData GetRelicDetailData() const { return RelicDetailData; }
+	void SetRelicGrabScale();
 	
 protected:
 	UPROPERTY(EditAnywhere)
 	UStaticMeshComponent* RelicMesh;
 	UPROPERTY()
 	TObjectPtr<UMaterialInterface> RelicMaterial;
+	UPROPERTY()
+	UCRelicPickupActorComponent* PickupActorComponent;
 
 	FCRelicData RelicData;
 	FCRelicDetailData RelicDetailData;

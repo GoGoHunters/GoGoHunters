@@ -94,6 +94,7 @@ void ACRelicPlaceActor::SetPlaceRelicAtLocation(ACRelicBase* Relic)
 	Relic->SetActorLocation(GetActorLocation());
 	Relic->SetActorScale3D(PlaceRelicScale);
 	Relic->SetActorRotation(FRotator::ZeroRotator);
+	Relic->SetRelicGrabScale();
 
 	Cast<ACRelicDescActor>(DescWidget->GetChildActor())->UpdateDescriptionWidget(true, PlaceRelicData, PlaceRelicDetailData);
 }

@@ -30,9 +30,7 @@ void UCPickupActorComponent::BeginPlay()
 		GrabCollisionResponse = PendingGrabComponent->GetCollisionResponseToChannels();
 	}
 
-	OriginScale3D = PendingGrabComponent->GetRelativeScale3D();
-	MinScale3D = OriginScale3D * MinScalePercent;
-	MaxScale3D = OriginScale3D * MaxScalePercent;
+	
 }
 
 void UCPickupActorComponent::TickComponent(float DeltaTime, ELevelTick TickType,
@@ -116,24 +114,6 @@ void UCPickupActorComponent::TickComponent(float DeltaTime, ELevelTick TickType,
 			float LerpZ = FMath::Lerp(ActorScale.Z, ClampZ, 0.2f);
 
 			OwnerActor->SetActorRelativeScale3D(FVector(LerpX, LerpY, LerpZ));
-
-			// FTransform ActorTransform = OwnerActor->GetActorTransform();
-			// FRotator ActorInverseRotator = ActorTransform.GetRotation().Rotator().GetInverse();
-			//
-			// FVector InverseTransformPosition = FirstHandComponent->GetComponentTransform().InverseTransformPosition(SecondHandComponent->GetComponentLocation());
-			//
-			// float Dot = FVector::DotProduct(ActorTransform.GetLocation(), InverseTransformPosition);
-			// float Selectflt = Dot < 0.f ? 1.f : -1.f;
-			//
-			// FVector Multi = InverseTransformPosition * Selectflt;
-			// FRotator MakeFromZ = FRotationMatrix::MakeFromZ(Multi).Rotator();
-			//
-			// FQuat AQuat = FQuat(ActorInverseRotator);
-			// FQuat BQuat = FQuat(MakeFromZ);
-			// FRotator CombineRotators = FRotator(BQuat*AQuat);
-			//
-			// FVector RotateVector = CombineRotators.RotateVector(ActorTransform.GetLocation());
-			// OwnerActor->SetActorLocationAndRotation(RotateVector, MakeFromZ);
 		}
 	}
 }
@@ -209,6 +189,13 @@ void UCPickupActorComponent::Drop(USceneComponent* DropFrom)
 			ReleaseUsingForRelic();
 		}
 	}
+}
+
+void UCPickupActorComponent::SetGrabActorScale(const FVector& Scale3D)
+{
+	OriginScale3D = Scale3D;
+	MinScale3D = OriginScale3D * MinScalePercent;
+	MaxScale3D = OriginScale3D * MaxScalePercent;
 }
 
 void UCPickupActorComponent::GrabUsingForRelic()
