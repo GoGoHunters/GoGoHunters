@@ -181,6 +181,7 @@ void AExcavationManager::SetCurrentPhase(EExcavationPhase NewPhase)
 		if (BrushingUI && CurrentActiveManager && CurrentActiveManager->GetRelics())
 		{
 			CurrentActiveManager->GetRelics()->SetBrushingUI(BrushingUI);
+			CurrentActiveManager->GetRelics()->SetWarningUI(WarningUI);
 		}
 	}
 
@@ -307,6 +308,13 @@ void AExcavationManager::UpdateDiggingProgress()
 		float ProgressPercent = FMath::Clamp(DigProgress, 0.0f, 100.0f);
 		DiggingUI->UpdateUI(ProgressPercent);
 	}
+}
+
+void AExcavationManager::ResetCurrentRelicDusting()
+{
+	if(!CurrentActiveManager->GetRelics()) return;
+
+	CurrentActiveManager->GetRelics()->ResetDecalsAndProgress();
 }
 
 void AExcavationManager::PlayTami(const FName& FunctionName)

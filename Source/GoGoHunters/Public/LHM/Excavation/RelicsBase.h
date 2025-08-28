@@ -6,6 +6,19 @@
 #include "GameFramework/Actor.h"
 #include "RelicsBase.generated.h"
 
+// 데칼 스냅샷
+//USTRUCT()
+//struct FDecalSnapshot
+//{
+//	GENERATED_BODY()
+//
+//	UPROPERTY() TSubclassOf<UDecalComponent> DecalClass;
+//	UPROPERTY() TWeakObjectPtr<USceneComponent> AttachParent;
+//	UPROPERTY() FTransform RelativeTransform;
+//	UPROPERTY() UMaterialInterface* SourceMat = nullptr;
+//	UPROPERTY() float InitialOpacity = 1.f;
+//};
+
 UCLASS()
 class GOGOHUNTERS_API ARelicsBase : public AActor
 {
@@ -101,7 +114,7 @@ public:
 
 // BrushingUI
 public:
-	void SetBrushingUI(class UBrushingUI* InBrushingUI);
+	void SetBrushingUI(class UBrushingUI* InBrushingUI) { BrushingUI = InBrushingUI; }
 	UBrushingUI* GetBrushingUI() const { return BrushingUI; }
 
 	UStaticMeshComponent* GetRelicMeshByDecal(UDecalComponent* Decal) const;
@@ -115,6 +128,27 @@ protected:
 	UPROPERTY()
 	class UBrushingUI* BrushingUI;
 
+// Warning
+public:
+	UFUNCTION() 
+	void ResetDecalsAndProgress();   // 경고 3회 → 3초 뒤 호출
+//protected:
+//	UPROPERTY() 
+//	TArray<FDecalSnapshot> InitialDecals; // 초기 스냅샷
+
+public:
+	void CountWarning();
+
+	void SetWarningUI(class UWarningUI* InWarningUI) { WarningUI = InWarningUI; }
+	UWarningUI* GetWarningUI() const { return WarningUI; }
+
+protected:
+	UPROPERTY()
+	class UWarningUI* WarningUI;
+	
+	int32 WarningCount = 0;
+
+// Tami 음성
 private:
 	void PlayTami();
 	bool bIsPlayingTami = false;

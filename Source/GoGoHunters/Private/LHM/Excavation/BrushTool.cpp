@@ -75,12 +75,13 @@ void ABrushTool::OnEndOverlap(UPrimitiveComponent* Overlapped, AActor* OtherActo
 void ABrushTool::CheckBrushSwipe(float DeltaTime)
 {
 	if (!CurrentOverlappingRelic) return;
+	
+	Relic = Cast<ARelicsBase>(CurrentOverlappingRelic);
+	if (!Relic) return;
 
 	if (SwipeSpeed > BrushSwipeThresholdMin
 		&& SwipeSpeed < BrushSwipeThresholdMax)
 	{
-		Relic = Cast<ARelicsBase>(CurrentOverlappingRelic);
-		if (!Relic) return;
 
 		// [1] 가장 가까운 메시
 		UStaticMeshComponent* ClosestMesh = Relic->GetClosestRelicMesh(BoxMesh->GetComponentLocation());
@@ -102,6 +103,10 @@ void ABrushTool::CheckBrushSwipe(float DeltaTime)
 		if (!bHasRemainingDecal) return;		
 
 		Relic->ReduceDustOpacity(BoxMesh->GetComponentLocation(), FadeSpeed * DeltaTime, *this);
+	}
+	else if (SwipeSpeed >= BrushSwipeThresholdMax)
+	{
+		Relic->CountWarning();
 	}
 }
 
