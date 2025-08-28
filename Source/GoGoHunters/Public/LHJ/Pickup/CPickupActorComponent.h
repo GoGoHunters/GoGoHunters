@@ -32,6 +32,11 @@ protected:
 	float MaxScalePercent = 1.5f;	
 	UPROPERTY(EditAnywhere, Category="Pickup")
 	float MinScalePercent = 0.5f;
+
+	UPROPERTY(VisibleAnywhere, Category="Pickup")
+	FVector MinScale3D;
+	UPROPERTY(VisibleAnywhere, Category="Pickup")
+	FVector MaxScale3D;
 	
 	UPROPERTY()
 	TObjectPtr<AActor> OwnerActor = nullptr;
@@ -63,7 +68,5 @@ private:
 	FCollisionResponseContainer GrabCollisionResponse;
 
 	FVector OriginScale3D;
-	FVector MinScale3D;
-	FVector MaxScale3D;
 	FVector SecondHandAttachT;
 };

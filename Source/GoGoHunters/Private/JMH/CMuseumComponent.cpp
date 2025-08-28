@@ -484,6 +484,7 @@ void UCMuseumComponent::LoadPlacedRelic()
 						RelicActor->InitializeAsset(Data, *Local_RelicDetailData);
 						RelicActor->Tags.Add("Grabable");
 						FoundArea->RegisterRelic(RelicActor);
+						RelicActor->SetRelicGrabScale();
 
 						// RelicActor->SimulatePhysics(true);
 						// FTimerHandle hnd;

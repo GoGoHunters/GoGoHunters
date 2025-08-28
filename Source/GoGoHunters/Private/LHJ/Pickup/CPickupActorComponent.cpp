@@ -1,4 +1,6 @@
 #include "LHJ/Pickup/CPickupActorComponent.h"
+
+#include "MotionControllerComponent.h"
 #include "JMH/MH_GrabComp.h"
 #include "JMH/MH_VRPlayer.h"
 #include "Kismet/KismetMathLibrary.h"
@@ -75,11 +77,12 @@ void UCPickupActorComponent::TickComponent(float DeltaTime, ELevelTick TickType,
 	{
 		if (FirstHandComponent && SecondHandComponent)
 		{
-			FVector FirstHandLocation = FirstHandComponent->GetComponentLocation();
-			FVector SecondHandLocation = SecondHandComponent->GetComponentLocation();
+			// 회전
+			FVector FirstHandLocation = Player->RHandController->GetComponentLocation();
+			FVector SecondHandLocation = Player->LHandController->GetComponentLocation();
 			FRotator FindLookAtRotation = FRotationMatrix::MakeFromX(SecondHandLocation - FirstHandLocation).Rotator();
 
-			FRotator FirstHandRotation = FirstHandComponent->GetComponentRotation();
+			FRotator FirstHandRotation = Player->RHandController->GetComponentRotation();
 
 			FRotator MakeRotator(FindLookAtRotation.Pitch - 10, FindLookAtRotation.Yaw, FirstHandRotation.Roll);
 
@@ -88,32 +91,28 @@ void UCPickupActorComponent::TickComponent(float DeltaTime, ELevelTick TickType,
 			FRotator CombineRotators = FRotator(BQuat * AQuat);
 
 			OwnerActor->SetActorRotation(CombineRotators);
-
 			//===============================================
-
+			// 크기
+			FVector SecondHandPosition;
+			if (SecondHandComponent==Player->LHandController)
+				SecondHandPosition = Player->LHandController->GetComponentLocation();
+			else
+				SecondHandPosition = Player->RHandController->GetComponentLocation() * -1;
+			
 			FVector InverseTransformPosition = PendingGrabComponent->GetComponentTransform().InverseTransformPosition(
-				SecondHandComponent->GetComponentLocation());
-			float SafeDivedeX = (SecondHandAttachT.X != 0.0f)
-				                    ? (InverseTransformPosition.X / SecondHandAttachT.X)
-				                    : 0.0f;
-			float SafeDivedeY = (SecondHandAttachT.Y != 0.0f)
-				                    ? (InverseTransformPosition.Y / SecondHandAttachT.Y)
-				                    : 0.0f;
-			float SafeDivedeZ = (SecondHandAttachT.Z != 0.0f)
-				                    ? (InverseTransformPosition.Z / SecondHandAttachT.Z)
-				                    : 0.0f;
-
-			float ClampX = FMath::Clamp(SafeDivedeX, MinScale3D.X, MaxScale3D.X);
-			float ClampY = FMath::Clamp(SafeDivedeY, MinScale3D.Y, MaxScale3D.Y);
-			float ClampZ = FMath::Clamp(SafeDivedeZ, MinScale3D.Z, MaxScale3D.Z);
+				SecondHandPosition);
+			float SafeDivedX = (SecondHandAttachT.X != 0.0f)
+				                   ? (InverseTransformPosition.X / SecondHandAttachT.X)
+				                   : 0.0f;
+			
+			float ClampX = FMath::Clamp(SafeDivedX, MinScale3D.X, MaxScale3D.X);
 
 			FVector ActorScale = OwnerActor->GetActorRelativeScale3D();
 
-			float LerpX = FMath::Lerp(ActorScale.X, ClampX, 0.2f);
-			float LerpY = FMath::Lerp(ActorScale.Y, ClampY, 0.2f);
-			float LerpZ = FMath::Lerp(ActorScale.Z, ClampZ, 0.2f);
+			float LerpX = FMath::Lerp(ActorScale.X, ClampX, 0.1f);
 
-			OwnerActor->SetActorRelativeScale3D(FVector(LerpX, LerpY, LerpZ));
+			
+			OwnerActor->SetActorRelativeScale3D(FVector(LerpX, LerpX, LerpX));
 		}
 	}
 }
@@ -167,7 +166,6 @@ void UCPickupActorComponent::Drop(USceneComponent* DropFrom)
 {
 	if (DropFrom == SecondHandComponent)
 	{
-		OwnerActor->SetActorRelativeRotation(FRotator::ZeroRotator);
 		SecondHandComponent = nullptr;
 	}
 	else

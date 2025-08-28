@@ -33,7 +33,7 @@ protected:
 	UStaticMeshComponent* RelicMesh;
 	UPROPERTY()
 	TObjectPtr<UMaterialInterface> RelicMaterial;
-	UPROPERTY()
+	UPROPERTY(EditAnywhere)
 	UCRelicPickupActorComponent* PickupActorComponent;
 
 	FCRelicData RelicData;
