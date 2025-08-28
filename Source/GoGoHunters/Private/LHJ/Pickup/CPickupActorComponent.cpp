@@ -1,6 +1,7 @@
 #include "LHJ/Pickup/CPickupActorComponent.h"
 #include "JMH/MH_GrabComp.h"
 #include "JMH/MH_VRPlayer.h"
+#include "Kismet/KismetMathLibrary.h"
 
 UCPickupActorComponent::UCPickupActorComponent()
 {
@@ -28,6 +29,10 @@ void UCPickupActorComponent::BeginPlay()
 		OriginProfileName = PendingGrabComponent->GetCollisionProfileName();
 		GrabCollisionResponse = PendingGrabComponent->GetCollisionResponseToChannels();
 	}
+
+	OriginScale3D = PendingGrabComponent->GetRelativeScale3D();
+	MinScale3D = OriginScale3D * MinScalePercent;
+	MaxScale3D = OriginScale3D * MaxScalePercent;
 }
 
 void UCPickupActorComponent::TickComponent(float DeltaTime, ELevelTick TickType,
@@ -78,14 +83,40 @@ void UCPickupActorComponent::TickComponent(float DeltaTime, ELevelTick TickType,
 
 			FRotator FirstHandRotation = FirstHandComponent->GetComponentRotation();
 
-			FRotator MakeRotator(FindLookAtRotation.Pitch-10, FindLookAtRotation.Yaw, FirstHandRotation.Roll);
+			FRotator MakeRotator(FindLookAtRotation.Pitch - 10, FindLookAtRotation.Yaw, FirstHandRotation.Roll);
 
 			FQuat AQuat = FQuat(GrabRotation);
 			FQuat BQuat = FQuat(MakeRotator);
-			FRotator CombineRotators = FRotator(BQuat*AQuat);
-			
+			FRotator CombineRotators = FRotator(BQuat * AQuat);
+
 			OwnerActor->SetActorRotation(CombineRotators);
-			
+
+			//===============================================
+
+			FVector InverseTransformPosition = PendingGrabComponent->GetComponentTransform().InverseTransformPosition(
+				SecondHandComponent->GetComponentLocation());
+			float SafeDivedeX = (SecondHandAttachT.X != 0.0f)
+				                    ? (InverseTransformPosition.X / SecondHandAttachT.X)
+				                    : 0.0f;
+			float SafeDivedeY = (SecondHandAttachT.Y != 0.0f)
+				                    ? (InverseTransformPosition.Y / SecondHandAttachT.Y)
+				                    : 0.0f;
+			float SafeDivedeZ = (SecondHandAttachT.Z != 0.0f)
+				                    ? (InverseTransformPosition.Z / SecondHandAttachT.Z)
+				                    : 0.0f;
+
+			float ClampX = FMath::Clamp(SafeDivedeX, MinScale3D.X, MaxScale3D.X);
+			float ClampY = FMath::Clamp(SafeDivedeY, MinScale3D.Y, MaxScale3D.Y);
+			float ClampZ = FMath::Clamp(SafeDivedeZ, MinScale3D.Z, MaxScale3D.Z);
+
+			FVector ActorScale = OwnerActor->GetActorRelativeScale3D();
+
+			float LerpX = FMath::Lerp(ActorScale.X, ClampX, 0.2f);
+			float LerpY = FMath::Lerp(ActorScale.Y, ClampY, 0.2f);
+			float LerpZ = FMath::Lerp(ActorScale.Z, ClampZ, 0.2f);
+
+			OwnerActor->SetActorRelativeScale3D(FVector(LerpX, LerpY, LerpZ));
+
 			// FTransform ActorTransform = OwnerActor->GetActorTransform();
 			// FRotator ActorInverseRotator = ActorTransform.GetRotation().Rotator().GetInverse();
 			//
@@ -118,6 +149,9 @@ void UCPickupActorComponent::Pickup(USceneComponent* AttachTo, bool IsPulling)
 		if (FirstHandComponent)
 		{
 			SecondHandComponent = AttachTo;
+
+			SecondHandAttachT = PendingGrabComponent->GetComponentTransform().InverseTransformPosition(
+				SecondHandComponent->GetComponentLocation());
 		}
 		else
 		{
@@ -127,11 +161,12 @@ void UCPickupActorComponent::Pickup(USceneComponent* AttachTo, bool IsPulling)
 			bIsPulling = IsPulling;
 
 			if (!bIsPulling)
-				PendingGrabComponent->AttachToComponent(FirstHandComponent, FAttachmentTransformRules::KeepWorldTransform);
-			
+				PendingGrabComponent->AttachToComponent(FirstHandComponent,
+				                                        FAttachmentTransformRules::KeepWorldTransform);
+
 			GrabUsingForRelic();
 			Player->SetPlayerState(EPlayerVRState::GrabbingObject);
-			
+
 			GrabRotation = OwnerActor->GetActorRotation();
 		}
 	}

@@ -26,7 +26,11 @@ protected:
 	UPROPERTY(EditAnywhere, Category="Pickup")
 	bool CanTwoHandGrab = false;
 	UPROPERTY(EditAnywhere, Category="Pickup")
-	float GrabPullSpeed = 5.0f;	
+	float GrabPullSpeed = 5.0f;
+	UPROPERTY(EditAnywhere, Category="Pickup")
+	float MaxScalePercent = 1.5f;	
+	UPROPERTY(EditAnywhere, Category="Pickup")
+	float MinScalePercent = 0.5f;
 	
 	UPROPERTY()
 	TObjectPtr<AActor> OwnerActor = nullptr;
@@ -56,4 +60,9 @@ private:
 	
 	const FName GrabProfileName = FName("GrabbingObject");
 	FCollisionResponseContainer GrabCollisionResponse;
+
+	FVector OriginScale3D;
+	FVector MinScale3D;
+	FVector MaxScale3D;
+	FVector SecondHandAttachT;
 };
