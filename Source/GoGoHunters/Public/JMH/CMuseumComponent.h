@@ -51,7 +51,9 @@ public:
 	void PlaceRelic();
 
 	UFUNCTION(BlueprintCallable)
-	void RegisterRelic(const int32& InRelicTag = -1);
+	FCRelicData RegisterRelic(const int32& InRelicTag = -1);
+	UFUNCTION(BlueprintCallable)
+	void RegisterRelicCollector(FCRelicData& InRelicData, FName InCollectorName = NAME_None);
 	void GrabRelic(ACRelicBase* GrabRelic);
 	void GrabRelicEnd(ACRelicBase* GrabRelic, const FVector& HandComponentLocation);
 

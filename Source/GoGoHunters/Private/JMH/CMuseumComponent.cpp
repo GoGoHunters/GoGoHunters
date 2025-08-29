@@ -238,14 +238,14 @@ void UCMuseumComponent::PlaceRelic()
 		OnUiAnimPlay.Execute(false);
 }
 
-void UCMuseumComponent::RegisterRelic(const int32& InRelicTag)
+FCRelicData UCMuseumComponent::RegisterRelic(const int32& InRelicTag)
 {
-	if (InRelicTag == -1) return;
+	if (InRelicTag == -1) return FCRelicData();
 	if (UGI_Base* GI = Cast<UGI_Base>(UGameplayStatics::GetGameInstance(GetWorld())))
 	{
 		const FCRelicDetailData* l_RelicDetailData = GI->GetRelicDetailDataByTag(InRelicTag);
 
-		if (!l_RelicDetailData) return;
+		if (!l_RelicDetailData) return FCRelicData();
 		
 		FCRelicData NewRelicData;
 		NewRelicData.RelicName = l_RelicDetailData->RelicName;
@@ -258,6 +258,23 @@ void UCMuseumComponent::RegisterRelic(const int32& InRelicTag)
 		FRelicSaveData NewSaveData;
 		NewSaveData.RelicData = NewRelicData;
 		GI->SaveRelicData(NewSaveData);
+
+		return NewRelicData;
+	}
+	return FCRelicData();
+}
+
+void UCMuseumComponent::RegisterRelicCollector(FCRelicData& InRelicData, FName InCollectorName)
+{
+	if (InCollectorName == NAME_None) return;
+
+	if (UGI_Base* GI = Cast<UGI_Base>(UGameplayStatics::GetGameInstance(GetWorld())))
+	{
+		InRelicData.CollectorName = InCollectorName;
+		
+		FRelicSaveData NewSaveData;
+		NewSaveData.RelicData = InRelicData;
+		GI->SaveRelicData(NewSaveData);		
 	}
 }
 
