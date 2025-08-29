@@ -213,18 +213,19 @@ void ARelicsBase::ReduceDustOpacity(const FVector& BrushLocation, float Amount, 
     ABrushTool* Brush = Cast<ABrushTool>(&BrushRef);
     if (Brush) Brush->UpdateFeedback(Current);
 
-    //UE_LOG(LogTemp, Log, TEXT("[Debug] Decal Opacity value: %f"), Opacity);
+    //UE_LOG(LogTemp, Log, TEXT("[Debug] Decal Opacity value: %f"), NewOpacity);
 
     // 데칼 제거
     if (NewOpacity <= 0.2f)
     {
         //Closest->DestroyComponent();
         Closest->SetVisibility(false);
+        MID->SetScalarParameterValue(OpacityParameterName, 1.0f);
 
         // [1] Decal 제거 및 관련 맵 정리
         UStaticMeshComponent* ParentMesh = DecalToMeshMap.FindRef(Closest);
         DustDecals.Remove(Closest);
-        DecalMIDs.Remove(Closest);
+        //DecalMIDs.Remove(Closest);
         DecalToMeshMap.Remove(Closest);
 
         // [2] 남은 데칼 중 ParentMesh에 붙어있는 게 있는지 검사
@@ -321,24 +322,14 @@ void ARelicsBase::ResetDecalsAndProgress()
     TotalInitialOpacity = 0;
     TotalRemainingOpacity = 0;
 
-    // 1) 기존 잔여 데칼 정리
-    //for (UDecalComponent* D : DustDecals)
-    //{
-    //    if (!D) continue;
-
-    //    D->SetVisibility(true); // 다시 보이게
-    //    if (UMaterialInstanceDynamic* MID = DecalMIDs.FindRef(D))
-    //    {
-    //        MID->SetScalarParameterValue(OpacityParameterName, CurrentOpacity);
-    //    }
-    //}
     DustDecals.Empty();
-    DecalMIDs.Empty();
+    //DecalMIDs.Empty();
     DecalToMeshMap.Empty();
 
     TArray<UDecalComponent*> AllDecals;
     GetComponents(AllDecals);
 
+	// 1) 모든 데칼 활성화
     for (UDecalComponent* Decal : AllDecals)
     {
         // 1. DustDecals 배열에 추가
@@ -349,15 +340,30 @@ void ARelicsBase::ResetDecalsAndProgress()
         UStaticMeshComponent* ParentMesh = Cast<UStaticMeshComponent>(Decal->GetAttachParent());
         if (ParentMesh) DecalToMeshMap.Add(Decal, ParentMesh);
 
-        // 3. DecalMIDs 할당
-        if (Decal->GetDecalMaterial())
+        //// 3. DecalMIDs 데칼 투명도 원복
+        if (IsValid(DecalMIDs[Decal]))
         {
-            UMaterialInstanceDynamic* MID = UMaterialInstanceDynamic::Create(Decal->GetDecalMaterial(), this);
-            MID->SetScalarParameterValue(OpacityParameterName, CurrentOpacity);
-            DecalMIDs.Add(Decal, MID);
+            DecalMIDs[Decal]->SetScalarParameterValue(OpacityParameterName, 1.0f);
+        }
 
-            TotalInitialOpacity += 1.0f;
-            TotalRemainingOpacity += 1.0f;
+		TotalInitialOpacity += 1.0f;
+		TotalRemainingOpacity += 1.0f;
+    }
+
+    // 2) 아웃라인 머티리얼 색상 초기화
+    for (UStaticMeshComponent* RelicMesh : RelicsMeshes)
+    {
+        if (!RelicMesh) continue;
+
+        UMaterialInterface* MatInterface = RelicMesh->GetOverlayMaterial();
+        if (MatInterface)
+        {
+            UMaterialInstanceDynamic* OverlayMID = Cast<UMaterialInstanceDynamic>(MatInterface);
+            if (OverlayMID)
+            {
+                // 원래 색상으로 복구
+                OverlayMID->SetVectorParameterValue(FName("Color"), FLinearColor(1.0f, 0.267f, 0.0f, 1.0f));
+            }
         }
     }
 
