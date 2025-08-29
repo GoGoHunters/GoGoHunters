@@ -77,20 +77,20 @@ void UCPickupActorComponent::TickComponent(float DeltaTime, ELevelTick TickType,
 	{
 		if (FirstHandComponent && SecondHandComponent)
 		{
-			// 회전
-			FVector FirstHandLocation = Player->RHandController->GetComponentLocation();
-			FVector SecondHandLocation = Player->LHandController->GetComponentLocation();
-			FRotator FindLookAtRotation = FRotationMatrix::MakeFromX(SecondHandLocation - FirstHandLocation).Rotator();
-
-			FRotator FirstHandRotation = Player->RHandController->GetComponentRotation();
-
-			FRotator MakeRotator(FindLookAtRotation.Pitch - 10, FindLookAtRotation.Yaw, FirstHandRotation.Roll);
-
-			FQuat AQuat = FQuat(GrabRotation);
-			FQuat BQuat = FQuat(MakeRotator);
-			FRotator CombineRotators = FRotator(BQuat * AQuat);
-
-			OwnerActor->SetActorRotation(CombineRotators);
+			// // 회전
+			// FVector FirstHandLocation = Player->RHandController->GetComponentLocation();
+			// FVector SecondHandLocation = Player->LHandController->GetComponentLocation();
+			// FRotator FindLookAtRotation = FRotationMatrix::MakeFromX(SecondHandLocation - FirstHandLocation).Rotator();
+			//
+			// FRotator FirstHandRotation = Player->RHandController->GetComponentRotation();
+			//
+			// FRotator MakeRotator(FindLookAtRotation.Pitch - 10, FindLookAtRotation.Yaw, FirstHandRotation.Roll);
+			//
+			// FQuat AQuat = FQuat(GrabRotation);
+			// FQuat BQuat = FQuat(MakeRotator);
+			// FRotator CombineRotators = FRotator(BQuat * AQuat);
+			//
+			// OwnerActor->SetActorRotation(CombineRotators);
 			//===============================================
 			// 크기
 			FVector SecondHandPosition;
