@@ -36,6 +36,17 @@ public:
 
 	void SetAttachBase(USceneComponent* InAttachBase);
 
+private:
+	void DropPickedRelic();
+
+	UFUNCTION()
+    void OnRelicHit(UPrimitiveComponent* HitComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit);
+
+    // 바운스 연속 히트 스팸 방지
+    TMap<TWeakObjectPtr<UPrimitiveComponent>, float> LastHitTime;
+    float ImpactCooldown = 1.0f; // 초
+    float ImpactSpeedThreshold = 50.0f; // (드롭 경고와 동일/별도)
+
 protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	class UStaticMeshComponent* TweezersMeshL;

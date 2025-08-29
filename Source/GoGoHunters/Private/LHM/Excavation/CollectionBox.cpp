@@ -111,6 +111,21 @@ void ACollectionBox::OnOverlapEnd(UPrimitiveComponent* OverlappedComp, AActor* O
 	}
 }
 
+void ACollectionBox::SetInitialRelicTransforms(class ARelicsBase* Relic)
+{
+	// 초기 위치 저장
+	if (Relic)
+	{
+		for (UStaticMeshComponent* Mesh : Relic->RelicsMeshes)
+		{
+			if (Mesh)
+			{
+				InitialRelicTransforms.Add(Mesh, Mesh->GetComponentTransform());
+			}
+		}
+	}
+}
+
 void ACollectionBox::CheckAllCollected()
 {
 	if(!TargetRelic) return;
@@ -129,6 +144,44 @@ void ACollectionBox::CheckAllCollected()
 		{
 			It->NotifyCollectionCompleted(RelicsManager, this);
 			break;
+		}
+	}
+}
+
+void ACollectionBox::ResetCollectedRelics()
+{
+	// [1] 모든 유물 메시들의 트랜스폼 복구 및 태그 제거
+	if (TargetRelic)
+	{
+		for (UStaticMeshComponent* Mesh : TargetRelic->RelicsMeshes)
+		{
+			if (!Mesh) continue;
+
+			// 초기 위치 복구
+			if (InitialRelicTransforms.Contains(Mesh))
+			{
+				Mesh->SetWorldTransform(InitialRelicTransforms[Mesh]);
+			}
+
+			// 태그 복구 (Collected 제거)
+			Mesh->ComponentTags.Remove(FName("Collected"));
+
+			// 물리/충돌 복구
+			Mesh->SetSimulatePhysics(false);
+			Mesh->SetCollisionProfileName(FName("Relic_Buried"));
+			Mesh->SetGenerateOverlapEvents(true);
+		}
+	}
+
+	// [2] 수거 배열 초기화
+	CollectedMeshes.Empty();
+
+	// [3] UI 초기화
+	if (TargetRelic && TargetRelic->GetBrushingUI())
+	{
+		for (int32 i = 0; i < TargetRelic->RelicsMeshes.Num(); ++i)
+		{
+			TargetRelic->GetBrushingUI()->SetCollectedImage(false);
 		}
 	}
 }

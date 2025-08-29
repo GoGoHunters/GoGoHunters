@@ -100,8 +100,15 @@ public:
 
 	void SetBrushingUI(class UBrushingUI* InBrushingUI) { BrushingUI = InBrushingUI; }
 
+	void SetWarningUI(class UWarningUI* InWarningUI) { WarningUI = InWarningUI; }
+	
+	void HandleWarningReset(); // 경고 3회 → 3초 뒤 호출
+
     UPROPERTY(BlueprintReadOnly)
     class UExcavationPhaseUI* PhaseUI;
+	
+    UPROPERTY()
+    class UWarningUI* WarningUI;
 
 protected:
     UPROPERTY()

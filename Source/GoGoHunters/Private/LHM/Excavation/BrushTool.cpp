@@ -75,12 +75,13 @@ void ABrushTool::OnEndOverlap(UPrimitiveComponent* Overlapped, AActor* OtherActo
 void ABrushTool::CheckBrushSwipe(float DeltaTime)
 {
 	if (!CurrentOverlappingRelic) return;
+	
+	Relic = Cast<ARelicsBase>(CurrentOverlappingRelic);
+	if (!Relic) return;
 
 	if (SwipeSpeed > BrushSwipeThresholdMin
 		&& SwipeSpeed < BrushSwipeThresholdMax)
 	{
-		Relic = Cast<ARelicsBase>(CurrentOverlappingRelic);
-		if (!Relic) return;
 
 		// [1] 가장 가까운 메시
 		UStaticMeshComponent* ClosestMesh = Relic->GetClosestRelicMesh(BoxMesh->GetComponentLocation());
@@ -102,6 +103,20 @@ void ABrushTool::CheckBrushSwipe(float DeltaTime)
 		if (!bHasRemainingDecal) return;		
 
 		Relic->ReduceDustOpacity(BoxMesh->GetComponentLocation(), FadeSpeed * DeltaTime, *this);
+	}
+	else if (bCanTriggerWarning && SwipeSpeed >= BrushSwipeThresholdMax)
+	{
+		Relic->CountWarning();
+
+		// 쿨타임 시작
+		bCanTriggerWarning = false;
+		GetWorld()->GetTimerManager().SetTimer(
+			WarningCooldownHandle,
+			this,
+			&ABrushTool::ResetWarningCooldown,
+			WarningCooldownDuration,
+			false
+		);
 	}
 }
 
@@ -175,5 +190,10 @@ void ABrushTool::SetIsBrushing(bool _bIsBrushing)
 	bIsBrushing = _bIsBrushing;
 
 	if (!bIsBrushing) StopFeedback();
+}
+
+void ABrushTool::ResetWarningCooldown()
+{
+	bCanTriggerWarning = true;
 }
 

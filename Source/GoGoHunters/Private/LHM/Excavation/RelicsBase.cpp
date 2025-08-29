@@ -10,6 +10,7 @@
 #include "LHM/Excavation/BrushTool.h"
 #include "LHM/UI/BrushingUI.h"
 #include "Components/BoxComponent.h"
+#include "LHM/UI/WarningUI.h"
 
 // Sets default values
 ARelicsBase::ARelicsBase()
@@ -66,7 +67,7 @@ void ARelicsBase::PostInitializeComponents()
         if (Decal->GetMaterial(0))
         {
             UMaterialInstanceDynamic* MID = UMaterialInstanceDynamic::Create(Decal->GetMaterial(0), this);
-            Decal->SetMaterial(0, MID);
+            Decal->SetDecalMaterial(MID);
             MID->SetScalarParameterValue(OpacityParameterName, CurrentOpacity);
             DecalMIDs.Add(Decal, MID);
 
@@ -75,7 +76,20 @@ void ARelicsBase::PostInitializeComponents()
         }
     }
 
-    //UE_LOG(LogTemp, Log, TEXT("[PostInitializeComponents] DustDecals size: %d"), DustDecals.Num());
+    /*//InitialDecals.Empty();
+
+    //// 데칼 스냅샷
+    //for (UDecalComponent* Decal : DustDecals)
+    //{
+    //    if (!Decal) continue;
+    //    FDecalSnapshot S;
+    //    S.DecalClass = Decal->GetClass();
+    //    S.AttachParent = Decal->GetAttachParent();
+    //    S.RelativeTransform = Decal->GetRelativeTransform();
+    //    S.SourceMat = Decal->GetDecalMaterial();
+    //    S.InitialOpacity = 1.f; // 초기값(현재 코드에서 1.0으로 세팅)
+    //    InitialDecals.Add(S);
+    //}*/
 }
 
 // Called when the game starts or when spawned
@@ -204,7 +218,8 @@ void ARelicsBase::ReduceDustOpacity(const FVector& BrushLocation, float Amount, 
     // 데칼 제거
     if (NewOpacity <= 0.2f)
     {
-        Closest->DestroyComponent();
+        //Closest->DestroyComponent();
+        Closest->SetVisibility(false);
 
         // [1] Decal 제거 및 관련 맵 정리
         UStaticMeshComponent* ParentMesh = DecalToMeshMap.FindRef(Closest);
@@ -277,11 +292,6 @@ void ARelicsBase::CheckAllDelcalsRemoved()
     }
 }
 
-void ARelicsBase::SetBrushingUI(class UBrushingUI* InBrushingUI)
-{
-    BrushingUI = InBrushingUI;
-}
-
 UStaticMeshComponent* ARelicsBase::GetRelicMeshByDecal(UDecalComponent* Decal) const
 {
     const UDecalComponent* const* Found = DustDecals.FindByPredicate(
@@ -303,6 +313,98 @@ float ARelicsBase::GetDecalOpacity(UDecalComponent* Decal) const
         return Opacity;
     }
     return 1.0f;
+}
+
+void ARelicsBase::ResetDecalsAndProgress()
+{
+    // 0) 진행도/합계 초기화
+    TotalInitialOpacity = 0;
+    TotalRemainingOpacity = 0;
+
+    // 1) 기존 잔여 데칼 정리
+    //for (UDecalComponent* D : DustDecals)
+    //{
+    //    if (!D) continue;
+
+    //    D->SetVisibility(true); // 다시 보이게
+    //    if (UMaterialInstanceDynamic* MID = DecalMIDs.FindRef(D))
+    //    {
+    //        MID->SetScalarParameterValue(OpacityParameterName, CurrentOpacity);
+    //    }
+    //}
+    DustDecals.Empty();
+    DecalMIDs.Empty();
+    DecalToMeshMap.Empty();
+
+    TArray<UDecalComponent*> AllDecals;
+    GetComponents(AllDecals);
+
+    for (UDecalComponent* Decal : AllDecals)
+    {
+        // 1. DustDecals 배열에 추가
+        Decal->SetVisibility(true);
+        DustDecals.Add(Decal);
+
+        // 2. DecalToMeshMap 할당
+        UStaticMeshComponent* ParentMesh = Cast<UStaticMeshComponent>(Decal->GetAttachParent());
+        if (ParentMesh) DecalToMeshMap.Add(Decal, ParentMesh);
+
+        // 3. DecalMIDs 할당
+        if (Decal->GetDecalMaterial())
+        {
+            UMaterialInstanceDynamic* MID = UMaterialInstanceDynamic::Create(Decal->GetDecalMaterial(), this);
+            MID->SetScalarParameterValue(OpacityParameterName, CurrentOpacity);
+            DecalMIDs.Add(Decal, MID);
+
+            TotalInitialOpacity += 1.0f;
+            TotalRemainingOpacity += 1.0f;
+        }
+    }
+
+    /*//// 2) 스냅샷 기반 데칼 재생성
+    //for (const FDecalSnapshot& S : InitialDecals)
+    //{
+    //    if (!S.DecalClass || !S.AttachParent.IsValid()) continue;
+
+    //    UDecalComponent* NewDecal = NewObject<UDecalComponent>(this, S.DecalClass);
+    //    NewDecal->SetupAttachment(S.AttachParent.Get());
+    //    NewDecal->RegisterComponent();
+    //    NewDecal->SetRelativeTransform(S.RelativeTransform);
+    //    NewDecal->DecalSize = FVector(10,20,20);
+
+    //    // 머티리얼 & MID
+    //    if (S.SourceMat)
+    //    {
+    //        UMaterialInstanceDynamic* MID = UMaterialInstanceDynamic::Create(S.SourceMat, this);
+    //        MID->SetScalarParameterValue(OpacityParameterName, 1.0f);
+    //        NewDecal->SetDecalMaterial(MID);
+    //        DecalMIDs.Add(NewDecal, MID);
+    //    }
+
+    //    DustDecals.Add(NewDecal);
+
+    //    // 부모 메시 매핑
+    //    if (UStaticMeshComponent* ParentMesh = Cast<UStaticMeshComponent>(NewDecal->GetAttachParent()))
+    //    {
+    //        DecalToMeshMap.Add(NewDecal, ParentMesh);
+    //    }
+    //}*/
+
+    // 3) Brushing UI 0% 초기화
+    if (BrushingUI) BrushingUI->UpdateProgress(1.0f);
+
+	// 4) Warning UI 초기화
+    if (WarningUI) WarningUI->SetWarningVisibility(false);
+
+    // 5) 내부 상태 리셋
+    WarningCount = 0;
+    bIsPlayingTami = false;
+}
+
+void ARelicsBase::CountWarning()
+{
+    WarningCount++;
+    if (WarningUI) WarningUI->ShowNextWarning();
 }
 
 void ARelicsBase::PlayTami()

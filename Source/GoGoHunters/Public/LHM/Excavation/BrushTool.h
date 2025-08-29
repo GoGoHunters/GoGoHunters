@@ -78,6 +78,13 @@ public:
 	void SetIsBrushing(bool _bIsBrushing);
 	bool bIsBrushing = false;
 
+	void ResetWarningCooldown();
+
+	FTimerHandle WarningCooldownHandle;
+
+	bool bCanTriggerWarning = true;
+	float WarningCooldownDuration = 1.0f;
+
 // 사운드 재생 쿨타임
 private:
 	float LastSoundPlayTime = 0.0f;
