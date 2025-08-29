@@ -20,6 +20,8 @@ void UCPickupActorComponent::BeginPlay()
 			GetComponentsByTag(UPrimitiveComponent::StaticClass(), PickupName);
 		if (tmpArr.Num() > 0)
 			PendingGrabComponent = Cast<UPrimitiveComponent>(tmpArr[0]);
+
+		SetGrabActorScale(OwnerActor->GetActorRelativeScale3D());
 	}
 
 	if (!PendingGrabComponent)
@@ -31,8 +33,6 @@ void UCPickupActorComponent::BeginPlay()
 		OriginProfileName = PendingGrabComponent->GetCollisionProfileName();
 		GrabCollisionResponse = PendingGrabComponent->GetCollisionResponseToChannels();
 	}
-
-	
 }
 
 void UCPickupActorComponent::TickComponent(float DeltaTime, ELevelTick TickType,
@@ -184,6 +184,7 @@ void UCPickupActorComponent::Drop(USceneComponent* DropFrom)
 			PendingGrabComponent->SetSimulatePhysics(true);
 			PendingGrabComponent->SetCollisionProfileName(OriginProfileName);
 			PendingGrabComponent->SetCollisionResponseToChannels(GrabCollisionResponse);
+			OwnerActor->SetActorScale3D(OriginScale3D);
 			ReleaseUsingForRelic();
 		}
 	}

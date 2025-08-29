@@ -18,6 +18,7 @@ public:
 	virtual void Drop(USceneComponent* DropFrom);
 	bool GetGrabActorSimulate() {return PendingGrabComponent->IsSimulatingPhysics();}
 	void SetGrabActorScale(const FVector& Scale3D);
+	void SetTwoHandGrabbing(bool bTwoHandGrabbing) { CanTwoHandGrab = bTwoHandGrabbing; }
 
 protected:
 	UPROPERTY(VisibleAnywhere, Category="PickUp")

@@ -52,6 +52,7 @@ public:
 
 	UFUNCTION(BlueprintCallable)
 	FCRelicData RegisterRelic(const int32& InRelicTag = -1);
+	void RecoverRelic(FCRelicData& InRelicData);
 	UFUNCTION(BlueprintCallable)
 	void RegisterRelicCollector(FCRelicData& InRelicData, FName InCollectorName = NAME_None);
 	void GrabRelic(ACRelicBase* GrabRelic);

@@ -264,6 +264,23 @@ FCRelicData UCMuseumComponent::RegisterRelic(const int32& InRelicTag)
 	return FCRelicData();
 }
 
+void UCMuseumComponent::RecoverRelic(FCRelicData& InRelicData)
+{
+	if (UGI_Base* GI = Cast<UGI_Base>(UGameplayStatics::GetGameInstance(GetWorld())))
+	{
+		InRelicData.PlacedTransform = FTransform();
+		InRelicData.IsPlace = false;
+		InRelicData.PlaceArea = nullptr;
+
+		FRelicSaveData NewSaveData;
+		NewSaveData.RelicData = InRelicData;
+		GI->SaveRelicData(NewSaveData);
+	}
+
+	if (OnRelicPlace.IsBound())
+		OnRelicPlace.Execute();
+}
+
 void UCMuseumComponent::RegisterRelicCollector(FCRelicData& InRelicData, FName InCollectorName)
 {
 	if (InCollectorName == NAME_None) return;
@@ -345,7 +362,7 @@ void UCMuseumComponent::GrabRelicEnd(ACRelicBase* GrabRelic, const FVector& Hand
 		// 3-1. 원래 칸에서 Relic 해제
 		if (FindNearbyPlaceArea(GrabRelic->GetRelicPlaceLocation(), 10.f, FoundArea, FoundScale))
 		{
-			FoundArea->UnRegisterRelic(GrabRelic);
+			FoundArea->UnRegisterRelic();
 		}
 		// 3-2. 새 칸에 등록
 		NearbyAreas[PlaceAreaIndex]->RegisterRelic(GrabRelic);

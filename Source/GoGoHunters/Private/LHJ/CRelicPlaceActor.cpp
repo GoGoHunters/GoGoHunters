@@ -1,6 +1,7 @@
 #include "LHJ/CRelicPlaceActor.h"
 #include "Utilities/CHelpers.h"
 #include "Components/BoxComponent.h"
+#include "Components/WidgetComponent.h"
 #include "JMH/CMuseumComponent.h"
 #include "LHJ/CRelicBase.h"
 #include "LHJ/CRelicDescActor.h"
@@ -18,6 +19,9 @@ ACRelicPlaceActor::ACRelicPlaceActor()
 	PlaceMesh->SetCastShadow(false);
 
 	CHelpers::CreateComponent<UChildActorComponent>(this, &DescWidget, "DescWidget", RootComponent);
+	
+	CHelpers::CreateComponent<UWidgetComponent>(this, &RecoverRelicWidget, "RecoverRelicWidget", RootComponent);
+	RecoverRelicWidget->SetCastShadow(false);
 }
 
 void ACRelicPlaceActor::RerunConstructionScripts()
@@ -42,6 +46,15 @@ void ACRelicPlaceActor::BeginPlay()
 	// 다이나믹 머티리얼 만들어서 색 추가
 	UMaterialInstanceDynamic* DynamicMaterial = UMaterialInstanceDynamic::Create(PlaceMesh->GetMaterial(0), PlaceMesh);
 	PlaceMesh->SetMaterial(0, DynamicMaterial);
+
+	FName FunctionName(TEXT("SetOwnerActor"));
+	UFunction* Function = RecoverRelicWidget->GetWidget()->FindFunction(FunctionName);
+	if (Function)
+	{
+		FCRelicPlaceActorParam Param;
+		Param.RelicPlaceActor = this;
+		RecoverRelicWidget->GetWidget()->ProcessEvent(Function, &Param);
+	}
 }
 
 void ACRelicPlaceActor::Tick(float DeltaTime)
@@ -60,27 +73,34 @@ void ACRelicPlaceActor::UpdateGridMeshComponents() const
 		UMaterialInstanceDynamic* DynamicMaterial = Cast<UMaterialInstanceDynamic>(PlaceMesh->GetMaterial(0));
 		if (DynamicMaterial)
 			DynamicMaterial->SetVectorParameterValue(TEXT("Color"), FLinearColor(Color));
+
+		if (bRegisterRelic)
+			RecoverRelicWidget->SetVisibility(true);
+		else
+			RecoverRelicWidget->SetVisibility(false);
 	}
 	else
 	{
 		PlaceMesh->SetVisibility(false);
+		RecoverRelicWidget->SetVisibility(false);
 	}
 }
 
-void ACRelicPlaceActor::RegisterRelic(const ACRelicBase* InRegisterRelic)
+void ACRelicPlaceActor::RegisterRelic(ACRelicBase* InRegisterRelic)
 {
 	const FVector PlaceRelicLocation = InRegisterRelic->GetActorLocation();
 	FCRelicData PlaceRelicData = InRegisterRelic->GetRelicData();
 	FCRelicDetailData PlaceRelicDetailData = InRegisterRelic->GetRelicDetailData();
 	bRegisterRelic = true;
+	RegisterRelicObj = InRegisterRelic;
 
 	Cast<ACRelicDescActor>(DescWidget->GetChildActor())->UpdateDescriptionWidget(true, PlaceRelicData, PlaceRelicDetailData);
 }
 
-void ACRelicPlaceActor::UnRegisterRelic(const ACRelicBase* InUnRegisterRelic)
+void ACRelicPlaceActor::UnRegisterRelic()
 {
-	if (!InUnRegisterRelic) return;
 	bRegisterRelic = false;
+	RegisterRelicObj = nullptr;
 
 	Cast<ACRelicDescActor>(DescWidget->GetChildActor())->UpdateDescriptionWidget(false);
 }
@@ -97,4 +117,14 @@ void ACRelicPlaceActor::SetPlaceRelicAtLocation(ACRelicBase* Relic)
 	Relic->SetRelicGrabScale();
 
 	Cast<ACRelicDescActor>(DescWidget->GetChildActor())->UpdateDescriptionWidget(true, PlaceRelicData, PlaceRelicDetailData);
+}
+
+void ACRelicPlaceActor::RecoverRelic()
+{
+	if (!RegisterRelicObj) return;
+	
+	FCRelicData data = RegisterRelicObj->GetRelicData();
+	MuseumComp->RecoverRelic(data);
+	RegisterRelicObj->Destroy();
+	UnRegisterRelic();
 }

@@ -850,7 +850,7 @@ AActor* AMH_VRPlayer::GetNearGrabableObject(USceneComponent* GrabController)
 	ActorsToIgnore.Add(this);
 	bool bRtn = UKismetSystemLibrary::SphereTraceMulti(GetWorld(), Center, Center, GrabRadius,
 												  UEngineTypes::ConvertToTraceType(ECC_GameTraceChannel12), false,
-												  ActorsToIgnore, EDrawDebugTrace::ForDuration, OutHits,
+												  ActorsToIgnore, EDrawDebugTrace::None, OutHits,
 												  true);
 	
 	AActor* NearestActor = nullptr;

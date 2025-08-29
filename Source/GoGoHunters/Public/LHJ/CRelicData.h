@@ -64,3 +64,12 @@ struct FCRelicDataParam : public FTableRowBase
 	UPROPERTY(BlueprintReadOnly)
 	bool IsUpdate = false;
 };
+
+USTRUCT(Atomic, BlueprintType)
+struct FCRelicPlaceActorParam : public FTableRowBase
+{
+	GENERATED_BODY()
+
+	UPROPERTY(BlueprintReadOnly)
+	ACRelicPlaceActor* RelicPlaceActor;
+};

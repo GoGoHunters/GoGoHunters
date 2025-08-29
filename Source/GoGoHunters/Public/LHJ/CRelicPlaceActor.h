@@ -4,6 +4,7 @@
 #include "GameFramework/Actor.h"
 #include "CRelicPlaceActor.generated.h"
 
+class UWidgetComponent;
 class ACRelicBase;
 class UCMuseumComponent;
 class UBoxComponent;
@@ -15,11 +16,14 @@ class GOGOHUNTERS_API ACRelicPlaceActor : public AActor
 
 public:
 	bool CanPlaceRelic() { return !bRegisterRelic; }
-	void RegisterRelic(const ACRelicBase* InRegisterRelic);
-	void UnRegisterRelic(const ACRelicBase* InUnRegisterRelic);
+	void RegisterRelic(ACRelicBase* InRegisterRelic);
+	void UnRegisterRelic();
 
 	FVector GetPlaceMeshScale() const { return PlaceRelicScale; }
 	void SetPlaceRelicAtLocation(ACRelicBase* Relic);
+
+	UFUNCTION(BlueprintCallable)
+	void RecoverRelic();
 	
 private:
 	UPROPERTY(EditDefaultsOnly)
@@ -30,6 +34,8 @@ private:
 	UStaticMeshComponent* PlaceMesh;
 	UPROPERTY(EditDefaultsOnly)
 	UChildActorComponent* DescWidget;
+	UPROPERTY(EditDefaultsOnly)
+	UWidgetComponent* RecoverRelicWidget;
 
 	UPROPERTY(VisibleAnywhere, Category = "Param|DetectCollision", meta = (ToolTip = "이 카테고리는 DetectCollision의 Transform 설정을 위한 파라미터들을 모아둡니다."))
 	bool bDetectCollisionCategoryDescriptionHelper;
@@ -63,6 +69,9 @@ private:
 
 	UPROPERTY(VisibleAnywhere, Category="Param|Settings" ,meta=(ToolTip="유물 배치 여부"))
 	bool bRegisterRelic = false;
+
+	UPROPERTY()
+	TObjectPtr<ACRelicBase> RegisterRelicObj;
 	
 	UPROPERTY()
 	TObjectPtr<UCMuseumComponent> MuseumComp;		
