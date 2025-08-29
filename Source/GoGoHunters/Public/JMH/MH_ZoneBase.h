@@ -75,6 +75,9 @@ private:
 	
 
 public:
+	//위젯 비지블 안보이게
+	UFUNCTION()
+	void HandleMessageUIClose();
 	// 존 실행용 내부 함수들
 	UFUNCTION()
 	void HandleMapInteraction();

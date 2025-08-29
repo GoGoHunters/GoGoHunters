@@ -13,8 +13,7 @@
 void UMH_MessageUI::NativeConstruct()
 {
 	Super::NativeConstruct();
-
-
+	
 	if (Btn_Yes)Btn_Yes->OnClicked.AddDynamic(this, &UMH_MessageUI::OnYesClicked);
 	if (Btn_No)Btn_No->OnClicked.AddDynamic(this, &UMH_MessageUI::OnNoClicked);
 }
@@ -31,7 +30,13 @@ void UMH_MessageUI::OnYesClicked()
 {
 	if (TargetLevel != "Exit")
 	{
-		if (UGI_Base* GameInstance = Cast<UGI_Base>(GetGameInstance()))
+		if (TargetLevel == "Record")
+		{
+			//학주 //도감 위젯 띄우기
+			GEngine->AddOnScreenDebugMessage(-1,5.f,FColor::Green,TEXT("Record"));
+			OnNoClicked();
+		}
+		else if (UGI_Base* GameInstance = Cast<UGI_Base>(GetGameInstance()))
 		{
 			GameInstance->TransitionToLevel(TargetLevel);
 		}
@@ -83,7 +88,7 @@ void UMH_MessageUI::AlignButtons()
 		if (UGridSlot* GridSlot = Cast<UGridSlot>(Btn_Yes->Slot))
 		{
 			GridSlot->SetColumn(0); // 첫 번째 컬럼으로 이동
-			GridSlot->SetColumnSpan(2); // 두 컬럼에 걸쳐 중앙 정렬
+			GridSlot->SetColumnSpan(1); // 두 컬럼에 걸쳐 중앙 정렬
 			GridSlot->SetHorizontalAlignment(HAlign_Center);
 		}
 	}
@@ -93,7 +98,7 @@ void UMH_MessageUI::AlignButtons()
 		if (UGridSlot* GridSlot = Cast<UGridSlot>(Btn_No->Slot))
 		{
 			GridSlot->SetColumn(0);
-			GridSlot->SetColumnSpan(2);
+			GridSlot->SetColumnSpan(1);
 			GridSlot->SetHorizontalAlignment(HAlign_Center);
 		}
 	}
@@ -103,13 +108,13 @@ void UMH_MessageUI::AlignButtons()
 		if (UGridSlot* OkGridSlot = Cast<UGridSlot>(Btn_Yes->Slot))
 		{
 			OkGridSlot->SetColumn(0);
-			OkGridSlot->SetColumnSpan(1);
+			OkGridSlot->SetColumnSpan(0);
 			OkGridSlot->SetHorizontalAlignment(HAlign_Fill);
 		}
 		if (UGridSlot* CloseGridSlot = Cast<UGridSlot>(Btn_No->Slot))
 		{
-			CloseGridSlot->SetColumn(1);
-			CloseGridSlot->SetColumnSpan(1);
+			CloseGridSlot->SetColumn(2);
+			CloseGridSlot->SetColumnSpan(0);
 			CloseGridSlot->SetHorizontalAlignment(HAlign_Fill);
 		}
 	}

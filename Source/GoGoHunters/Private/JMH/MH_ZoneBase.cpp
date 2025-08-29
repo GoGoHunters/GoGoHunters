@@ -46,7 +46,8 @@ void AMH_ZoneBase::BeginPlay()
 
 		if (MessageUI)
 		{
-			MessageWidgetComponent->SetVisibility(false);
+			MessageUI->OnCloseClicked.AddDynamic(this, &AMH_ZoneBase::HandleMessageUIClose);
+			HandleMessageUIClose();
 			MessageUI->SetOuterActor(this);
 			MessageUI->SetMessage(FText::FromString(GuideMessage));
 			MessageUI->TargetLevel = TargetLevelName;
@@ -72,9 +73,9 @@ void AMH_ZoneBase::OnPlayerInteracted_Implementation(AActor* Player)
 		{"Restore", [](AMH_ZoneBase* Z) { Z->HandleRestoreInteraction(); }},
 		{"Museum", [](AMH_ZoneBase* Z) { Z->HandleMyMuseumInteraction(); }},
 		{"Lobby", [](AMH_ZoneBase* Z) { Z->HandleLobbyInteraction(); }},
-		{"Exit", [](AMH_ZoneBase* Z) { Z->HandleExitInteraction(); }}
-		//{"Record", [](AMH_ZoneBase* Z, AActor* P) { Z->HandleRecordInteraction(P); }},
-		//{"Settings", [](AMH_ZoneBase* Z, AActor* P) { Z->HandleSettingsInteraction(P); }},
+		{"Exit", [](AMH_ZoneBase* Z) { Z->HandleExitInteraction(); }},
+		{"Record", [](AMH_ZoneBase* Z) { Z->HandleRecordInteraction(); }}
+		//{"Settings", [](AMH_ZoneBase* Z) { Z->HandleSettingsInteraction(); }},
 	};
 
 	if (const TFunction<void(AMH_ZoneBase*)>* Func = ZoneFunctionMap.Find(ZoneTag))
@@ -113,8 +114,13 @@ void AMH_ZoneBase::OnZoneOverlapEnd(UPrimitiveComponent* OverlappedComponent, AA
 	if (OtherActor->IsA(AMH_VRPlayer::StaticClass()))
 	{
 		VRPlayer = nullptr;
-		MessageWidgetComponent->SetVisibility(false);
+		HandleMessageUIClose();
 	}
+}
+
+void AMH_ZoneBase::HandleMessageUIClose()
+{
+	MessageWidgetComponent->SetVisibility(false);
 }
 
 void AMH_ZoneBase::HandleMapInteraction()
@@ -126,21 +132,24 @@ void AMH_ZoneBase::HandleRestoreInteraction()
 {
 	//GEngine->AddOnScreenDebugMessage(-1, 2.f, FColor::Green, TEXT("[Restore] 유물 복원 UI 실행"));
 	// TODO: 복원 미니게임 실행
+	MessageUI->ShowButtons(true,false);
 	ShowZoneMessageUI(GuideMessage);
 	MessageWidgetComponent->SetVisibility(true);
 }
 
 void AMH_ZoneBase::HandleMyMuseumInteraction()
 {
-	//GEngine->AddOnScreenDebugMessage(-1, 2.f, FColor::Magenta, TEXT("[Museum] 유물 전시 UI 열림"));\
-	// TODO: 전시 기능 위젯 실행
+	MessageUI->ShowButtons(true,false);
+	//GEngine->AddOnScreenDebugMessage(-1, 2.f, FColor::Magenta, TEXT("[Museum] 유물 전시 UI 열림"));
 	ShowZoneMessageUI(GuideMessage);
 	MessageWidgetComponent->SetVisibility(true);
 }
 
 void AMH_ZoneBase::HandleRecordInteraction()
 {
-	
+	MessageUI->ShowButtons(true,true);
+	ShowZoneMessageUI(GuideMessage);
+	MessageWidgetComponent->SetVisibility(true);
 }
 
 void AMH_ZoneBase::HandleSettingsInteraction()
@@ -150,6 +159,7 @@ void AMH_ZoneBase::HandleSettingsInteraction()
 
 void AMH_ZoneBase::HandleExitInteraction()
 {
+	MessageUI->ShowButtons(true,false);
 	//GEngine->AddOnScreenDebugMessage(-1, 2.f, FColor::White, TEXT("[Exit] Exit 메뉴 실행"));
 	// TODO: Exit UI 열기
 	ShowZoneMessageUI(GuideMessage);
@@ -158,6 +168,7 @@ void AMH_ZoneBase::HandleExitInteraction()
 
 void AMH_ZoneBase::HandleLobbyInteraction()
 {
+	MessageUI->ShowButtons(true,false);
 	ShowZoneMessageUI(GuideMessage);
 	MessageWidgetComponent->SetVisibility(true);
 }
