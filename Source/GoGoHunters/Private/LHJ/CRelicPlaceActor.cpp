@@ -1,6 +1,7 @@
 #include "LHJ/CRelicPlaceActor.h"
 #include "Utilities/CHelpers.h"
 #include "Components/BoxComponent.h"
+#include "Components/WidgetComponent.h"
 #include "JMH/CMuseumComponent.h"
 #include "LHJ/CRelicBase.h"
 #include "LHJ/CRelicDescActor.h"
@@ -18,6 +19,9 @@ ACRelicPlaceActor::ACRelicPlaceActor()
 	PlaceMesh->SetCastShadow(false);
 
 	CHelpers::CreateComponent<UChildActorComponent>(this, &DescWidget, "DescWidget", RootComponent);
+	
+	CHelpers::CreateComponent<UWidgetComponent>(this, &RecoverRelicWidget, "RecoverRelicWidget", RootComponent);
+	RecoverRelicWidget->SetCastShadow(false);
 }
 
 void ACRelicPlaceActor::RerunConstructionScripts()
@@ -60,10 +64,14 @@ void ACRelicPlaceActor::UpdateGridMeshComponents() const
 		UMaterialInstanceDynamic* DynamicMaterial = Cast<UMaterialInstanceDynamic>(PlaceMesh->GetMaterial(0));
 		if (DynamicMaterial)
 			DynamicMaterial->SetVectorParameterValue(TEXT("Color"), FLinearColor(Color));
+
+		if (bRegisterRelic)
+			RecoverRelicWidget->SetVisibility(true);
 	}
 	else
 	{
 		PlaceMesh->SetVisibility(false);
+		RecoverRelicWidget->SetVisibility(false);
 	}
 }
 

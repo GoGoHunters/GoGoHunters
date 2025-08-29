@@ -4,6 +4,7 @@
 #include "GameFramework/Actor.h"
 #include "CRelicPlaceActor.generated.h"
 
+class UWidgetComponent;
 class ACRelicBase;
 class UCMuseumComponent;
 class UBoxComponent;
@@ -30,6 +31,8 @@ private:
 	UStaticMeshComponent* PlaceMesh;
 	UPROPERTY(EditDefaultsOnly)
 	UChildActorComponent* DescWidget;
+	UPROPERTY(EditDefaultsOnly)
+	UWidgetComponent* RecoverRelicWidget;
 
 	UPROPERTY(VisibleAnywhere, Category = "Param|DetectCollision", meta = (ToolTip = "이 카테고리는 DetectCollision의 Transform 설정을 위한 파라미터들을 모아둡니다."))
 	bool bDetectCollisionCategoryDescriptionHelper;
