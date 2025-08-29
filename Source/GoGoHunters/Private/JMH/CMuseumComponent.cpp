@@ -152,7 +152,7 @@ void UCMuseumComponent::SwitchState()
 	case EMuseumState::Decorate:
 		OwnerPlayer->RWidgetInteractionComponent->SetActive(true);
 		OwnerPlayer->RWidgetInteractionComponent->bEnableHitTesting = true;
-		GrabComponent->TryUnGrab();
+		OwnerPlayer->DropForMuseumStateChange();
 		break;
 	}
 }
@@ -219,6 +219,7 @@ void UCMuseumComponent::PlaceRelic()
 		PlaceArea->RegisterRelic(placeActor);
 		placeActor->SetRelicMaterial();
 		placeActor->Tags.Add("Grabable");
+		placeActor->SetRelicGrabScale();
 		
 		// SaveGame 저장
 		if (UGI_Base* GI = Cast<UGI_Base>(UGameplayStatics::GetGameInstance(GetWorld())))
@@ -237,14 +238,14 @@ void UCMuseumComponent::PlaceRelic()
 		OnUiAnimPlay.Execute(false);
 }
 
-void UCMuseumComponent::RegisterRelic(const int32& InRelicTag)
+FCRelicData UCMuseumComponent::RegisterRelic(const int32& InRelicTag)
 {
-	if (InRelicTag == -1) return;
+	if (InRelicTag == -1) return FCRelicData();
 	if (UGI_Base* GI = Cast<UGI_Base>(UGameplayStatics::GetGameInstance(GetWorld())))
 	{
 		const FCRelicDetailData* l_RelicDetailData = GI->GetRelicDetailDataByTag(InRelicTag);
 
-		if (!l_RelicDetailData) return;
+		if (!l_RelicDetailData) return FCRelicData();
 		
 		FCRelicData NewRelicData;
 		NewRelicData.RelicName = l_RelicDetailData->RelicName;
@@ -257,6 +258,23 @@ void UCMuseumComponent::RegisterRelic(const int32& InRelicTag)
 		FRelicSaveData NewSaveData;
 		NewSaveData.RelicData = NewRelicData;
 		GI->SaveRelicData(NewSaveData);
+
+		return NewRelicData;
+	}
+	return FCRelicData();
+}
+
+void UCMuseumComponent::RegisterRelicCollector(FCRelicData& InRelicData, FName InCollectorName)
+{
+	if (InCollectorName == NAME_None) return;
+
+	if (UGI_Base* GI = Cast<UGI_Base>(UGameplayStatics::GetGameInstance(GetWorld())))
+	{
+		InRelicData.CollectorName = InCollectorName;
+		
+		FRelicSaveData NewSaveData;
+		NewSaveData.RelicData = InRelicData;
+		GI->SaveRelicData(NewSaveData);		
 	}
 }
 
@@ -332,6 +350,7 @@ void UCMuseumComponent::GrabRelicEnd(ACRelicBase* GrabRelic, const FVector& Hand
 		// 3-2. 새 칸에 등록
 		NearbyAreas[PlaceAreaIndex]->RegisterRelic(GrabRelic);
 		NearbyAreas[PlaceAreaIndex]->SetPlaceRelicAtLocation(GrabRelic);
+		
 		// 배치 위치 업데이트
 		FCRelicData PlacedRelicData = GrabRelic->UpdateRelicLocation(NearbyAreas[PlaceAreaIndex]->GetActorLocation());
 		if (UGI_Base* GI = Cast<UGI_Base>(UGameplayStatics::GetGameInstance(GetWorld())))
@@ -482,6 +501,7 @@ void UCMuseumComponent::LoadPlacedRelic()
 						RelicActor->InitializeAsset(Data, *Local_RelicDetailData);
 						RelicActor->Tags.Add("Grabable");
 						FoundArea->RegisterRelic(RelicActor);
+						RelicActor->SetRelicGrabScale();
 
 						// RelicActor->SimulatePhysics(true);
 						// FTimerHandle hnd;

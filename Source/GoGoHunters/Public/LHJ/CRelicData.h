@@ -22,6 +22,8 @@ struct FCRelicData : public FTableRowBase
 	UPROPERTY(EditAnywhere)
 	TObjectPtr<ACRelicPlaceActor> PlaceArea;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	FName CollectorName = NAME_None;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	FDateTime DropDate; // 획득 날짜,시간
 	UPROPERTY(EditAnywhere)
 	FTransform PlacedTransform; // 배치 위치

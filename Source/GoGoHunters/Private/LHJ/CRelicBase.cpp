@@ -1,12 +1,17 @@
 #include "LHJ/CRelicBase.h"
 
+#include "LHJ/Pickup/CRelicPickupActorComponent.h"
 #include "Utilities/CHelpers.h"
 
 ACRelicBase::ACRelicBase()
 {
 	PrimaryActorTick.bCanEverTick = true;
 	CHelpers::CreateComponent<UStaticMeshComponent>(this, &RelicMesh, "RelicMesh");
+	RelicMesh->ComponentTags.Add("Pickup");
 	RelicMesh->SetCollisionProfileName(FName("WorldDynamic"));
+	RelicMesh->SetCollisionResponseToChannel(ECC_GameTraceChannel12, ECR_Block);
+
+	CHelpers::CreateActorComponent<UCRelicPickupActorComponent>(this, &PickupActorComponent, "PickupActorComponent");
 }
 
 void ACRelicBase::BeginPlay()
@@ -42,4 +47,9 @@ void ACRelicBase::ReturnToOriginalLocation()
 {
 	SetActorLocationAndRotation(RelicData.PlacedTransform.GetLocation(), RelicData.PlacedTransform.GetRotation());
 	SetActorScale3D(RelicData.PlacedTransform.GetScale3D());
+}
+
+void ACRelicBase::SetRelicGrabScale()
+{
+	PickupActorComponent->SetGrabActorScale(GetActorScale3D());
 }
