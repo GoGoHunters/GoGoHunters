@@ -12,6 +12,7 @@ ACRelicBase::ACRelicBase()
 	RelicMesh->SetCollisionResponseToChannel(ECC_GameTraceChannel12, ECR_Block);
 
 	CHelpers::CreateActorComponent<UCRelicPickupActorComponent>(this, &PickupActorComponent, "PickupActorComponent");
+	PickupActorComponent->SetTwoHandGrabbing(true);
 }
 
 void ACRelicBase::BeginPlay()

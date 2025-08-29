@@ -16,11 +16,14 @@ class GOGOHUNTERS_API ACRelicPlaceActor : public AActor
 
 public:
 	bool CanPlaceRelic() { return !bRegisterRelic; }
-	void RegisterRelic(const ACRelicBase* InRegisterRelic);
-	void UnRegisterRelic(const ACRelicBase* InUnRegisterRelic);
+	void RegisterRelic(ACRelicBase* InRegisterRelic);
+	void UnRegisterRelic();
 
 	FVector GetPlaceMeshScale() const { return PlaceRelicScale; }
 	void SetPlaceRelicAtLocation(ACRelicBase* Relic);
+
+	UFUNCTION(BlueprintCallable)
+	void RecoverRelic();
 	
 private:
 	UPROPERTY(EditDefaultsOnly)
@@ -66,6 +69,9 @@ private:
 
 	UPROPERTY(VisibleAnywhere, Category="Param|Settings" ,meta=(ToolTip="유물 배치 여부"))
 	bool bRegisterRelic = false;
+
+	UPROPERTY()
+	TObjectPtr<ACRelicBase> RegisterRelicObj;
 	
 	UPROPERTY()
 	TObjectPtr<UCMuseumComponent> MuseumComp;		

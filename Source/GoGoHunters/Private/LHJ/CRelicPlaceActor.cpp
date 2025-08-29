@@ -46,6 +46,15 @@ void ACRelicPlaceActor::BeginPlay()
 	// 다이나믹 머티리얼 만들어서 색 추가
 	UMaterialInstanceDynamic* DynamicMaterial = UMaterialInstanceDynamic::Create(PlaceMesh->GetMaterial(0), PlaceMesh);
 	PlaceMesh->SetMaterial(0, DynamicMaterial);
+
+	FName FunctionName(TEXT("SetOwnerActor"));
+	UFunction* Function = RecoverRelicWidget->GetWidget()->FindFunction(FunctionName);
+	if (Function)
+	{
+		FCRelicPlaceActorParam Param;
+		Param.RelicPlaceActor = this;
+		RecoverRelicWidget->GetWidget()->ProcessEvent(Function, &Param);
+	}
 }
 
 void ACRelicPlaceActor::Tick(float DeltaTime)
@@ -67,6 +76,8 @@ void ACRelicPlaceActor::UpdateGridMeshComponents() const
 
 		if (bRegisterRelic)
 			RecoverRelicWidget->SetVisibility(true);
+		else
+			RecoverRelicWidget->SetVisibility(false);
 	}
 	else
 	{
@@ -75,20 +86,21 @@ void ACRelicPlaceActor::UpdateGridMeshComponents() const
 	}
 }
 
-void ACRelicPlaceActor::RegisterRelic(const ACRelicBase* InRegisterRelic)
+void ACRelicPlaceActor::RegisterRelic(ACRelicBase* InRegisterRelic)
 {
 	const FVector PlaceRelicLocation = InRegisterRelic->GetActorLocation();
 	FCRelicData PlaceRelicData = InRegisterRelic->GetRelicData();
 	FCRelicDetailData PlaceRelicDetailData = InRegisterRelic->GetRelicDetailData();
 	bRegisterRelic = true;
+	RegisterRelicObj = InRegisterRelic;
 
 	Cast<ACRelicDescActor>(DescWidget->GetChildActor())->UpdateDescriptionWidget(true, PlaceRelicData, PlaceRelicDetailData);
 }
 
-void ACRelicPlaceActor::UnRegisterRelic(const ACRelicBase* InUnRegisterRelic)
+void ACRelicPlaceActor::UnRegisterRelic()
 {
-	if (!InUnRegisterRelic) return;
 	bRegisterRelic = false;
+	RegisterRelicObj = nullptr;
 
 	Cast<ACRelicDescActor>(DescWidget->GetChildActor())->UpdateDescriptionWidget(false);
 }
@@ -105,4 +117,14 @@ void ACRelicPlaceActor::SetPlaceRelicAtLocation(ACRelicBase* Relic)
 	Relic->SetRelicGrabScale();
 
 	Cast<ACRelicDescActor>(DescWidget->GetChildActor())->UpdateDescriptionWidget(true, PlaceRelicData, PlaceRelicDetailData);
+}
+
+void ACRelicPlaceActor::RecoverRelic()
+{
+	if (!RegisterRelicObj) return;
+	
+	FCRelicData data = RegisterRelicObj->GetRelicData();
+	MuseumComp->RecoverRelic(data);
+	RegisterRelicObj->Destroy();
+	UnRegisterRelic();
 }
