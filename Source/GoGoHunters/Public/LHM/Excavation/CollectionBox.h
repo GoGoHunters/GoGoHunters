@@ -41,6 +41,9 @@ public:
 	UFUNCTION()
 	void SetRelicsManager(class ARelicsManager* NewRelicsManager) { RelicsManager = NewRelicsManager; }
 
+	UFUNCTION()
+	void SetInitialRelicTransforms(class ARelicsBase* Relic);
+
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	class ARelicsBase* TargetRelic = nullptr;
 	
@@ -50,8 +53,14 @@ public:
 	UPROPERTY()
 	TSet<UStaticMeshComponent*> CollectedMeshes;
 
+	UPROPERTY()
+	TMap<UStaticMeshComponent*, FTransform> InitialRelicTransforms;
+
 	UFUNCTION()
 	void CheckAllCollected();
+
+	UFUNCTION()
+	void ResetCollectedRelics();
 
 	UFUNCTION()
 	void PlayBoxCloseAnimation();

@@ -104,9 +104,19 @@ void ABrushTool::CheckBrushSwipe(float DeltaTime)
 
 		Relic->ReduceDustOpacity(BoxMesh->GetComponentLocation(), FadeSpeed * DeltaTime, *this);
 	}
-	else if (SwipeSpeed >= BrushSwipeThresholdMax)
+	else if (bCanTriggerWarning && SwipeSpeed >= BrushSwipeThresholdMax)
 	{
 		Relic->CountWarning();
+
+		// 쿨타임 시작
+		bCanTriggerWarning = false;
+		GetWorld()->GetTimerManager().SetTimer(
+			WarningCooldownHandle,
+			this,
+			&ABrushTool::ResetWarningCooldown,
+			WarningCooldownDuration,
+			false
+		);
 	}
 }
 
@@ -180,5 +190,10 @@ void ABrushTool::SetIsBrushing(bool _bIsBrushing)
 	bIsBrushing = _bIsBrushing;
 
 	if (!bIsBrushing) StopFeedback();
+}
+
+void ABrushTool::ResetWarningCooldown()
+{
+	bCanTriggerWarning = true;
 }
 

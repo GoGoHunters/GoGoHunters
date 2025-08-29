@@ -52,17 +52,8 @@ void UWarningUI::ShowNextWarning()
 			{
 				World->GetTimerManager().SetTimer(Handle, [this]()
 				{
-					if (ExcavationManager) ExcavationManager->ResetCurrentRelicDusting();
-
-					// UI 리셋
-					for (UImage* Icon : WarningIcons)
-					{
-						if (Icon) Icon->SetVisibility(ESlateVisibility::Hidden);
-					}
-
-					CurrentWarningCount = 0;
-					if (Overlay_Warning) Overlay_Warning->SetVisibility(ESlateVisibility::Visible);
-					if (Overlay_Failure) Overlay_Failure->SetVisibility(ESlateVisibility::Hidden);
+					if (ExcavationManager) ExcavationManager->HandleWarningReset();
+					ResetWarnings();
 
 				}, 3.0f, false);
 			}
@@ -82,6 +73,23 @@ void UWarningUI::SetWarningVisibility(bool bVisible)
 	{
 		OwningWidgetActor->GetWidgetComponent()->SetHiddenInGame(!bVisible);
 	}
+}
+
+void UWarningUI::ResetWarnings()
+{
+	// 아이콘 숨기기
+	for (UImage* Icon : WarningIcons)
+	{
+		if (Icon) Icon->SetVisibility(ESlateVisibility::Hidden);
+	}
+
+	// 실패 오버레이 숨기기, 일반 경고 복구
+	if (Overlay_Failure) Overlay_Failure->SetVisibility(ESlateVisibility::Hidden);
+	if (Overlay_Warning) Overlay_Warning->SetVisibility(ESlateVisibility::Visible);
+
+	SetWarningVisibility(false);
+
+	CurrentWarningCount = 0;
 }
 
 void UWarningUI::FindAndConnectExcavationManager()

@@ -46,6 +46,8 @@ public:
 
 	void SetWarningVisibility(bool bVisible);
 
+	void ResetWarnings();
+
 private:
 	UPROPERTY()
 	class AExcavationWarningWidgetActor* OwningWidgetActor;

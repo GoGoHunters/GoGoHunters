@@ -214,6 +214,7 @@ void ARelicsManager::SpawnCollectionBox()
 	{
 		CollectionBox->SetTargetRelic(Relics);
 		CollectionBox->SetRelicsManager(this);
+		CollectionBox->SetInitialRelicTransforms(Relics);
 		UE_LOG(LogTemp, Log, TEXT("[RelicsManager] CollectionBox 스폰 완료"));
 	}
 }

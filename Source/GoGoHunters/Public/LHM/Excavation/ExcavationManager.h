@@ -101,10 +101,14 @@ public:
 	void SetBrushingUI(class UBrushingUI* InBrushingUI) { BrushingUI = InBrushingUI; }
 
 	void SetWarningUI(class UWarningUI* InWarningUI) { WarningUI = InWarningUI; }
-	void ResetCurrentRelicDusting(); // 경고 3회 → 3초 뒤 호출
+	
+	void HandleWarningReset(); // 경고 3회 → 3초 뒤 호출
 
     UPROPERTY(BlueprintReadOnly)
     class UExcavationPhaseUI* PhaseUI;
+	
+    UPROPERTY()
+    class UWarningUI* WarningUI;
 
 protected:
     UPROPERTY()
@@ -112,9 +116,6 @@ protected:
 	
     UPROPERTY()
     class UBrushingUI* BrushingUI;
-	
-    UPROPERTY()
-    class UWarningUI* WarningUI;
 
 // 타미 대사
 private:

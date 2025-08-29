@@ -14,6 +14,7 @@
 #include "LHM/UI/ExcavationPhaseUI.h"
 #include "LHM/Excavation/CollectionBox.h"
 #include "LHJ/Tutorial/CTutorialManager.h"
+#include "LHM/UI/WarningUI.h"
 
 // Sets default values
 AExcavationManager::AExcavationManager()
@@ -86,7 +87,7 @@ void AExcavationManager::NotifyDetectionCompleted(class ARelicsManager* FromMana
 void AExcavationManager::NotifyExcavationCompleted(class ARelicsManager* FromManager)
 {
 	if (!IsValid(FromManager)) return;
-	if(!DiggingUI || !BrushingUI) return;
+	if (!DiggingUI || !BrushingUI) return;
 
 	// 타미 음성
 	PlayTami(TEXT("PlayExcavationPhase4_DiscoveryRelic"));
@@ -102,8 +103,13 @@ void AExcavationManager::NotifyExcavationCompleted(class ARelicsManager* FromMan
 void AExcavationManager::NotifyDustingCompleted(class ARelicsManager* FromManager)
 {
 	if (!IsValid(FromManager)) return;
+	if (!WarningUI) return;
 
-	FromManager->SpawnCollectionBox(); // 수거박스 생성 요청
+	// 경고 UI 리셋
+	WarningUI->ResetWarnings();
+
+	// 수거박스 생성 요청
+	FromManager->SpawnCollectionBox();
 
 	// 타미 음성
 	PlayTami(TEXT("PlayExcavationPhase5_StartCollection"));
@@ -117,7 +123,7 @@ void AExcavationManager::NotifyCollectionCompleted(class ARelicsManager* FromMan
 {
 	if (!IsValid(FromManager)) return;
 	if (!IsValid(FromCollectionBox)) return;
-	if (!PhaseUI) return;
+	if (!PhaseUI || !WarningUI) return;
 
 	CurrentActiveManager = FromManager;
 	CollectionBox = FromCollectionBox;
@@ -127,6 +133,9 @@ void AExcavationManager::NotifyCollectionCompleted(class ARelicsManager* FromMan
 	// Phase UI 가시화 (수거함 완료 트리거)
 	// Phase UI에서 완료버튼 클릭하면 수거함 닫기
 	PhaseUI->SetVisibilityCloseLid(true);
+
+	// 경고 UI 리셋
+	WarningUI->ResetWarnings();
 }
 
 void AExcavationManager::SetCurrentPhase(EExcavationPhase NewPhase)
@@ -310,11 +319,27 @@ void AExcavationManager::UpdateDiggingProgress()
 	}
 }
 
-void AExcavationManager::ResetCurrentRelicDusting()
+void AExcavationManager::HandleWarningReset()
 {
-	if(!CurrentActiveManager->GetRelics()) return;
+	switch (CurrentPhase)
+	{
+	case EExcavationPhase::Brushing:
+		if(CurrentActiveManager->GetRelics())
+		{
+			CurrentActiveManager->GetRelics()->ResetDecalsAndProgress();
+		}
+		break;
 
-	CurrentActiveManager->GetRelics()->ResetDecalsAndProgress();
+	case EExcavationPhase::Collection:
+		if (CurrentActiveManager->GetCollectionBox())
+		{
+			CurrentActiveManager->GetCollectionBox()->ResetCollectedRelics();
+		}
+		break;
+
+	default:
+		break;
+	}
 }
 
 void AExcavationManager::PlayTami(const FName& FunctionName)
