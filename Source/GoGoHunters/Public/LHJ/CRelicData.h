@@ -47,9 +47,9 @@ struct FCRelicDetailData : public FTableRowBase
 	UPROPERTY(EditAnywhere)
 	UTexture2D* RelicImage; // 유물 이미지
 	UPROPERTY(EditAnywhere)
-	TSubclassOf<ACRelicBase> RelicActorClass; // 유물 액터 클래스
+	UTexture2D* RelicBlindImage; // 미획득 유물 이미지
 	UPROPERTY(EditAnywhere)
-	bool IsDrop = false; // 획득 유무	
+	TSubclassOf<ACRelicBase> RelicActorClass; // 유물 액터 클래스	
 };
 
 USTRUCT(Atomic, BlueprintType)
@@ -72,4 +72,25 @@ struct FCRelicPlaceActorParam : public FTableRowBase
 
 	UPROPERTY(BlueprintReadOnly)
 	ACRelicPlaceActor* RelicPlaceActor;
+};
+
+USTRUCT(Atomic, BlueprintType)
+struct FCRelicCollectingBook : public FTableRowBase
+{
+	GENERATED_BODY()
+
+	/**
+	 * DropDate 획득 날짜 기록
+	 *
+	 * GameInstance에서 데이터 테이블 읽을 때
+	 * 만약 도감 SaveData가 없다면 새로 만들고
+	 * 있다면 기존 데이터랑 비교하여
+	 * RelicTag가 있다면 데이터 업데이트를 하고, 없다면 추가한다.
+	 */
+	UPROPERTY(BlueprintReadOnly)
+	FCRelicDetailData RelicDetailData;
+	UPROPERTY(BlueprintReadOnly)
+	FDateTime DropDate; // 획득 날짜,시간
+	UPROPERTY()
+	bool IsDrop = false; // 획득 유무	
 };
