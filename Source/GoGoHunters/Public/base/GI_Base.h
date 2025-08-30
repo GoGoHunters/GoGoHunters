@@ -50,6 +50,8 @@ public:
 	UFUNCTION(BlueprintCallable)
 	void SaveRelicCollectingData(FCRelicCollectingBook NewData);
 
+	TMap<int32, FCRelicCollectingBook> GetRelicCollectingData() const { return RelicCollectingBookMap; }
+
 private:
 	UPROPERTY() 
 	UU_WebSocketManager* WebSocketManager;

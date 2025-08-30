@@ -43,6 +43,8 @@ struct FCRelicDetailData : public FTableRowBase
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	FText RelicDesc; // 유물 설명
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	FText RelicToolTipDesc; // 유물 설명
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	FText ContinentName; // 대륙 이름
 	UPROPERTY(EditAnywhere)
 	UTexture2D* RelicImage; // 유물 이미지
@@ -92,5 +94,7 @@ struct FCRelicCollectingBook : public FTableRowBase
 	UPROPERTY(BlueprintReadOnly)
 	FDateTime DropDate; // 획득 날짜,시간
 	UPROPERTY()
-	bool IsDrop = false; // 획득 유무	
+	bool IsDrop = false; // 획득 유무
+	UPROPERTY()
+	bool IsRecover = false; // 복구 유무
 };

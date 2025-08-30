@@ -3,11 +3,13 @@
 
 #include "JMH/MH_MessageUI.h"
 
+#include "EngineUtils.h"
 #include "base/GI_Base.h"
 #include "Components/Button.h"
 #include "Components/GridSlot.h"
 #include "Components/TextBlock.h"
 #include "Kismet/KismetSystemLibrary.h"
+#include "LHJ/CCollectingBook.h"
 
 
 void UMH_MessageUI::NativeConstruct()
@@ -32,7 +34,27 @@ void UMH_MessageUI::OnYesClicked()
 	{
 		if (TargetLevel == "Record")
 		{
-			//학주 //도감 위젯 띄우기
+			// 도감 위젯 띄우기
+			if (!CollectingBook)
+			{
+				for (TActorIterator<AActor> It(GetWorld(), AActor::StaticClass()); It; ++It)
+				{
+					AActor* Actor = *It;
+					if (Actor->ActorHasTag("CollectingBook"))
+					{
+						CollectingBook = Cast<ACCollectingBook>(Actor);
+					}
+				}
+			}
+
+			if (!CollectingBook)
+			{
+				OnNoClicked();
+				return;
+			}
+
+			CollectingBook->ActiveAnim(true);
+
 			GEngine->AddOnScreenDebugMessage(-1,5.f,FColor::Green,TEXT("Record"));
 			OnNoClicked();
 		}

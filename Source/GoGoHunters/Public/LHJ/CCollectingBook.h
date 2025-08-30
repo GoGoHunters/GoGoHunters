@@ -4,6 +4,7 @@
 #include "GameFramework/Actor.h"
 #include "CCollectingBook.generated.h"
 
+class UCCollectingBookWidget;
 class UWidgetComponent;
 
 UCLASS()
@@ -18,10 +19,18 @@ public:
 private:
 	UPROPERTY(EditDefaultsOnly)
 	USceneComponent* RootScene;
-	UPROPERTY(EditDefaultsOnly)
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
 	UWidgetComponent* CollectingBookWidget;
+	
+	UPROPERTY(BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
+	TObjectPtr<UCCollectingBookWidget> CollectingBook;
+	UPROPERTY(BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
+	bool bStartPlayerDistCheck = false;
+	UPROPERTY(EditDefaultsOnly, Category="Param|Dist")
+	float Dist = 200.f;
 	
 	ACCollectingBook();
 	virtual void BeginPlay() override;	
 	virtual void Tick(float DeltaTime) override;
+
 };
