@@ -11,6 +11,7 @@ void UGI_Base::Init()
     Super::Init();
     InitRelicDataFromSave();
 	InitRelicDetailData();
+	InitRelicCollectingDataFromSave();
 }
 
 void UGI_Base::InitRelicDataFromSave()
@@ -44,6 +45,46 @@ void UGI_Base::InitRelicDetailData()
 			RelicDetailDataMap.Add(Row->RelicTag, *Row);
 		}
 	}
+}
+
+void UGI_Base::InitRelicCollectingDataFromSave()
+{
+	RelicCollectingBookMap.Empty();
+
+	if (UGameplayStatics::DoesSaveGameExist(TEXT("RelicCollectingSaveSlot"), 0))
+	{
+		URelicCollectingBookSaveGame* LoadedGame = Cast<URelicCollectingBookSaveGame>(UGameplayStatics::LoadGameFromSlot(TEXT("RelicCollectingSaveSlot"), 0));
+		for (const FCRelicCollectingBook& RelicCollectingBook : LoadedGame->RelicCollectingBooks)
+		{
+			RelicCollectingBookMap.Add(RelicCollectingBook.RelicDetailData.RelicTag, RelicCollectingBook);
+		}
+	}
+
+	UpdateRelicCollectingData();
+}
+
+void UGI_Base::UpdateRelicCollectingData()
+{
+	for (TPair<int32, FCRelicDetailData>& RelicDetailData : RelicDetailDataMap)
+	{
+		if (auto CollectingBook = GetRelicCollectingDataByTag(RelicDetailData.Key))
+		{
+			// 정보 업데이트
+			RelicDetailData.Value = CollectingBook->RelicDetailData;
+		}
+		else
+		{
+			// 데이터 추가
+			FCRelicCollectingBook RelicCollectingBook;
+			RelicCollectingBook.RelicDetailData = RelicDetailData.Value;
+			RelicCollectingBookMap.Add(RelicDetailData.Key, RelicCollectingBook);
+		}
+	}
+}
+
+const FCRelicCollectingBook* UGI_Base::GetRelicCollectingDataByTag(const int32& RelicTag)
+{
+	return RelicCollectingBookMap.Find(RelicTag);
 }
 
 const FCRelicDetailData* UGI_Base::GetRelicDetailDataByTag(const int32& RelicTag) const
@@ -158,4 +199,113 @@ void UGI_Base::SaveRelicData(FRelicSaveData NewData)
         }
         UGameplayStatics::SaveGameToSlot(SaveGameInstance, TEXT("RelicSaveSlot"), 0);
     }
+
+    {
+    	FCRelicCollectingBook RelicCollectingBook;
+    	RelicCollectingBook.RelicDetailData = *GetRelicDetailDataByTag(NewData.RelicData.RelicTag);
+    	RelicCollectingBook.DropDate = NewData.RelicData.DropDate;
+    	RelicCollectingBook.IsDrop = true;
+		SaveRelicCollectingData(RelicCollectingBook);
+    }
+}
+
+void UGI_Base::SaveRelicCollectingData(FCRelicCollectingBook NewData)
+{
+	bool bUpdate = false;
+	for (TPair<int, FCRelicCollectingBook>& Data : RelicCollectingBookMap)
+	{
+		if (Data.Value.RelicDetailData.RelicTag == NewData.RelicDetailData.RelicTag)
+		{
+			// 획득한적이 없는 유물일 경우에만 업데이트 
+			if (!Data.Value.IsDrop)
+			{
+				Data.Value = NewData;
+				bUpdate = true;
+			}
+			break;
+		}
+	}
+
+	if (!bUpdate) return; // 업데이트 할 필요가 없으면 저장하지 않음.
+
+	URelicCollectingBookSaveGame* SaveGameInstance;
+	if (UGameplayStatics::DoesSaveGameExist(TEXT("RelicCollectingSaveSlot"), 0))
+	{
+		SaveGameInstance = Cast<URelicCollectingBookSaveGame>(UGameplayStatics::LoadGameFromSlot(TEXT("RelicCollectingSaveSlot"), 0));
+	}
+	else
+	{
+		SaveGameInstance = Cast<URelicCollectingBookSaveGame>(UGameplayStatics::CreateSaveGameObject(URelicCollectingBookSaveGame::StaticClass()));
+	}
+	if (SaveGameInstance)
+	{
+		// 2. SaveGameInstance->RelicCollectingBooks도 동일하게 처리
+		for (FCRelicCollectingBook& SaveData : SaveGameInstance->RelicCollectingBooks)
+		{
+			if (SaveData.RelicDetailData.RelicTag == NewData.RelicDetailData.RelicTag)
+			{
+				// 획득한적이 없는 유물일 경우에만 업데이트 
+				if (!SaveData.IsDrop)
+					SaveData = NewData;
+				break;
+			}
+		}
+
+		if (SaveGameInstance->RelicCollectingBooks.Num()==0)
+		{
+			for (TPair<int32, FCRelicCollectingBook>& Data : RelicCollectingBookMap)
+			{
+				SaveGameInstance->RelicCollectingBooks.Add(Data.Value);
+			}
+		}
+		
+		UGameplayStatics::SaveGameToSlot(SaveGameInstance, TEXT("RelicCollectingSaveSlot"), 0);
+	}
+}
+
+void UGI_Base::UpdateRelicRecover(FRelicSaveData RecoverRelicData)
+{
+	// 1. RelicDataArray에서 동일한 Date를 가진 데이터가 있는지 찾기
+	bool bFound = false;
+	for (FCRelicData& Data : RelicDataArray)
+	{
+		if (Data.DropDate == RecoverRelicData.RelicData.DropDate)
+		{
+			Data = RecoverRelicData.RelicData; // 데이터 업데이트
+			bFound = true;
+			break;
+		}
+	}
+
+	if (!bFound) return;
+
+	URelicSaveGame* SaveGameInstance;
+	if (UGameplayStatics::DoesSaveGameExist(TEXT("RelicSaveSlot"), 0))
+	{
+		SaveGameInstance = Cast<URelicSaveGame>(UGameplayStatics::LoadGameFromSlot(TEXT("RelicSaveSlot"), 0));
+	}
+	else
+	{
+		SaveGameInstance = Cast<URelicSaveGame>(UGameplayStatics::CreateSaveGameObject(URelicSaveGame::StaticClass()));
+	}
+
+	if (SaveGameInstance)
+	{
+		// 2. SaveGameInstance->RelicSaveArray도 동일하게 처리
+		bool bSaveFound = false;
+		for (FRelicSaveData& SaveData : SaveGameInstance->RelicSaveArray)
+		{
+			if (SaveData.RelicData.DropDate == RecoverRelicData.RelicData.DropDate)
+			{
+				SaveData = RecoverRelicData; // 데이터 업데이트
+				bSaveFound = true;
+				break;
+			}
+		}
+		if (!bSaveFound)
+		{
+			return;
+		}
+		UGameplayStatics::SaveGameToSlot(SaveGameInstance, TEXT("RelicSaveSlot"), 0);
+	}
 }

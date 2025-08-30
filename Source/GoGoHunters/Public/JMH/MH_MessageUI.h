@@ -7,6 +7,7 @@
 #include "Blueprint/UserWidget.h"
 #include "MH_MessageUI.generated.h"
 
+class ACCollectingBook;
 /**
  * 
  */
@@ -57,5 +58,6 @@ public:
 
 	UPROPERTY()
 	TObjectPtr<AMH_ZoneBase> OuterOwner;
-	
+	UPROPERTY()
+	TObjectPtr<ACCollectingBook> CollectingBook;
 };

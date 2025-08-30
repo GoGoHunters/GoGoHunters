@@ -29,6 +29,9 @@ public:
 	UFUNCTION(BlueprintCallable)
 	class ARelicsBase* GetRelics() const { return Relics; }
 
+	UFUNCTION()
+	ACollectionBox* GetCollectionBox() { return CollectionBox; }
+
 protected:
 	UPROPERTY(VisibleAnywhere)
 	TArray<class UChildActorComponent*> GroundChildActors;

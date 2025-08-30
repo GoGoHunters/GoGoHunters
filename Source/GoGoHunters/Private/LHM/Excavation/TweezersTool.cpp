@@ -4,9 +4,11 @@
 #include "LHM/Excavation/TweezersTool.h"
 #include "Components/BoxComponent.h"
 #include "LHM/Excavation/RelicsBase.h"
+#include "LHM/Excavation/ExcavationManager.h"
 #include "MotionControllerComponent.h"
 #include "Kismet/GameplayStatics.h"
 #include "EngineUtils.h"
+#include "LHM/UI/WarningUI.h"
 
 // Sets default values
 ATweezersTool::ATweezersTool()
@@ -86,6 +88,7 @@ void ATweezersTool::PickUpRelic()
 	CandidateMesh->SetSimulatePhysics(false);
 	CandidateMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 	CandidateMesh->AttachToComponent(PickupPoint, FAttachmentTransformRules::SnapToTargetIncludingScale);
+	CandidateMesh->OnComponentHit.RemoveDynamic(this, &ATweezersTool::OnRelicHit);
 
 	// 사운드 재생
 	if (SoundFX) UGameplayStatics::PlaySoundAtLocation(this, SoundFX, PickupPoint->GetComponentLocation());
@@ -153,7 +156,8 @@ void ATweezersTool::SetIsPickingUp(bool _bIsPickingUp)
 		TweezersMeshR->SetRelativeRotation(FRotator(0, 0, 0));
 
 		// 유물 놓기
-		if (PickedRelic)
+		DropPickedRelic();
+		/*if (PickedRelic)
 		{
 			for (UStaticMeshComponent* Relic : PickedRelic->RelicsMeshes)
 			{
@@ -184,7 +188,7 @@ void ATweezersTool::SetIsPickingUp(bool _bIsPickingUp)
 			}
 			PickedRelic = nullptr;
 			bHasJustDropped = true;
-		}
+		}*/
 	}
 }
 
@@ -195,6 +199,76 @@ void ATweezersTool::SetAttachBase(USceneComponent* InAttachBase)
 	{
 		LastAttachLocation = AttachBase->GetComponentLocation();
 		//UE_LOG(LogTemp, Warning, TEXT("[TweezersTool] AttachBase set to: %s"), *AttachBase->GetName());
+	}
+}
+
+void ATweezersTool::DropPickedRelic()
+{
+	if (!PickedRelic) return;
+
+	for (UStaticMeshComponent* Relic : PickedRelic->RelicsMeshes)
+	{
+		if (Relic->GetAttachParent() == PickupPoint)
+		{
+			Relic->DetachFromComponent(FDetachmentTransformRules::KeepWorldTransform);
+			Relic->SetSimulatePhysics(true);
+			Relic->SetCollisionProfileName(FName("Relic_Physics"));
+			Relic->SetGenerateOverlapEvents(true);
+			Relic->BodyInstance.bUseCCD = true; // 빠른 낙하 시 충돌 누락 방지
+
+			// 충돌 순간 속도 체크를 위한 이벤트 활성화 + 바인딩
+			Relic->SetNotifyRigidBodyCollision(true);
+			Relic->OnComponentHit.RemoveAll(this);
+			Relic->OnComponentHit.AddDynamic(this, &ATweezersTool::OnRelicHit);
+
+			if (AttachBase)
+			{
+				FVector Velocity = (LastAttachLocation - PreviousAttachLocation) /
+					FMath::Max(GetWorld()->GetDeltaSeconds(), 0.001f);
+				float Speed = Velocity.Size();
+
+				if (!Velocity.IsNearlyZero())
+				{
+					Relic->SetPhysicsLinearVelocity(Velocity);
+				}
+			}
+
+			break;
+		}
+	}
+
+	PickedRelic = nullptr;
+	bHasJustDropped = true;
+}
+
+void ATweezersTool::OnRelicHit(UPrimitiveComponent* HitComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit)
+{
+	if (!HitComp) return;
+
+	const float Now = GetWorld()->GetTimeSeconds();
+	float& Last = LastHitTime.FindOrAdd(HitComp);
+	if (Now - Last < ImpactCooldown) return; // 쿨다운
+
+	Last = Now;
+
+	// 충돌 ‘순간’의 속도 사용
+	const float ImpactSpeed = HitComp->GetComponentVelocity().Size();
+	if (ImpactSpeed > ImpactSpeedThreshold)
+	{
+		// ExcavationManager 통해 WarningUI 호출
+		for (TActorIterator<AExcavationManager> It(GetWorld()); It; ++It)
+		{
+			if (AExcavationManager* Manager = *It)
+			{
+				if (Manager->WarningUI)
+				{
+					Manager->WarningUI->ShowNextWarning();
+				}
+				break;
+			}
+		}
+
+		UE_LOG(LogTemp, Warning, TEXT("[TweezersTool] Relic hit too hard! v=%.1f"), ImpactSpeed);
 	}
 }
 

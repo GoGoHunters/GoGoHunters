@@ -47,6 +47,11 @@ public:
 
 	UFUNCTION(BlueprintCallable)
 	void SaveRelicData(FRelicSaveData NewData);
+	UFUNCTION(BlueprintCallable)
+	void SaveRelicCollectingData(FCRelicCollectingBook NewData);
+
+	TMap<int32, FCRelicCollectingBook> GetRelicCollectingData() const { return RelicCollectingBookMap; }
+	void UpdateRelicRecover(FRelicSaveData RecoverRelicData);
 
 private:
 	UPROPERTY() 
@@ -69,6 +74,12 @@ private:
 	// 유물 데이터 관련
 	void InitRelicDataFromSave();
 	void InitRelicDetailData();
+
+	UPROPERTY()
+	TMap<int32, FCRelicCollectingBook> RelicCollectingBookMap;
+	void InitRelicCollectingDataFromSave();
+	void UpdateRelicCollectingData();
+	const FCRelicCollectingBook* GetRelicCollectingDataByTag(const int32& RelicTag);
 };
 
 UCLASS()
@@ -78,4 +89,13 @@ class URelicSaveGame : public USaveGame
 public:
     UPROPERTY(BlueprintReadWrite)
     TArray<FRelicSaveData> RelicSaveArray;
+};
+
+UCLASS()
+class URelicCollectingBookSaveGame : public USaveGame
+{
+	GENERATED_BODY()
+public:
+	UPROPERTY()
+	TArray<FCRelicCollectingBook> RelicCollectingBooks;
 };
