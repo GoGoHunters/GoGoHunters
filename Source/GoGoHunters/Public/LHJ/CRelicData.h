@@ -29,6 +29,8 @@ struct FCRelicData : public FTableRowBase
 	FTransform PlacedTransform; // 배치 위치
 	UPROPERTY(EditAnywhere)
 	bool IsPlace = false; // 박물관 배치 유무
+	UPROPERTY()
+	bool IsRecover = false; // 복구 유무
 };
 
 USTRUCT(Atomic, BlueprintType)
@@ -95,6 +97,4 @@ struct FCRelicCollectingBook : public FTableRowBase
 	FDateTime DropDate; // 획득 날짜,시간
 	UPROPERTY()
 	bool IsDrop = false; // 획득 유무
-	UPROPERTY()
-	bool IsRecover = false; // 복구 유무
 };

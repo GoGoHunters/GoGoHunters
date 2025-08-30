@@ -51,6 +51,7 @@ public:
 	void SaveRelicCollectingData(FCRelicCollectingBook NewData);
 
 	TMap<int32, FCRelicCollectingBook> GetRelicCollectingData() const { return RelicCollectingBookMap; }
+	void UpdateRelicRecover(FRelicSaveData RecoverRelicData);
 
 private:
 	UPROPERTY() 

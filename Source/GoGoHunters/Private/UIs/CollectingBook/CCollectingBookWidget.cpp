@@ -94,11 +94,6 @@ void UCCollectingBookWidget::ShowRelicDetailPage(const FCRelicCollectingBook& In
 		FText FormattedDateText = FText::FromString(InRelicCollectingBookData.DropDate.ToString(TEXT("%Y-%m-%d")));
 		Txt_DropDate->SetText(FormattedDateText);
 
-		if (InRelicCollectingBookData.IsRecover)
-			Txt_RecoverMessage->SetVisibility(ESlateVisibility::Hidden);
-		else
-			Txt_RecoverMessage->SetVisibility(ESlateVisibility::Visible);
-
 		Txt_Desc->SetText(InRelicCollectingBookData.RelicDetailData.RelicDesc);
 	}
 	else

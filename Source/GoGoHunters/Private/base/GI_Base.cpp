@@ -262,3 +262,50 @@ void UGI_Base::SaveRelicCollectingData(FCRelicCollectingBook NewData)
 		UGameplayStatics::SaveGameToSlot(SaveGameInstance, TEXT("RelicCollectingSaveSlot"), 0);
 	}
 }
+
+void UGI_Base::UpdateRelicRecover(FRelicSaveData RecoverRelicData)
+{
+	// 1. RelicDataArray에서 동일한 Date를 가진 데이터가 있는지 찾기
+	bool bFound = false;
+	for (FCRelicData& Data : RelicDataArray)
+	{
+		if (Data.DropDate == RecoverRelicData.RelicData.DropDate)
+		{
+			Data = RecoverRelicData.RelicData; // 데이터 업데이트
+			bFound = true;
+			break;
+		}
+	}
+
+	if (!bFound) return;
+
+	URelicSaveGame* SaveGameInstance;
+	if (UGameplayStatics::DoesSaveGameExist(TEXT("RelicSaveSlot"), 0))
+	{
+		SaveGameInstance = Cast<URelicSaveGame>(UGameplayStatics::LoadGameFromSlot(TEXT("RelicSaveSlot"), 0));
+	}
+	else
+	{
+		SaveGameInstance = Cast<URelicSaveGame>(UGameplayStatics::CreateSaveGameObject(URelicSaveGame::StaticClass()));
+	}
+
+	if (SaveGameInstance)
+	{
+		// 2. SaveGameInstance->RelicSaveArray도 동일하게 처리
+		bool bSaveFound = false;
+		for (FRelicSaveData& SaveData : SaveGameInstance->RelicSaveArray)
+		{
+			if (SaveData.RelicData.DropDate == RecoverRelicData.RelicData.DropDate)
+			{
+				SaveData = RecoverRelicData; // 데이터 업데이트
+				bSaveFound = true;
+				break;
+			}
+		}
+		if (!bSaveFound)
+		{
+			return;
+		}
+		UGameplayStatics::SaveGameToSlot(SaveGameInstance, TEXT("RelicSaveSlot"), 0);
+	}
+}

@@ -50,8 +50,6 @@ private:
 	UPROPERTY(EditDefaultsOnly, meta = (BindWidget))
 	TObjectPtr<UTextBlock> Txt_DropDate;
 	UPROPERTY(EditDefaultsOnly, meta = (BindWidget))
-	TObjectPtr<UTextBlock> Txt_RecoverMessage;
-	UPROPERTY(EditDefaultsOnly, meta = (BindWidget))
 	TObjectPtr<UTextBlock> Txt_Desc;
 
 	UPROPERTY(EditDefaultsOnly, meta = (BindWidget))
