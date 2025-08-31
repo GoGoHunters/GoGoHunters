@@ -36,14 +36,30 @@ void ARestoreManager::BeginPlay()
 void ARestoreManager::StartRestoration(const FCRelicData& RelicData)
 {
 	CurrentRelicData = RelicData;
-
-	//if (RestoreUI) RestoreUI->RemoveFromParent(); // UI 숨기기
-
 	SpawnPuzzleActor(RelicData);
 }
 
 void ARestoreManager::SpawnPuzzleActor(const FCRelicData& RelicData)
 {
-	ActivePuzzleActor->InitPuzzle(RelicData);
+	ActivePuzzleActor->InitPuzzle(RelicData, this);
+}
+
+void ARestoreManager::NotifyPuzzleCompleted(class ARestorePuzzleActor* PuzzleActor)
+{
+	if (!PuzzleActor) return;
+
+	const FCRelicData& CompletedRelic = PuzzleActor->GetRelicData();
+
+	// 1. 유물 데이터 저장 요청
+	if (UGI_Base* GI = GetGameInstance<UGI_Base>())
+	{
+		FRelicSaveData NewSaveData;
+		NewSaveData.RelicData = CompletedRelic;
+		GI->SaveRelicData(NewSaveData);
+	}
+
+	// 2. 완료 UI 표시 예정
+	// 3. 스탬프 애니메이션 예정
+	// 4. AI 타미 대사 예정
 }
 

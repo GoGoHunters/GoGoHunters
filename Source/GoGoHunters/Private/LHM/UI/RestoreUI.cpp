@@ -34,7 +34,6 @@ void URestoreUI::NativeConstruct()
 				Filtered.Add(Relic);
 		}
 
-		//PopulateRelicList(Filtered);
 		InitRelicList(Filtered);
 	}
 
@@ -42,42 +41,6 @@ void URestoreUI::NativeConstruct()
 	if(Btn_Later) Btn_Later->OnClicked.AddDynamic(this, &URestoreUI::OnNextPage);
 
 	FindAndConnectRestoreManager();
-}
-
-void URestoreUI::PopulateRelicList(const TArray<FCRelicData>& RelicList)
-{
-	const int32 MaxPerRow = 3;
-
-	for (int32 i = 0; i < RelicList.Num(); ++i)
-	{
-		int32 RowIndex = i / MaxPerRow;
-		if (RowIndex >= 3) break;
-
-		UHorizontalBox* TargetRow = nullptr;
-		/*switch (RowIndex)
-		{
-			case 0: TargetRow = HorizontalBox_Row1; break;
-			case 1: TargetRow = HorizontalBox_Row2; break;
-			case 2: TargetRow = HorizontalBox_Row3; break;
-		}*/
-
-		if (TargetRow && RelicItemClass)
-		{
-			if (URestoreRelicUI* ItemWidget = CreateWidget<URestoreRelicUI>(this, RelicItemClass))
-			{
-				ItemWidget->InitItem(RelicList[i]);
-				ItemWidget->OnRelicItemClicked.AddDynamic(this, &URestoreUI::HandleRelicItemClicked);
-
-				UHorizontalBoxSlot* AddedSlot = Cast<UHorizontalBoxSlot>(TargetRow->AddChild(ItemWidget));
-				if (AddedSlot)
-				{
-					AddedSlot->SetSize(FSlateChildSize(ESlateSizeRule::Fill));
-					AddedSlot->SetHorizontalAlignment(HAlign_Fill);
-					AddedSlot->SetVerticalAlignment(VAlign_Fill);
-				}
-			}
-		}
-	}
 }
 
 void URestoreUI::FindAndConnectRestoreManager()
@@ -231,6 +194,7 @@ void URestoreUI::HandleRelicItemClicked(const FCRelicData& RelicData)
 	if (RestoreManager)
 	{
 		RestoreManager->StartRestoration(RelicData);
+		this->SetVisibility(ESlateVisibility::Hidden);
 		UE_LOG(LogTemp, Warning, TEXT("Starting restoration for relic: %s"), *RelicData.RelicName.ToString());
 	}
 	else

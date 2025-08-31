@@ -24,7 +24,7 @@ public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
-	void InitPuzzle(const FCRelicData& InRelicData);
+	void InitPuzzle(const FCRelicData& InRelicData, class ARestoreManager* InManager);
 
 	UFUNCTION()
 	void TrySnapPiece(class APieceActor* Piece);
@@ -32,6 +32,7 @@ public:
 	void CheckPuzzleCompleted();
 	void OnPuzzleCompleted();
 
+	const FCRelicData& GetRelicData() const { return RelicData; }
 	TArray<FTransform> GetSnapPointTransforms() const { return SnapPointTransforms; }
 	TArray<class AActor*> GetPieceActors() const { return PieceActors; }
 
@@ -47,6 +48,9 @@ protected:
 
 	UPROPERTY()
 	AActor* SpawnedRelic;
+
+	UPROPERTY()
+	class ARestoreManager* RestoreManager;
 
 	UPROPERTY()
 	TArray<FTransform> SnapPointTransforms;

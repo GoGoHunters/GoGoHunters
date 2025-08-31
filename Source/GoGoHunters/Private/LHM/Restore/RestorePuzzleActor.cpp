@@ -3,6 +3,8 @@
 
 #include "LHM/Restore/RestorePuzzleActor.h"
 #include "LHM/Restore/PieceActor.h"
+#include "LHM/Restore/RestoreManager.h"
+#include "EngineUtils.h"
 
 // Sets default values
 ARestorePuzzleActor::ARestorePuzzleActor()
@@ -33,10 +35,11 @@ void ARestorePuzzleActor::Tick(float DeltaTime)
 
 }
 
-void ARestorePuzzleActor::InitPuzzle(const FCRelicData& InRelicData)
+void ARestorePuzzleActor::InitPuzzle(const FCRelicData& InRelicData, ARestoreManager* InManager)
 {
 	UE_LOG(LogTemp, Warning, TEXT("InitPuzzle: %s"), *InRelicData.RelicName.ToString());
 	RelicData = InRelicData;
+	RestoreManager = InManager;
 
 	// 이전에 생성된 유물이 있으면 제거
 	if (SpawnedRelic)
@@ -92,13 +95,7 @@ void ARestorePuzzleActor::InitPuzzle(const FCRelicData& InRelicData)
 		else if (Scene && Scene->ComponentHasTag("SnapPoint"))
 		{
 			SnapPointTransforms.Add(Scene->GetComponentTransform());
-			UE_LOG(LogTemp, Warning, TEXT("Found SnapPoint: %s at %s"), *Scene->GetName(), *Scene->GetComponentLocation().ToString());
 		}
-	}
-
-	for(int32 i = 0; i < SnapPointTransforms.Num(); ++i)
-	{
-		UE_LOG(LogTemp, Warning, TEXT("SnapPointTransforms(%d): %s"), i, *SnapPointTransforms[i].GetLocation().ToString());
 	}
 
 	// 조각 목록 저장
@@ -117,7 +114,6 @@ void ARestorePuzzleActor::InitPuzzle(const FCRelicData& InRelicData)
 		{
 			PieceActors.Add(Piece);
 			Piece->SetPieceIndex(i); // 이름 순서대로 인덱스 지정
-			UE_LOG(LogTemp, Warning, TEXT("PieceActors(%d): %s"), i, *Piece->GetName());
 		}
 	}
 #pragma endregion
@@ -187,11 +183,10 @@ void ARestorePuzzleActor::OnPuzzleCompleted()
 	UStaticMeshComponent* CompletedMesh = Cast<UStaticMeshComponent>(SpawnedRelic->GetComponentsByTag(UStaticMeshComponent::StaticClass(), FName("Complete"))[0]);
 	if (CompletedMesh) CompletedMesh->SetHiddenInGame(false);
 	
-	
-		// 예시 행동들
-		// - 도감 등록 요청
-		// - 완료 이펙트/사운드 재생
-		// - 스탬프 애니메이션 트리거
-		// - RestoreManager->NotifyPuzzleCompleted(this); 등
+	// - 완료 이펙트/사운드 재생
+
+	// 유물 복원 완료 처리
+	RelicData.IsRecover = true;
+	RestoreManager->NotifyPuzzleCompleted(this);
 }
 

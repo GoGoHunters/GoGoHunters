@@ -24,6 +24,9 @@ public:
 	void StartRestoration(const FCRelicData& RelicData);
 	void SpawnPuzzleActor(const FCRelicData& RelicData);
 
+	UFUNCTION()
+	void NotifyPuzzleCompleted(class ARestorePuzzleActor* PuzzleActor);
+
 	void SetRestoreUI(class URestoreUI* InRestoreUI) { RestoreUI = InRestoreUI; }
 
 private:

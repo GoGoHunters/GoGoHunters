@@ -5,6 +5,7 @@
 #include "Components/Button.h"
 #include "Components/TextBlock.h"
 #include "Components/Image.h"
+#include "base/GI_Base.h"
 
 void URestoreRelicUI::NativeConstruct()
 {
@@ -22,12 +23,19 @@ void URestoreRelicUI::InitItem(const FCRelicData& InData)
 	FText RelicName = RelicData.RelicName.IsEmpty() ? FText::FromString("NULL") : RelicData.RelicName;
 	Txt_RelicName->SetText(RelicName);
 
-	/*FSlateBrush NewBrush = Img_Relic->GetBrush();
-	if (RelicData && RelicData->RelicImage)
+	// 이미지 설정
+	if (UGI_Base* GI = Cast<UGI_Base>(UGameplayStatics::GetGameInstance(this)))
 	{
-		NewBrush.SetResourceObject(RelicDetailData->RelicImage);
-		Img_Relic->SetBrush(NewBrush);
-	}*/
+		if (const FCRelicDetailData* Detail = GI->GetRelicDetailDataByTag(RelicData.RelicTag))
+		{
+			if (Detail->RelicImage)
+			{
+				FSlateBrush NewBrush;
+				NewBrush.SetResourceObject(Detail->RelicImage);
+				Img_Relic->SetBrush(NewBrush);
+			}
+		}
+	}
 }
 
 void URestoreRelicUI::HandleButtonClicked()
