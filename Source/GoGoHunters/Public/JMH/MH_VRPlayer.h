@@ -344,9 +344,9 @@ private:
 	// 그랩 수정
 	UPROPERTY(EditDefaultsOnly, Category=Grab)
 	float GrabRadius = 12;
-	UPROPERTY(VisibleAnywhere, Category=Grab)
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category=Grab, meta = (AllowPrivateAccess = true))
 	TObjectPtr<AActor> RGrabedObject;
-	UPROPERTY(VisibleAnywhere, Category=Grab)
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category=Grab, meta = (AllowPrivateAccess = true))
 	TObjectPtr<AActor> LGrabedObject;
 	AActor* GetNearGrabableObject(USceneComponent* GrabController);
 	void ObjectGrab(AActor* GrabObject, UMotionControllerComponent* GrabController, bool IsPulling);
