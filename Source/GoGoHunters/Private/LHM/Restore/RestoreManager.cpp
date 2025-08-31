@@ -21,6 +21,16 @@ void ARestoreManager::BeginPlay()
 {
 	Super::BeginPlay();
 
+	if (!ActivePuzzleActor)
+	{
+		TArray<AActor*> Found;
+		UGameplayStatics::GetAllActorsOfClass(GetWorld(), ARestorePuzzleActor::StaticClass(), Found);
+
+		if (Found.Num() > 0)
+		{
+			ActivePuzzleActor = Cast<ARestorePuzzleActor>(Found[0]);
+		}
+	}
 }
 
 void ARestoreManager::StartRestoration(const FCRelicData& RelicData)
@@ -34,15 +44,6 @@ void ARestoreManager::StartRestoration(const FCRelicData& RelicData)
 
 void ARestoreManager::SpawnPuzzleActor(const FCRelicData& RelicData)
 {
-	if (PuzzleActorClass)
-	{
-		FActorSpawnParameters SpawnParams;
-		ActivePuzzleActor = GetWorld()->SpawnActor<ARestorePuzzleActor>(PuzzleActorClass, FVector::ZeroVector, FRotator::ZeroRotator, SpawnParams);
-
-		if (ActivePuzzleActor)
-		{
-			ActivePuzzleActor->InitPuzzle(RelicData);
-		}
-	}
+	ActivePuzzleActor->InitPuzzle(RelicData);
 }
 

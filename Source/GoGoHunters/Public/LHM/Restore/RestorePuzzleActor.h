@@ -1,0 +1,60 @@
+// Fill out your copyright notice in the Description page of Project Settings.
+
+#pragma once
+
+#include "CoreMinimal.h"
+#include "GameFramework/Actor.h"
+#include "LHJ/CRelicData.h"
+#include "RestorePuzzleActor.generated.h"
+
+UCLASS()
+class GOGOHUNTERS_API ARestorePuzzleActor : public AActor
+{
+	GENERATED_BODY()
+	
+public:	
+	// Sets default values for this actor's properties
+	ARestorePuzzleActor();
+
+protected:
+	// Called when the game starts or when spawned
+	virtual void BeginPlay() override;
+
+public:	
+	// Called every frame
+	virtual void Tick(float DeltaTime) override;
+
+	void InitPuzzle(const FCRelicData& InRelicData);
+
+	UFUNCTION()
+	void TrySnapPiece(class APieceActor* Piece);
+
+	void CheckPuzzleCompleted();
+	void OnPuzzleCompleted();
+
+	TArray<FTransform> GetSnapPointTransforms() const { return SnapPointTransforms; }
+	TArray<class AActor*> GetPieceActors() const { return PieceActors; }
+
+protected:
+	UPROPERTY(EditDefaultsOnly)
+	TSubclassOf<AActor> RelicClass;
+
+	UPROPERTY(EditDefaultsOnly)
+	UStaticMeshComponent* RotationBoard;
+
+	//UPROPERTY()
+	//UStaticMeshComponent* GuideMesh;
+
+	UPROPERTY()
+	AActor* SpawnedRelic;
+
+	UPROPERTY()
+	TArray<FTransform> SnapPointTransforms;
+
+	UPROPERTY()
+	TArray<AActor*> PieceActors;
+
+private:
+	FCRelicData RelicData;
+
+};

@@ -30,11 +30,14 @@ private:
 	UPROPERTY()
 	TObjectPtr<class URestoreUI> RestoreUI;
 
-	UPROPERTY(EditAnywhere, Category = "Puzzle")
-	TSubclassOf<class ARestorePuzzleActor> PuzzleActorClass;
+	//UPROPERTY(EditAnywhere, Category = "Puzzle")
+	//TSubclassOf<class ARestorePuzzleActor> PuzzleActorClass;
 
-	UPROPERTY()
-	TObjectPtr<class ARestorePuzzleActor> ActivePuzzleActor;
+	//UPROPERTY()
+	//TObjectPtr<class ARestorePuzzleActor> ActivePuzzleActor;
+
+	UPROPERTY(EditInstanceOnly)
+	class ARestorePuzzleActor* ActivePuzzleActor;
 
 	UPROPERTY()
 	FCRelicData CurrentRelicData;
