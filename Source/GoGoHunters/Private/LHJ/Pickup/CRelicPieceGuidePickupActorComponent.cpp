@@ -1,7 +1,7 @@
-#include "LHJ/Pickup/CRelicPiecePickupActorComponent.h"
+#include "LHJ/Pickup/CRelicPieceGuidePickupActorComponent.h"
 
-void UCRelicPiecePickupActorComponent::TickComponent(float DeltaTime, enum ELevelTick TickType,
-	FActorComponentTickFunction* ThisTickFunction)
+void UCRelicPieceGuidePickupActorComponent::TickComponent(float DeltaTime, enum ELevelTick TickType,
+                                                          FActorComponentTickFunction* ThisTickFunction)
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
 
@@ -9,18 +9,18 @@ void UCRelicPiecePickupActorComponent::TickComponent(float DeltaTime, enum ELeve
 		UpdateRotationFromController();
 }
 
-void UCRelicPiecePickupActorComponent::GrabUsingForRelicPiece()
+void UCRelicPieceGuidePickupActorComponent::GrabUsingForRelicPiece()
 {
 	LastControllerQuat = FirstHandComponent->GetComponentRotation().Quaternion();
 	bIsPulling = false;
 }
 
-void UCRelicPiecePickupActorComponent::ReleaseUsingForRelicPiece()
+void UCRelicPieceGuidePickupActorComponent::ReleaseUsingForRelicPiece()
 {
 	PendingGrabComponent->SetSimulatePhysics(false);
 }
 
-void UCRelicPiecePickupActorComponent::UpdateRotationFromController()
+void UCRelicPieceGuidePickupActorComponent::UpdateRotationFromController()
 {
 	FQuat CurrentQuat = FirstHandComponent->GetComponentQuat();
 	FQuat LastQuat = LastControllerQuat;

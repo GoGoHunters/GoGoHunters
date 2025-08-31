@@ -2,13 +2,13 @@
 
 #include "CoreMinimal.h"
 #include "LHJ/Pickup/CPickupActorComponent.h"
-#include "CRelicPiecePickupActorComponent.generated.h"
+#include "CRelicPieceGuidePickupActorComponent.generated.h"
 
 /**
  * 
  */
 UCLASS(ClassGroup=(Custom), meta=(BlueprintSpawnableComponent))
-class GOGOHUNTERS_API UCRelicPiecePickupActorComponent : public UCPickupActorComponent
+class GOGOHUNTERS_API UCRelicPieceGuidePickupActorComponent : public UCPickupActorComponent
 {
 	GENERATED_BODY()
 
