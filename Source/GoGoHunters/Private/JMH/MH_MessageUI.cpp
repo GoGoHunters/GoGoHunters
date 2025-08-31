@@ -54,8 +54,6 @@ void UMH_MessageUI::OnYesClicked()
 			}
 
 			CollectingBook->ActiveAnim(true);
-
-			GEngine->AddOnScreenDebugMessage(-1,5.f,FColor::Green,TEXT("Record"));
 			OnNoClicked();
 		}
 		else if (UGI_Base* GameInstance = Cast<UGI_Base>(GetGameInstance()))

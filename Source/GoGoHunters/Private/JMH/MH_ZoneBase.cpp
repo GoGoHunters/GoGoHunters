@@ -27,6 +27,10 @@ AMH_ZoneBase::AMH_ZoneBase()
 
 	MessageWidgetComponent = CreateDefaultSubobject<UWidgetComponent>(TEXT("MessageUI"));
 	MessageWidgetComponent->SetupAttachment(RootComponent);
+
+	//현민
+	//RestoreListComponent = CreateDefaultSubobject<UWidgetComponent>(TEXT("RestoreListUI"));
+	//RestoreListComponent->SetupAttachment(RootComponent);
 	
 }
 
@@ -54,6 +58,20 @@ void AMH_ZoneBase::BeginPlay()
 			MessageUI->ShowButtons(true,false);
 		}
 	}
+	//현민
+	/*
+	if (RestoreListComponent)
+	{
+		if (RestoreListUIClass)
+		{
+			RestoreListComponent->SetWidgetClass(RestoreListUIClass);
+
+			MessageUI = Cast<UMH_MessageUI>(MessageWidgetComponent->GetUserWidgetObject());	
+		}
+		
+	}
+
+	*/
 }
 
 // Called every frame
@@ -74,7 +92,8 @@ void AMH_ZoneBase::OnPlayerInteracted_Implementation(AActor* Player)
 		{"Museum", [](AMH_ZoneBase* Z) { Z->HandleMyMuseumInteraction(); }},
 		{"Lobby", [](AMH_ZoneBase* Z) { Z->HandleLobbyInteraction(); }},
 		{"Exit", [](AMH_ZoneBase* Z) { Z->HandleExitInteraction(); }},
-		{"Record", [](AMH_ZoneBase* Z) { Z->HandleRecordInteraction(); }}
+		{"Record", [](AMH_ZoneBase* Z) { Z->HandleRecordInteraction(); }},
+		{"RestoreList", [](AMH_ZoneBase* Z) { Z->HandleRestoreListInteraction(); }},	
 		//{"Settings", [](AMH_ZoneBase* Z) { Z->HandleSettingsInteraction(); }},
 	};
 
@@ -121,6 +140,8 @@ void AMH_ZoneBase::OnZoneOverlapEnd(UPrimitiveComponent* OverlappedComponent, AA
 void AMH_ZoneBase::HandleMessageUIClose()
 {
 	MessageWidgetComponent->SetVisibility(false);
+	//현민
+	//RestoreListUI->SetVisibility(false);
 }
 
 void AMH_ZoneBase::HandleMapInteraction()
@@ -131,7 +152,6 @@ void AMH_ZoneBase::HandleMapInteraction()
 void AMH_ZoneBase::HandleRestoreInteraction()
 {
 	//GEngine->AddOnScreenDebugMessage(-1, 2.f, FColor::Green, TEXT("[Restore] 유물 복원 UI 실행"));
-	// TODO: 복원 미니게임 실행
 	MessageUI->ShowButtons(true,false);
 	ShowZoneMessageUI(GuideMessage);
 	MessageWidgetComponent->SetVisibility(true);
@@ -171,4 +191,11 @@ void AMH_ZoneBase::HandleLobbyInteraction()
 	MessageUI->ShowButtons(true,false);
 	ShowZoneMessageUI(GuideMessage);
 	MessageWidgetComponent->SetVisibility(true);
+}
+
+void AMH_ZoneBase::HandleRestoreListInteraction()
+{
+	//현민
+	//RestoreListUI->SetVisibility(true);
+	
 }
