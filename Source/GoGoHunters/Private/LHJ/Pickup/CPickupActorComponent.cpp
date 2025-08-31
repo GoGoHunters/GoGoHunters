@@ -3,7 +3,6 @@
 #include "MotionControllerComponent.h"
 #include "JMH/MH_GrabComp.h"
 #include "JMH/MH_VRPlayer.h"
-#include "Kismet/KismetMathLibrary.h"
 
 UCPickupActorComponent::UCPickupActorComponent()
 {
@@ -158,6 +157,7 @@ void UCPickupActorComponent::Pickup(USceneComponent* AttachTo, bool IsPulling)
 		// PendingGrabComponent->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 		bIsPulling = IsPulling;
 		GrabUsingForRelic();
+		GrabUsingForRelicPiece();
 		Player->SetPlayerState(EPlayerVRState::GrabbingObject);
 	}
 }
@@ -186,6 +186,7 @@ void UCPickupActorComponent::Drop(USceneComponent* DropFrom)
 			PendingGrabComponent->SetCollisionResponseToChannels(GrabCollisionResponse);
 			OwnerActor->SetActorScale3D(OriginScale3D);
 			ReleaseUsingForRelic();
+			ReleaseUsingForRelicPiece();
 		}
 	}
 }
@@ -202,5 +203,13 @@ void UCPickupActorComponent::GrabUsingForRelic()
 }
 
 void UCPickupActorComponent::ReleaseUsingForRelic()
+{
+}
+
+void UCPickupActorComponent::GrabUsingForRelicPiece()
+{
+}
+
+void UCPickupActorComponent::ReleaseUsingForRelicPiece()
 {
 }

@@ -16,7 +16,7 @@ class GOGOHUNTERS_API UCPickupActorComponent : public UActorComponent
 public:
 	virtual void Pickup(USceneComponent* AttachTo, bool IsPulling);
 	virtual void Drop(USceneComponent* DropFrom);
-	bool GetGrabActorSimulate() {return PendingGrabComponent->IsSimulatingPhysics();}
+	bool GetGrabActorSimulate() { return PendingGrabComponent->IsSimulatingPhysics(); }
 	void SetGrabActorScale(const FVector& Scale3D);
 	void SetTwoHandGrabbing(bool bTwoHandGrabbing) { CanTwoHandGrab = bTwoHandGrabbing; }
 
@@ -30,7 +30,7 @@ protected:
 	UPROPERTY(EditAnywhere, Category="Pickup")
 	float GrabPullSpeed = 5.0f;
 	UPROPERTY(EditAnywhere, Category="Pickup")
-	float MaxScalePercent = 1.5f;	
+	float MaxScalePercent = 1.5f;
 	UPROPERTY(EditAnywhere, Category="Pickup")
 	float MinScalePercent = 0.5f;
 
@@ -38,7 +38,7 @@ protected:
 	FVector MinScale3D;
 	UPROPERTY(VisibleAnywhere, Category="Pickup")
 	FVector MaxScale3D;
-	
+
 	UPROPERTY()
 	TObjectPtr<AActor> OwnerActor = nullptr;
 	UPROPERTY()
@@ -52,6 +52,8 @@ protected:
 	UPROPERTY()
 	TObjectPtr<USceneComponent> SecondHandComponent = nullptr;
 
+	bool bIsPulling = false;
+
 	UCPickupActorComponent();
 	virtual void BeginPlay() override;
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType,
@@ -59,12 +61,15 @@ protected:
 	virtual void ReleaseUsingForRelic();
 	virtual void GrabUsingForRelic();
 
+	virtual void GrabUsingForRelicPiece();
+	virtual void ReleaseUsingForRelicPiece();
+
 private:
 	bool bSetPlayerComp = false;
-	bool bIsPulling = false;
+	
 	FRotator GrabRotation = FRotator::ZeroRotator;
 	FName OriginProfileName;
-	
+
 	const FName GrabProfileName = FName("GrabbingObject");
 	FCollisionResponseContainer GrabCollisionResponse;
 
