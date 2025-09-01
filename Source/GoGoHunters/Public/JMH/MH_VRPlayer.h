@@ -325,6 +325,7 @@ private:
 	void SetClickAndWidgetActivation(bool bUsing);
 	void SetWidgetInteractionClick(bool bPress);
 	void SetWidgetComponent(bool bSet);
+	const UWidgetComponent* GetWidgetComponentAtForward() const;
 
 	// 인터렉션 VFX
 	UPROPERTY(EditDefaultsOnly)
