@@ -362,7 +362,7 @@ void AMH_VRPlayer::TriggerInteract(const FInputActionInstance& IA_Instance)
 	FVector End = FVector::ZeroVector;
 	bInteracteAnyComponent = false;
 	if (IsPointingAtWidget())
-	{
+	{		
 		if (RWidgetInteractionComponent->IsOverInteractableWidget())
 		{
 			SetClickAndWidgetActivation(true);
@@ -400,9 +400,14 @@ void AMH_VRPlayer::TriggerInteract(const FInputActionInstance& IA_Instance)
 	if (!bInteracteAnyComponent)
 	{
 		// 사정거리 끝까지 그림
-		// End = RWidgetInteractionComponent->GetComponentLocation() + RWidgetInteractionComponent->GetForwardVector() * WidgetInteractionDistance;
 		// DrawDebugLine(GetWorld(), Start, End, FColor::Red, false, 0.0f, 0.0f, 1.0f);
-		UpdateDrawLineTraceEffect(Start, Start);
+		if (CurrentState == EPlayerVRState::UsingTool || CurrentState == EPlayerVRState::Excavating)
+			UpdateDrawLineTraceEffect(Start, Start);
+		else
+		{
+			End = RWidgetInteractionComponent->GetComponentLocation() + RWidgetInteractionComponent->GetForwardVector() * WidgetInteractionDistance;
+			UpdateDrawLineTraceEffect(Start, End);
+		}
 	}
 }
 
@@ -1035,7 +1040,7 @@ void AMH_VRPlayer::HandleUIInteraction(const FInputActionInstance& IA_Instance)
         if (bIsUIInteractionActive)
         {
             if (MuseumComponent && MuseumComponent->GetMuseumState() == EMuseumState::Decorate) return;
-            DisableWidgetInteraction();
+            	DisableWidgetInteraction();
         }
     }
 }
@@ -1112,7 +1117,11 @@ void AMH_VRPlayer::SetWidgetInteractionUsing(bool bUsing)
 bool AMH_VRPlayer::IsPointingAtWidget()
 {
 	if (!RWidgetInteractionComponent) return false;
-	return RWidgetInteractionComponent->GetHoveredWidgetComponent() ? true : false;
+
+	if (!RWidgetInteractionComponent->GetHoveredWidgetComponent())
+		return false;
+
+	return RWidgetInteractionComponent->GetHoveredWidgetComponent()==GetWidgetComponentAtForward();
 }
 
 void AMH_VRPlayer::SetClickAndWidgetActivation(bool bUsing)
@@ -1129,7 +1138,10 @@ void AMH_VRPlayer::SetWidgetInteractionClick(bool bPress)
 	if (bPress)
 		RWidgetInteractionComponent->PressPointerKey(EKeys::LeftMouseButton);
 	else
+	{
 		RWidgetInteractionComponent->ReleasePointerKey(EKeys::LeftMouseButton);
+		
+	}
 }
 
 void AMH_VRPlayer::SetWidgetComponent(bool bSet)
@@ -1146,6 +1158,23 @@ void AMH_VRPlayer::SetWidgetComponent(bool bSet)
 	{
 		CurrentFocusedUI = nullptr;
 	}
+}
+
+const UWidgetComponent* AMH_VRPlayer::GetWidgetComponentAtForward() const
+{
+	FVector Start = RWidgetInteractionComponent->GetComponentLocation();
+	FVector End = Start + (RWidgetInteractionComponent->GetForwardVector() * WidgetInteractionDistance);
+
+	FHitResult HitResult;
+	FCollisionQueryParams Params;
+	Params.AddIgnoredActor(this);
+
+	if (GetWorld()->LineTraceSingleByChannel(HitResult, Start, End, ECC_GameTraceChannel8, Params))
+	{
+		return Cast<UWidgetComponent>(HitResult.GetComponent());
+	}
+
+	return nullptr;
 }
 
 void AMH_VRPlayer::SetUseLineTraceEffect(bool bUse)
