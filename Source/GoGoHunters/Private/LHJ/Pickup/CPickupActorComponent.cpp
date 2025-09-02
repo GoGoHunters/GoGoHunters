@@ -20,7 +20,7 @@ void UCPickupActorComponent::BeginPlay()
 		if (tmpArr.Num() > 0)
 			PendingGrabComponent = Cast<UPrimitiveComponent>(tmpArr[0]);
 
-		SetGrabActorScale(OwnerActor->GetActorRelativeScale3D());
+		SetGrabActorScale(OwnerActor->GetActorScale3D());
 	}
 
 	if (!PendingGrabComponent)
