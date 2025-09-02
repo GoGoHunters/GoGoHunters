@@ -91,12 +91,18 @@ void ARestorePuzzleActor::InitPuzzle(const FCRelicData& InRelicData, ARestoreMan
 		if (Scene && Scene->ComponentHasTag("SnapPoints"))
 		{
 			Scene->SetWorldLocation(GuideMesh->GetComponentLocation());
+			//UE_LOG(LogTemp, Warning, TEXT("Found SnapPoint: %s at %s"), *Scene->GetName(), *Scene->GetComponentLocation().ToString());
 		}
 		else if (Scene && Scene->ComponentHasTag("SnapPoint"))
 		{
 			SnapPointTransforms.Add(Scene->GetComponentTransform());
 		}
 	}
+
+	/*for (int32 i = 0; i < SnapPointTransforms.Num(); ++i)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("SnapPointTransforms(%d): %s"), i, *SnapPointTransforms[i].GetLocation().ToString());
+	}*/
 
 	// 조각 목록 저장
 	PieceActors.Empty();
@@ -114,6 +120,7 @@ void ARestorePuzzleActor::InitPuzzle(const FCRelicData& InRelicData, ARestoreMan
 		{
 			PieceActors.Add(Piece);
 			Piece->SetPieceIndex(i); // 이름 순서대로 인덱스 지정
+			//UE_LOG(LogTemp, Warning, TEXT("PieceActors(%d): %s"), i, *Piece->GetName());
 		}
 	}
 #pragma endregion
@@ -181,7 +188,11 @@ void ARestorePuzzleActor::OnPuzzleCompleted()
 	if (GuideMesh) GuideMesh->DestroyComponent(true);
 
 	UStaticMeshComponent* CompletedMesh = Cast<UStaticMeshComponent>(SpawnedRelic->GetComponentsByTag(UStaticMeshComponent::StaticClass(), FName("Complete"))[0]);
-	if (CompletedMesh) CompletedMesh->SetHiddenInGame(false);
+	if (CompletedMesh)
+	{
+		CompletedMesh->SetHiddenInGame(false);
+		CompletedMesh->SetCollisionProfileName(FName("PhysicsActor"));
+	}
 	
 	// - 완료 이펙트/사운드 재생
 
