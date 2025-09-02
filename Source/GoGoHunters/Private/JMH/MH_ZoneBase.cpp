@@ -5,6 +5,7 @@
 #include "JMH/MH_MessageUI.h"
 #include "Components/BoxComponent.h"
 #include "JMH/MH_VRPlayer.h"
+#include "LHM/UI/RestoreUI.h"
 
 
 // Sets default values
@@ -28,9 +29,9 @@ AMH_ZoneBase::AMH_ZoneBase()
 	MessageWidgetComponent = CreateDefaultSubobject<UWidgetComponent>(TEXT("MessageUI"));
 	MessageWidgetComponent->SetupAttachment(RootComponent);
 
-	//현민
-	//RestoreListComponent = CreateDefaultSubobject<UWidgetComponent>(TEXT("RestoreListUI"));
-	//RestoreListComponent->SetupAttachment(RootComponent);
+	// 복원 리스트 UI
+	RestoreListComponent = CreateDefaultSubobject<UWidgetComponent>(TEXT("RestoreListUI"));
+	RestoreListComponent->SetupAttachment(RootComponent);
 	
 }
 
@@ -58,20 +59,6 @@ void AMH_ZoneBase::BeginPlay()
 			MessageUI->ShowButtons(true,false);
 		}
 	}
-	//현민
-	/*
-	if (RestoreListComponent)
-	{
-		if (RestoreListUIClass)
-		{
-			RestoreListComponent->SetWidgetClass(RestoreListUIClass);
-
-			MessageUI = Cast<UMH_MessageUI>(MessageWidgetComponent->GetUserWidgetObject());	
-		}
-		
-	}
-
-	*/
 }
 
 // Called every frame
@@ -140,8 +127,7 @@ void AMH_ZoneBase::OnZoneOverlapEnd(UPrimitiveComponent* OverlappedComponent, AA
 void AMH_ZoneBase::HandleMessageUIClose()
 {
 	MessageWidgetComponent->SetVisibility(false);
-	//현민
-	//RestoreListUI->SetVisibility(false);
+	RestoreListComponent->SetVisibility(false);
 }
 
 void AMH_ZoneBase::HandleMapInteraction()
@@ -195,7 +181,5 @@ void AMH_ZoneBase::HandleLobbyInteraction()
 
 void AMH_ZoneBase::HandleRestoreListInteraction()
 {
-	//현민
-	//RestoreListUI->SetVisibility(true);
-	
+	RestoreListComponent->SetVisibility(true);
 }

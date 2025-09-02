@@ -52,13 +52,6 @@ protected:
 	UPROPERTY(EditAnywhere, Category = "Zone")
 	TSubclassOf<class UMH_MessageUI> MessageUIClass;
 
-	//현민
-	//UPROPERTY(EditAnywhere, Category = "Zone")
-	//TSubclassOf<class URestoreRelicUI> RestoreListUIClass;
-
-	//UPROPERTY()
-	//class URestoreRelicUI* RestoreListUI;
-
 	UPROPERTY()
 	class UMH_MessageUI* MessageUI;
 
