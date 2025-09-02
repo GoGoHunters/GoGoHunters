@@ -47,6 +47,19 @@ private:
     float ImpactCooldown = 1.0f; // 초
     float ImpactSpeedThreshold = 50.0f; // (드롭 경고와 동일/별도)
 
+	// Feedback assets + 옵션
+	UPROPERTY(EditAnywhere, Category = "Feedback")
+	class USoundBase* HardImpactSFX = nullptr;
+
+	UPROPERTY(EditAnywhere, Category = "Feedback")
+	class UHapticFeedbackEffect_Base* HardImpactHaptic = nullptr;
+
+	UPROPERTY(EditAnywhere, Category = "Warning")
+	float WarningDelayAfterImpact = 2.0f;
+
+	// 충돌 → 피드백 → 지연 후 경고
+	void HandleHardImpactFeedbackAndWarn(UPrimitiveComponent* HitComp, float ImpactSpeed);
+
 protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	class UStaticMeshComponent* TweezersMeshL;

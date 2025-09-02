@@ -106,17 +106,7 @@ void ABrushTool::CheckBrushSwipe(float DeltaTime)
 	}
 	else if (bCanTriggerWarning && SwipeSpeed >= BrushSwipeThresholdMax)
 	{
-		Relic->CountWarning();
-
-		// 쿨타임 시작
-		bCanTriggerWarning = false;
-		GetWorld()->GetTimerManager().SetTimer(
-			WarningCooldownHandle,
-			this,
-			&ABrushTool::ResetWarningCooldown,
-			WarningCooldownDuration,
-			false
-		);
+		HandleBrushHardSwipeFeedbackAndWarn();
 	}
 }
 
@@ -190,6 +180,54 @@ void ABrushTool::SetIsBrushing(bool _bIsBrushing)
 	bIsBrushing = _bIsBrushing;
 
 	if (!bIsBrushing) StopFeedback();
+}
+
+void ABrushTool::HandleBrushHardSwipeFeedbackAndWarn(/*class ARelicsBase* Relic*/)
+{
+	if (!Relic) return;
+
+	// 1) 즉시 사운드
+	if (HardBrushSFX)
+	{
+		UGameplayStatics::PlaySoundAtLocation(this, HardBrushSFX, GetActorLocation());
+	}
+
+	// 2) 즉시 햅틱
+	if (APlayerController* PC = UGameplayStatics::GetPlayerController(GetWorld(), 0))
+	{
+		if (HardBrushHaptic)
+		{
+			PC->PlayHapticEffect(HardBrushHaptic, EControllerHand::Left);
+			//PC->PlayHapticEffect(HardBrushHaptic, EControllerHand::Right);
+		}
+	}
+
+	// 3) 2초 뒤 실제 경고 카운트
+	if (UWorld* World = GetWorld())
+	{
+		TWeakObjectPtr<ARelicsBase> RelicWeak = Relic;
+
+		FTimerHandle DelayHandle;
+		World->GetTimerManager().SetTimer(
+			DelayHandle,
+			FTimerDelegate::CreateLambda([this, RelicWeak]()
+			{
+				if (!IsValid(this) || !RelicWeak.IsValid()) return;
+
+				RelicWeak->CountWarning();
+
+				// 쿨타임 시작
+				bCanTriggerWarning = false;
+				GetWorld()->GetTimerManager().SetTimer(
+					WarningCooldownHandle,
+					this,
+					&ABrushTool::ResetWarningCooldown,
+					WarningCooldownDuration,
+					false
+					);
+			}
+		), WarningDelayAfterImpact, false);
+	}
 }
 
 void ABrushTool::ResetWarningCooldown()

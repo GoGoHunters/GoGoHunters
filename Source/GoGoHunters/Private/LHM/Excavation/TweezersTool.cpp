@@ -253,22 +253,45 @@ void ATweezersTool::OnRelicHit(UPrimitiveComponent* HitComp, AActor* OtherActor,
 
 	// 충돌 ‘순간’의 속도 사용
 	const float ImpactSpeed = HitComp->GetComponentVelocity().Size();
-	if (ImpactSpeed > ImpactSpeedThreshold)
-	{
-		// ExcavationManager 통해 WarningUI 호출
-		for (TActorIterator<AExcavationManager> It(GetWorld()); It; ++It)
-		{
-			if (AExcavationManager* Manager = *It)
-			{
-				if (Manager->WarningUI)
-				{
-					Manager->WarningUI->ShowNextWarning();
-				}
-				break;
-			}
-		}
+	if (ImpactSpeed <= ImpactSpeedThreshold) return;
 
-		UE_LOG(LogTemp, Warning, TEXT("[TweezersTool] Relic hit too hard! v=%.1f"), ImpactSpeed);
+	UE_LOG(LogTemp, Warning, TEXT("[TweezersTool] Relic hit too hard! v=%.1f"), ImpactSpeed);
+	HandleHardImpactFeedbackAndWarn(HitComp, ImpactSpeed);
+}
+
+void ATweezersTool::HandleHardImpactFeedbackAndWarn(UPrimitiveComponent* HitComp, float ImpactSpeed)
+{
+	// 1) 즉시 사운드
+	if (HardImpactSFX)
+	{
+		UGameplayStatics::PlaySoundAtLocation(this, HardImpactSFX, HitComp->GetComponentLocation());
+	}
+
+	// 2) 즉시 햅틱
+	if (APlayerController* PC = UGameplayStatics::GetPlayerController(GetWorld(), 0))
+	{
+		if (HardImpactHaptic)
+		{
+			PC->PlayHapticEffect(HardImpactHaptic, EControllerHand::Left);
+			//PC->PlayHapticEffect(HardImpactHaptic, EControllerHand::Right);
+		}
+	}
+
+	// 3) 2초 지연 후 WarningUI 증가
+	if (UWorld* World = GetWorld())
+	{
+		FTimerHandle WarnDelayHandle;
+		World->GetTimerManager().SetTimer(WarnDelayHandle, [this]()
+		{
+			for (TActorIterator<AExcavationManager> It(GetWorld()); It; ++It)
+			{
+				if (AExcavationManager* Manager = *It)
+				{
+					if (Manager->WarningUI) Manager->WarningUI->ShowNextWarning();
+					break;
+				}
+			}
+		}, WarningDelayAfterImpact, false);
 	}
 }
 
