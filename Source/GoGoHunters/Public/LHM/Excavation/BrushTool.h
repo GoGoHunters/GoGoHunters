@@ -78,6 +78,19 @@ public:
 	void SetIsBrushing(bool _bIsBrushing);
 	bool bIsBrushing = false;
 
+private:
+	UPROPERTY(EditAnywhere, Category = "Warning|Feedback")
+	USoundBase* HardBrushSFX = nullptr;
+
+	UPROPERTY(EditAnywhere, Category = "Warning|Feedback")
+	UHapticFeedbackEffect_Base* HardBrushHaptic = nullptr;
+
+	UPROPERTY(EditAnywhere, Category = "Warning")
+	float WarningDelayAfterImpact = 2.0f; // 2초 지연
+
+	// 경고 연출 + 지연 호출 래퍼
+	void HandleBrushHardSwipeFeedbackAndWarn(/*class ARelicsBase* Relic*/);
+
 	void ResetWarningCooldown();
 
 	FTimerHandle WarningCooldownHandle;
