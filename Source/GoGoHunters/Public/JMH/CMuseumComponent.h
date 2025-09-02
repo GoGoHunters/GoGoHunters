@@ -24,8 +24,8 @@ DECLARE_DYNAMIC_DELEGATE(FMakeGridCompleted);
 UENUM(BlueprintType)
 enum EMuseumState : uint8
 {
-	Display = 0 UMETA(DisplayName = "전시 모드"),
-	Decorate UMETA(DisplayName = "꾸미기 모드"),
+	Display = 0 UMETA(DisplayName = "관람 모드"),
+	Decorate UMETA(DisplayName = "유물배치 모드"),
 	Max UMETA(Hidden)
 };
 
