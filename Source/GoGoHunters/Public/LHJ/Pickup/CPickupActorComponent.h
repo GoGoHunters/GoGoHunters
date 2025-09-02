@@ -64,6 +64,27 @@ protected:
 	virtual void GrabUsingForRelicPiece();
 	virtual void ReleaseUsingForRelicPiece();
 
+	//MH
+	/*
+	UPROPERTY(EditDefaultsOnly, Category="Grab|Hand")
+	FName RightGrabSocket = TEXT("R_Intex_Grab");
+
+	UPROPERTY(EditDefaultsOnly, Category="Grab|Hand")
+	FName LeftGrabSocket  = TEXT("L_Intex_Grab");
+
+	UPROPERTY(Transient)
+	USceneComponent* CurrentGrabPoint = nullptr;
+
+	UPROPERTY(Transient)
+	FTransform GrabRelativeOffset;
+
+	UFUNCTION()
+	static USceneComponent* FindNearestGrabPoint(AActor* Piece, const FVector& HandLoc);
+
+	UFUNCTION()
+	static USkeletalMeshComponent* FindHandMesh(USceneComponent* AttachTo);*/
+	
+
 private:
 	bool bSetPlayerComp = false;
 	
