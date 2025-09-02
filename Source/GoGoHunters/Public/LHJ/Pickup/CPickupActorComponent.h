@@ -61,8 +61,8 @@ protected:
 	virtual void ReleaseUsingForRelic();
 	virtual void GrabUsingForRelic();
 
-	virtual void GrabUsingForRelicPiece();
-	virtual void ReleaseUsingForRelicPiece();
+	virtual void GrabUsingForRelicPieceGuide();
+	virtual void ReleaseUsingForRelicPieceGuide();
 
 	//MH
 	/*

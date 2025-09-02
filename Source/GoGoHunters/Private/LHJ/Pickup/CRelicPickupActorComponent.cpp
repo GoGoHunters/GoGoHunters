@@ -1,5 +1,6 @@
 #include "LHJ/Pickup/CRelicPickupActorComponent.h"
 
+#include "EngineUtils.h"
 #include "JMH/MH_GrabComp.h"
 #include "LHM/Restore/RestorePuzzleActor.h"
 #include "LHM/Restore/PieceActor.h"
