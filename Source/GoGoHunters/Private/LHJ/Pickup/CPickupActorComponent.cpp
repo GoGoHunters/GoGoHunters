@@ -57,7 +57,9 @@ void UCPickupActorComponent::TickComponent(float DeltaTime, ELevelTick TickType,
 	}
 #pragma endregion
 
-	if (bIsPulling)
+	if (!PendingGrabComponent) return;
+	
+	if (bIsPulling && FirstHandComponent)
 	{
 		FVector Target = FirstHandComponent->GetComponentLocation(); //손 위치
 		FVector Current = PendingGrabComponent->GetComponentLocation(); // 현재 위치
@@ -119,7 +121,11 @@ void UCPickupActorComponent::TickComponent(float DeltaTime, ELevelTick TickType,
 void UCPickupActorComponent::Pickup(USceneComponent* AttachTo, bool IsPulling)
 {
 	if (!AttachTo) return;
-	if (!PendingGrabComponent) return;
+	if (!PendingGrabComponent)
+	{
+		UE_LOG(LogTemp, Error, TEXT("[%s] PendingGrabComponent is null, Please Enter Tag"), *OwnerActor->GetName());
+		return;
+	}
 
 	// 양손 그랩 가능
 	if (CanTwoHandGrab)
@@ -164,6 +170,12 @@ void UCPickupActorComponent::Pickup(USceneComponent* AttachTo, bool IsPulling)
 
 void UCPickupActorComponent::Drop(USceneComponent* DropFrom)
 {
+	if (!PendingGrabComponent)
+	{
+		UE_LOG(LogTemp, Error, TEXT("[%s] PendingGrabComponent is null, Please Enter Tag"), *OwnerActor->GetName());
+		return;
+	}
+	
 	if (DropFrom == SecondHandComponent)
 	{
 		SecondHandComponent = nullptr;
