@@ -74,7 +74,7 @@ protected:
 	UPROPERTY(meta = (BindWidget))
 	class UButton* Btn_Later;
 
-	UPROPERTY(meta = (BindeWidget))
+	UPROPERTY(meta = (BindWidget))
 	class UOverlay* Overlay_Check;
 	
 	UPROPERTY(meta = (BindWidget))
@@ -83,7 +83,7 @@ protected:
 	UPROPERTY(meta = (BindWidget))
 	class UButton* Btn_No;
 	
-	UPROPERTY(meta = (BindeWidget))
+	UPROPERTY(meta = (BindWidget))
 	class UOverlay* Overlay_Reselect;
 
 	UPROPERTY(meta = (BindWidget))
