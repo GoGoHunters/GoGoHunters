@@ -20,7 +20,7 @@ void UCPickupActorComponent::BeginPlay()
 		if (tmpArr.Num() > 0)
 			PendingGrabComponent = Cast<UPrimitiveComponent>(tmpArr[0]);
 
-		SetGrabActorScale(OwnerActor->GetActorRelativeScale3D());
+		SetGrabActorScale(OwnerActor->GetActorScale3D());
 	}
 
 	if (!PendingGrabComponent)
@@ -260,8 +260,12 @@ void UCPickupActorComponent::Pickup(USceneComponent* AttachTo, bool IsPulling)
 		PendingGrabComponent->SetCollisionProfileName(GrabProfileName);
 		// PendingGrabComponent->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 		bIsPulling = IsPulling;
+		if (!bIsPulling)
+			PendingGrabComponent->AttachToComponent(FirstHandComponent,
+													FAttachmentTransformRules::KeepWorldTransform);
+		
 		GrabUsingForRelic();
-		GrabUsingForRelicPiece();
+		GrabUsingForRelicPieceGuide();
 		Player->SetPlayerState(EPlayerVRState::GrabbingObject);
 	}
 }
@@ -296,7 +300,7 @@ void UCPickupActorComponent::Drop(USceneComponent* DropFrom)
 			PendingGrabComponent->SetCollisionResponseToChannels(GrabCollisionResponse);
 			OwnerActor->SetActorScale3D(OriginScale3D);
 			ReleaseUsingForRelic();
-			ReleaseUsingForRelicPiece();
+			ReleaseUsingForRelicPieceGuide();
 		}
 	}
 }
@@ -316,11 +320,11 @@ void UCPickupActorComponent::ReleaseUsingForRelic()
 {
 }
 
-void UCPickupActorComponent::GrabUsingForRelicPiece()
+void UCPickupActorComponent::GrabUsingForRelicPieceGuide()
 {
 }
 
-void UCPickupActorComponent::ReleaseUsingForRelicPiece()
+void UCPickupActorComponent::ReleaseUsingForRelicPieceGuide()
 {
 }
 //MH

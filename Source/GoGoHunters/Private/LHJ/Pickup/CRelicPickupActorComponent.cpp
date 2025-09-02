@@ -1,6 +1,9 @@
 #include "LHJ/Pickup/CRelicPickupActorComponent.h"
 
+#include "EngineUtils.h"
 #include "JMH/MH_GrabComp.h"
+#include "LHM/Restore/RestorePuzzleActor.h"
+#include "LHM/Restore/PieceActor.h"
 
 UCRelicPickupActorComponent::UCRelicPickupActorComponent()
 {
@@ -25,6 +28,20 @@ void UCRelicPickupActorComponent::Pickup(USceneComponent* AttachTo, bool IsPulli
 void UCRelicPickupActorComponent::Drop(USceneComponent* DropFrom)
 {
 	Super::Drop(DropFrom);
+
+	ARestorePuzzleActor* PuzzleActor = nullptr;
+	for (TActorIterator<ARestorePuzzleActor> It(GetWorld()); It; ++It)
+	{
+		PuzzleActor = *It;
+		if (PuzzleActor)
+		{
+			if (APieceActor* OwnerPiece = Cast<APieceActor>(OwnerActor))
+			{
+				PuzzleActor->TrySnapPiece(OwnerPiece);
+			}
+		}
+		break;
+	}
 }
 
 void UCRelicPickupActorComponent::GrabUsingForRelic()

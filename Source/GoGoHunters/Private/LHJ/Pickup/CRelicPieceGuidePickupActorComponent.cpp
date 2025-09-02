@@ -9,13 +9,13 @@ void UCRelicPieceGuidePickupActorComponent::TickComponent(float DeltaTime, enum 
 		UpdateRotationFromController();
 }
 
-void UCRelicPieceGuidePickupActorComponent::GrabUsingForRelicPiece()
+void UCRelicPieceGuidePickupActorComponent::GrabUsingForRelicPieceGuide()
 {
 	LastControllerQuat = FirstHandComponent->GetComponentRotation().Quaternion();
 	bIsPulling = false;
 }
 
-void UCRelicPieceGuidePickupActorComponent::ReleaseUsingForRelicPiece()
+void UCRelicPieceGuidePickupActorComponent::ReleaseUsingForRelicPieceGuide()
 {
 	PendingGrabComponent->SetSimulatePhysics(false);
 }
