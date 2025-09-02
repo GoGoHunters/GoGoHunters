@@ -73,7 +73,9 @@ void UCMuseumComponent::OnMenuButtonClicked()
 {
 	if (!OwnerPlayer) return;
 	if (!UGameplayStatics::GetCurrentLevelName(GetWorld()).Contains(MuseumLevelName)) return;
-	SwitchState();
+
+	if (MuseumState == Decorate)
+		SwitchState();
 }
 
 void UCMuseumComponent::PreviewMode()
