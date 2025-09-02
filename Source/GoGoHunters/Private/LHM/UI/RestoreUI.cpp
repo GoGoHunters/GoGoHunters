@@ -12,6 +12,7 @@
 #include "Components/TextBlock.h"
 #include "Components/Overlay.h"
 #include "Components/OverlaySlot.h"
+#include "Components/Image.h"
 
 void URestoreUI::NativeConstruct()
 {
@@ -37,8 +38,15 @@ void URestoreUI::NativeConstruct()
 		InitRelicList(Filtered);
 	}
 
-	if(Btn_Prev) Btn_Prev->OnClicked.AddDynamic(this, &URestoreUI::OnPrevPage);
-	if(Btn_Later) Btn_Later->OnClicked.AddDynamic(this, &URestoreUI::OnNextPage);
+	if (Overlay_Check) Overlay_Check->SetVisibility(ESlateVisibility::Hidden);
+	if (Overlay_Reselect) Overlay_Reselect->SetVisibility(ESlateVisibility::Hidden);
+
+	if (Btn_Prev) Btn_Prev->OnClicked.AddDynamic(this, &URestoreUI::OnPrevPage);
+	if (Btn_Later) Btn_Later->OnClicked.AddDynamic(this, &URestoreUI::OnNextPage);
+
+	if (Btn_Yes) Btn_Yes->OnClicked.AddDynamic(this, &URestoreUI::OnYes);
+	if (Btn_No) Btn_No->OnClicked.AddDynamic(this, &URestoreUI::OnNo);
+	if (Btn_Reselect) Btn_Reselect->OnClicked.AddDynamic(this, &URestoreUI::OnReselect);
 
 	FindAndConnectRestoreManager();
 }
@@ -51,7 +59,7 @@ void URestoreUI::FindAndConnectRestoreManager()
 		break;
 	}
 
-	RestoreManager->SetRestoreUI(this);
+	if(RestoreManager) RestoreManager->SetRestoreUI(this);
 }
 
 void URestoreUI::InitRelicList(const TArray<FCRelicData>& RelicList)
@@ -189,16 +197,40 @@ void URestoreUI::OnPrevPage()
 	}
 }
 
-void URestoreUI::HandleRelicItemClicked(const FCRelicData& RelicData)
+void URestoreUI::OnYes()
 {
 	if (RestoreManager)
 	{
-		RestoreManager->StartRestoration(RelicData);
-		this->SetVisibility(ESlateVisibility::Hidden);
-		UE_LOG(LogTemp, Warning, TEXT("Starting restoration for relic: %s"), *RelicData.RelicName.ToString());
+		RestoreManager->StartRestoration(SelectedRelicData);
+		if (Overlay_Check) Overlay_Check->SetVisibility(ESlateVisibility::Hidden);
+		if (Img_BG) Img_BG->SetVisibility(ESlateVisibility::Hidden);
+		if (Overlay_List) Overlay_List->SetVisibility(ESlateVisibility::Hidden);
+		if (Overlay_Reselect) Overlay_Reselect->SetVisibility(ESlateVisibility::Visible);
+
+		UE_LOG(LogTemp, Warning, TEXT("Starting restoration for relic: %s"), *SelectedRelicData.RelicName.ToString());
 	}
 	else
 	{
 		UE_LOG(LogTemp, Warning, TEXT("RestoreManager is null in RestoreUI"));
 	}
+}
+
+void URestoreUI::OnNo()
+{
+	if (Overlay_Check) Overlay_Check->SetVisibility(ESlateVisibility::Hidden);
+}
+
+void URestoreUI::OnReselect()
+{
+	if (Overlay_Reselect) Overlay_Reselect->SetVisibility(ESlateVisibility::Hidden);
+
+	if (Img_BG) Img_BG->SetVisibility(ESlateVisibility::Visible);
+	if (Overlay_List) Overlay_List->SetVisibility(ESlateVisibility::Visible);
+}
+
+void URestoreUI::HandleRelicItemClicked(const FCRelicData& RelicData)
+{
+	SelectedRelicData = RelicData;
+
+	if (Overlay_Check) Overlay_Check->SetVisibility(ESlateVisibility::Visible);
 }

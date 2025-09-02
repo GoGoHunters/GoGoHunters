@@ -18,8 +18,8 @@ class GOGOHUNTERS_API URestoreUI : public UUserWidget
 protected:
 	virtual void NativeConstruct() override;
 
-public:
-	void PopulateRelicList(const TArray<FCRelicData>& RelicList);
+//public:
+//	void PopulateRelicList(const TArray<FCRelicData>& RelicList);
 
 protected:
 	void FindAndConnectRestoreManager();
@@ -33,6 +33,13 @@ protected:
 	UFUNCTION()
 	void OnPrevPage();
 	
+	UFUNCTION()
+	void OnYes();
+	UFUNCTION()
+	void OnNo();
+	UFUNCTION()
+	void OnReselect();
+
 	UFUNCTION()
 	void HandleRelicItemClicked(const FCRelicData& RelicData);
 
@@ -57,9 +64,30 @@ protected:
 	TArray<UOverlay*> RelicSlotOverlays;
 
 	UPROPERTY(meta = (BindWidget))
+	class UImage* Img_BG;
+
+	UPROPERTY(meta = (BindWidget))
+	class UOverlay* Overlay_List;
+
+	UPROPERTY(meta = (BindWidget))
 	class UButton* Btn_Prev;
 	UPROPERTY(meta = (BindWidget))
 	class UButton* Btn_Later;
+
+	UPROPERTY(meta = (BindeWidget))
+	class UOverlay* Overlay_Check;
+	
+	UPROPERTY(meta = (BindWidget))
+	class UButton* Btn_Yes;
+
+	UPROPERTY(meta = (BindWidget))
+	class UButton* Btn_No;
+	
+	UPROPERTY(meta = (BindeWidget))
+	class UOverlay* Overlay_Reselect;
+
+	UPROPERTY(meta = (BindWidget))
+	class UButton* Btn_Reselect;
 
 	UPROPERTY(meta = (BindWidget))
 	class UTextBlock* Txt_Page;
@@ -73,6 +101,8 @@ protected:
 	int32 MaxPage = 0;
 
 	TArray<FCRelicData> RestoreRelicList;
+
+	FCRelicData SelectedRelicData;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "RestoreUI")
 	TSubclassOf<class URestoreRelicUI> RelicItemClass;
