@@ -1,5 +1,10 @@
 #include "LHJ/Pickup/CRelicPieceGuidePickupActorComponent.h"
 
+UCRelicPieceGuidePickupActorComponent::UCRelicPieceGuidePickupActorComponent()
+{
+	bCanAttach = false;
+}
+
 void UCRelicPieceGuidePickupActorComponent::TickComponent(float DeltaTime, enum ELevelTick TickType,
                                                           FActorComponentTickFunction* ThisTickFunction)
 {

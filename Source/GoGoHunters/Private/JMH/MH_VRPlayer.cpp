@@ -362,7 +362,7 @@ void AMH_VRPlayer::TriggerInteract(const FInputActionInstance& IA_Instance)
 	FVector End = FVector::ZeroVector;
 	bInteracteAnyComponent = false;
 	if (IsPointingAtWidget())
-	{		
+	{
 		if (RWidgetInteractionComponent->IsOverInteractableWidget())
 		{
 			SetClickAndWidgetActivation(true);
@@ -393,16 +393,16 @@ void AMH_VRPlayer::TriggerInteract(const FInputActionInstance& IA_Instance)
 	{
 		// 월드맵 상호작용
 		// 함수 내부에서 UI 업데이트까지 수행
-		TryWorldMapInteraction(IA_Instance);
+		TryWorldMapInteraction(IA_Instance);		
 	}
 	
 	// 아무 곳에도 닿지 않았으면
 	if (!bInteracteAnyComponent)
 	{
-		// 사정거리 끝까지 그림
-		// DrawDebugLine(GetWorld(), Start, End, FColor::Red, false, 0.0f, 0.0f, 1.0f);
-		if (CurrentState == EPlayerVRState::UsingTool || CurrentState == EPlayerVRState::Excavating)
+		if (DetectionTool || ShovelTool || BrushTool || TweezersTool)
+		{
 			UpdateDrawLineTraceEffect(Start, Start);
+		}
 		else
 		{
 			End = RWidgetInteractionComponent->GetComponentLocation() + RWidgetInteractionComponent->GetForwardVector() * WidgetInteractionDistance;

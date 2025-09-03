@@ -27,6 +27,8 @@ protected:
 	FName PickupName = FName("Pickup");
 	UPROPERTY(EditAnywhere, Category="Pickup")
 	bool CanTwoHandGrab = false;
+	UPROPERTY(EditDefaultsOnly, Category="Pickup")
+	bool bCanAttach = true;	
 	UPROPERTY(EditAnywhere, Category="Pickup")
 	float GrabPullSpeed = 5.0f;
 	UPROPERTY(EditAnywhere, Category="Pickup")
@@ -37,7 +39,7 @@ protected:
 	UPROPERTY(VisibleAnywhere, Category="Pickup")
 	FVector MinScale3D;
 	UPROPERTY(VisibleAnywhere, Category="Pickup")
-	FVector MaxScale3D;
+	FVector MaxScale3D;	
 
 	UPROPERTY()
 	TObjectPtr<AActor> OwnerActor = nullptr;
