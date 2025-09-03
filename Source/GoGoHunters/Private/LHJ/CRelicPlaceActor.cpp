@@ -69,7 +69,7 @@ void ACRelicPlaceActor::UpdateGridMeshComponents() const
 	{
 		PlaceMesh->SetVisibility(true);
 
-		FColor Color = bRegisterRelic ? FColor::Red : FColor::Green;
+		FColor Color = bRegisterRelic ? FColor(79, 128, 255, 1.0) : FColor::Green;
 		UMaterialInstanceDynamic* DynamicMaterial = Cast<UMaterialInstanceDynamic>(PlaceMesh->GetMaterial(0));
 		if (DynamicMaterial)
 			DynamicMaterial->SetVectorParameterValue(TEXT("Color"), FLinearColor(Color));
