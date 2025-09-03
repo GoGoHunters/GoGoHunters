@@ -61,6 +61,12 @@ void UCPickupActorComponent::TickComponent(float DeltaTime, ELevelTick TickType,
 	
 	if (bIsPulling && FirstHandComponent)
 	{
+		if (!bCanAttach)
+		{
+			bIsPulling = false;
+			return;
+		}
+		
 		FVector Target = FirstHandComponent->GetComponentLocation(); //손 위치
 		FVector Current = PendingGrabComponent->GetComponentLocation(); // 현재 위치
 		FVector NewPos = FMath::VInterpTo(Current, Target, DeltaTime, GrabPullSpeed);
@@ -166,7 +172,7 @@ void UCPickupActorComponent::Pickup(USceneComponent* AttachTo, bool IsPulling)
 			PendingGrabComponent->SetCollisionProfileName(GrabProfileName);
 			bIsPulling = IsPulling;
 
-			if (!bIsPulling)
+			if (!bIsPulling && bCanAttach)
 				PendingGrabComponent->AttachToComponent(FirstHandComponent,
 				                                        FAttachmentTransformRules::KeepWorldTransform);
 
@@ -260,7 +266,7 @@ void UCPickupActorComponent::Pickup(USceneComponent* AttachTo, bool IsPulling)
 		PendingGrabComponent->SetCollisionProfileName(GrabProfileName);
 		// PendingGrabComponent->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 		bIsPulling = IsPulling;
-		if (!bIsPulling)
+		if (!bIsPulling && bCanAttach)
 			PendingGrabComponent->AttachToComponent(FirstHandComponent,
 													FAttachmentTransformRules::KeepWorldTransform);
 		
