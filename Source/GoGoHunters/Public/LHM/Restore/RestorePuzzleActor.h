@@ -42,6 +42,7 @@ protected:
 	UPROPERTY(EditDefaultsOnly)
 	UStaticMeshComponent* RotationBoard;
 
+
 	UPROPERTY()
 	AActor* SpawnedRelic;
 
@@ -56,5 +57,19 @@ protected:
 
 private:
 	FCRelicData RelicData;
+
+	UStaticMeshComponent* GuideMesh;
+
+	void PlayFeedback(bool bSuccess);
+
+	// Feedback
+	UPROPERTY(EditAnywhere, Category = "Feedback")
+	class USoundBase* SuccessSFX = nullptr;
+	
+	UPROPERTY(EditAnywhere, Category = "Feedback")
+	class USoundBase* FailSFX = nullptr;
+
+	UPROPERTY(EditAnywhere, Category = "Feedback")
+	class UHapticFeedbackEffect_Base* FailHaptic = nullptr;
 
 };

@@ -5,6 +5,7 @@
 #include "LHM/Restore/PieceActor.h"
 #include "LHM/Restore/RestoreManager.h"
 #include "EngineUtils.h"
+#include "Kismet/GameplayStatics.h"
 
 // Sets default values
 ARestorePuzzleActor::ARestorePuzzleActor()
@@ -62,7 +63,7 @@ void ARestorePuzzleActor::InitPuzzle(const FCRelicData& InRelicData, ARestoreMan
 
 #pragma region SnapPointTransforms & PieceActors 저장
 	// GuideMesh & CompletedMesh 위치 조정
-	UStaticMeshComponent* GuideMesh = Cast<UStaticMeshComponent>(SpawnedRelic->GetComponentsByTag(UStaticMeshComponent::StaticClass(), FName("Guide"))[0]);
+	/*UStaticMeshComponent* */GuideMesh = Cast<UStaticMeshComponent>(SpawnedRelic->GetComponentsByTag(UStaticMeshComponent::StaticClass(), FName("Guide"))[0]);
 	if (GuideMesh)
 	{
 		GuideMesh->SetWorldLocation(RotationBoard->GetComponentLocation() + FVector(0, 0, 25.5f));
@@ -128,6 +129,9 @@ void ARestorePuzzleActor::TrySnapPiece(class APieceActor* Piece)
 	const float SnapRadius = 30.f;
 	const float Dist = FVector::Dist(SnapPoint->GetComponentLocation(), Piece->GetActorLocation());
 
+	const float GuideRadius = 30.f;
+	const float GuideDist = FVector::Dist(GuideMesh->GetComponentLocation(), Piece->GetActorLocation());
+
 	if (Dist < SnapRadius)
 	{
 		// 1. DetachFromActor
@@ -147,12 +151,27 @@ void ARestorePuzzleActor::TrySnapPiece(class APieceActor* Piece)
 			FAttachmentTransformRules::KeepWorldTransform
 		);
 
-		UE_LOG(LogTemp, Warning, TEXT("Second Attach Attempt: %s"),
-			   bAttachSuccess ? TEXT("True") : TEXT("False"));
+		UE_LOG(LogTemp, Warning, TEXT("Second Attach Attempt: %s"), bAttachSuccess ? TEXT("True") : TEXT("False"));
 
 		Piece->SetSnapped(true); // 상태 기록
 		Piece->DestroyPickupComp(); // PickupComponent 제거
+
+		PlayFeedback(true);
+
 		CheckPuzzleCompleted();
+	}
+	else if (Dist > SnapRadius && GuideDist < GuideRadius)
+	{
+		// 튕겨나가는 효과
+		if (UPrimitiveComponent* Prim = Cast<UPrimitiveComponent>(Piece->GetRootComponent()))
+		{
+			FVector PushDir = (Piece->GetActorLocation() - SnapPoint->GetComponentLocation()).GetSafeNormal();
+			Prim->AddImpulse(PushDir * 300.f, NAME_None, true);
+		}
+
+		UE_LOG(LogTemp, Warning, TEXT("TrySnapPiece: Fail (Dist=%.1f)"), Dist);
+
+		PlayFeedback(false);
 	}
 }
 
@@ -191,7 +210,7 @@ void ARestorePuzzleActor::OnPuzzleCompleted()
 	}
 
 	// 가이드 메시 제거 및 완성된 유물 메시 가시화
-	UStaticMeshComponent* GuideMesh = Cast<UStaticMeshComponent>(SpawnedRelic->GetComponentsByTag(UStaticMeshComponent::StaticClass(), FName("Guide"))[0]);
+	/*UStaticMeshComponent* GuideMesh = Cast<UStaticMeshComponent>(SpawnedRelic->GetComponentsByTag(UStaticMeshComponent::StaticClass(), FName("Guide"))[0]);*/
 	if (GuideMesh) GuideMesh->DestroyComponent(true);
 
 	UStaticMeshComponent* CompletedMesh = Cast<UStaticMeshComponent>(SpawnedRelic->GetComponentsByTag(UStaticMeshComponent::StaticClass(), FName("Complete"))[0]);
@@ -206,5 +225,25 @@ void ARestorePuzzleActor::OnPuzzleCompleted()
 	// 유물 복원 완료 처리
 	RelicData.IsRecover = true;
 	RestoreManager->NotifyPuzzleCompleted(this);
+}
+
+void ARestorePuzzleActor::PlayFeedback(bool bSuccess)
+{
+	if(bSuccess)
+	{
+		if (SuccessSFX) UGameplayStatics::PlaySoundAtLocation(this, SuccessSFX, GetActorLocation());
+	}
+	else
+	{
+		if (APlayerController* PC = UGameplayStatics::GetPlayerController(GetWorld(), 0))
+		{
+			if (FailSFX && FailHaptic)
+			{
+				UGameplayStatics::PlaySoundAtLocation(this, FailSFX, GetActorLocation());
+				PC->PlayHapticEffect(FailHaptic, EControllerHand::Left);
+				PC->PlayHapticEffect(FailHaptic, EControllerHand::Right);
+			}
+		}
+	}
 }
 
