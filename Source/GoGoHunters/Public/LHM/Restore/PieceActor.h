@@ -30,6 +30,8 @@ public:
 	void SetSnapped(bool b) { bSnapped = b; }
 	bool IsSnapped() const { return bSnapped; }
 
+	void DestroyPickupComp();
+
 private:
 	UPROPERTY(VisibleAnywhere)
 	int32 PieceIndex = -1;
