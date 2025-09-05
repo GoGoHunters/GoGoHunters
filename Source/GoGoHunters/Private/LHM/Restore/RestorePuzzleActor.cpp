@@ -130,21 +130,17 @@ void ARestorePuzzleActor::TrySnapPiece(class APieceActor* Piece)
 
 	if (Dist < SnapRadius)
 	{
-		// 1. 강제로 Mobility를 Movable로 설정
-		SnapPoint->SetMobility(EComponentMobility::Movable);
-		Piece->GetRootComponent()->SetMobility(EComponentMobility::Movable);
-
-		// 2. DetachFromActor
+		// 1. DetachFromActor
 		Piece->DetachFromActor(FDetachmentTransformRules::KeepWorldTransform);
 
-		// 3. 물리 먼저 끄기
+		// 2. 물리 먼저 끄기
 		if (UPrimitiveComponent* Primitive = Cast<UPrimitiveComponent>(Piece->GetRootComponent()))
 		{
 			Primitive->SetSimulatePhysics(false);
 			Primitive->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 		}
 
-		// 4. AttachToComponent
+		// 3. AttachToComponent
 		Piece->SetActorLocationAndRotation(SnapPoint->GetComponentLocation(), SnapPoint->GetComponentRotation());
 		bool bAttachSuccess = Piece->AttachToComponent(
 			SnapPoint,
