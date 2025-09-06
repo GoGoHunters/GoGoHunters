@@ -217,7 +217,7 @@ void ARestorePuzzleActor::OnPuzzleCompleted()
 	if (CompletedMesh)
 	{
 		CompletedMesh->SetHiddenInGame(false);
-		CompletedMesh->SetCollisionProfileName(FName("PhysicsActor"));
+		CompletedMesh->SetCollisionProfileName(FName("GrabbingObject"));
 	}
 	
 	// - 완료 이펙트/사운드 재생

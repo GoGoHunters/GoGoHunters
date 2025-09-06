@@ -58,6 +58,7 @@ protected:
 private:
 	FCRelicData RelicData;
 
+	UPROPERTY()
 	UStaticMeshComponent* GuideMesh;
 
 	void PlayFeedback(bool bSuccess);

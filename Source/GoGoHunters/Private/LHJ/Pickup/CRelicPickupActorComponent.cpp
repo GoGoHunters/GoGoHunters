@@ -44,13 +44,13 @@ void UCRelicPickupActorComponent::Drop(USceneComponent* DropFrom)
 	}
 }
 
-void UCRelicPickupActorComponent::GrabUsingForRelic()
+void UCRelicPickupActorComponent::GrabOverrideFunc()
 {
 	if (!OwnerActor) return;
 	GrabComp->RelicGrab(OwnerActor);
 }
 
-void UCRelicPickupActorComponent::ReleaseUsingForRelic()
+void UCRelicPickupActorComponent::ReleaseOverrideFunc()
 {
 	if (!OwnerActor) return;
 	GrabComp->RelicUnGrab(OwnerActor);

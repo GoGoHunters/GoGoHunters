@@ -3,6 +3,7 @@
 #include "MotionControllerComponent.h"
 #include "JMH/MH_GrabComp.h"
 #include "JMH/MH_VRPlayer.h"
+#include "LHJ/Pickup/CRestorePickupActorComponent.h"
 
 UCPickupActorComponent::UCPickupActorComponent()
 {
@@ -29,6 +30,7 @@ void UCPickupActorComponent::BeginPlay()
 	}
 	else
 	{
+		OriginPhysics = PendingGrabComponent->IsSimulatingPhysics();
 		OriginProfileName = PendingGrabComponent->GetCollisionProfileName();
 		GrabCollisionResponse = PendingGrabComponent->GetCollisionResponseToChannels();
 	}
@@ -133,6 +135,7 @@ void UCPickupActorComponent::Pickup(USceneComponent* AttachTo, bool IsPulling)
 		return;
 	}
 
+	if (this->IsA(UCRestorePickupActorComponent::StaticClass()) && PendingGrabComponent->bHiddenInGame) return;
 	//MH
 
 	if (!Player)
@@ -252,7 +255,7 @@ void UCPickupActorComponent::Pickup(USceneComponent* AttachTo, bool IsPulling)
 			}
 			// === 여기까지 추가 끝 ===
 */
-			GrabUsingForRelic();
+			GrabOverrideFunc();
 			Player->SetPlayerState(EPlayerVRState::GrabbingObject);
 
 			GrabRotation = OwnerActor->GetActorRotation();
@@ -270,8 +273,7 @@ void UCPickupActorComponent::Pickup(USceneComponent* AttachTo, bool IsPulling)
 			PendingGrabComponent->AttachToComponent(FirstHandComponent,
 													FAttachmentTransformRules::KeepWorldTransform);
 		
-		GrabUsingForRelic();
-		GrabUsingForRelicPieceGuide();
+		GrabOverrideFunc();
 		Player->SetPlayerState(EPlayerVRState::GrabbingObject);
 	}
 }
@@ -283,6 +285,8 @@ void UCPickupActorComponent::Drop(USceneComponent* DropFrom)
 		UE_LOG(LogTemp, Error, TEXT("[%s] PendingGrabComponent is null, Please Enter Tag"), *OwnerActor->GetName());
 		return;
 	}
+
+	if (this->IsA(UCRestorePickupActorComponent::StaticClass()) && PendingGrabComponent->bHiddenInGame) return;
 	
 	if (DropFrom == SecondHandComponent)
 	{
@@ -301,12 +305,11 @@ void UCPickupActorComponent::Drop(USceneComponent* DropFrom)
 		}
 		else
 		{
-			PendingGrabComponent->SetSimulatePhysics(true);
+			PendingGrabComponent->SetSimulatePhysics(OriginPhysics);
 			PendingGrabComponent->SetCollisionProfileName(OriginProfileName);
 			PendingGrabComponent->SetCollisionResponseToChannels(GrabCollisionResponse);
 			OwnerActor->SetActorScale3D(OriginScale3D);
-			ReleaseUsingForRelic();
-			ReleaseUsingForRelicPieceGuide();
+			ReleaseOverrideFunc();
 		}
 	}
 }
@@ -318,21 +321,14 @@ void UCPickupActorComponent::SetGrabActorScale(const FVector& Scale3D)
 	MaxScale3D = OriginScale3D * MaxScalePercent;
 }
 
-void UCPickupActorComponent::GrabUsingForRelic()
+void UCPickupActorComponent::GrabOverrideFunc()
 {
 }
 
-void UCPickupActorComponent::ReleaseUsingForRelic()
+void UCPickupActorComponent::ReleaseOverrideFunc()
 {
 }
 
-void UCPickupActorComponent::GrabUsingForRelicPieceGuide()
-{
-}
-
-void UCPickupActorComponent::ReleaseUsingForRelicPieceGuide()
-{
-}
 //MH
 /*
 USceneComponent* UCPickupActorComponent::FindNearestGrabPoint(AActor* Piece, const FVector& HandLoc)
