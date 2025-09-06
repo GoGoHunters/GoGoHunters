@@ -20,6 +20,6 @@ private:
 	UCRelicPickupActorComponent();
 	virtual void BeginPlay() override;
 	virtual void TickComponent(float DeltaTime, enum ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
-	virtual void GrabUsingForRelic() override;
-	virtual void ReleaseUsingForRelic() override;
+	virtual void GrabOverrideFunc() override;
+	virtual void ReleaseOverrideFunc() override;
 };
