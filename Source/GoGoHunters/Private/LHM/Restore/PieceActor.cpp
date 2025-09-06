@@ -2,6 +2,7 @@
 
 
 #include "LHM/Restore/PieceActor.h"
+#include "LHJ/Pickup/CRelicPickupActorComponent.h"
 
 // Sets default values
 APieceActor::APieceActor()
@@ -23,5 +24,13 @@ void APieceActor::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
+}
+
+void APieceActor::DestroyPickupComp()
+{  
+    if (UActorComponent* PickupComp = FindComponentByClass<UCRelicPickupActorComponent>())
+    {
+        PickupComp->DestroyComponent();
+    }
 }
 

@@ -96,7 +96,7 @@ private:
 	FTimerHandle WarningCooldownHandle;
 
 	bool bCanTriggerWarning = true;
-	float WarningCooldownDuration = 1.0f;
+	float WarningCooldownDuration = 3.0f;
 
 // 사운드 재생 쿨타임
 private:

@@ -157,38 +157,6 @@ void ATweezersTool::SetIsPickingUp(bool _bIsPickingUp)
 
 		// 유물 놓기
 		DropPickedRelic();
-		/*if (PickedRelic)
-		{
-			for (UStaticMeshComponent* Relic : PickedRelic->RelicsMeshes)
-			{
-				if (Relic->GetAttachParent() == PickupPoint)
-				{
-					Relic->DetachFromComponent(FDetachmentTransformRules::KeepWorldTransform);
-					Relic->SetSimulatePhysics(true);
-					Relic->SetCollisionProfileName(FName("Relic_Physics"));
-					Relic->SetGenerateOverlapEvents(true);
-					Relic->BodyInstance.bUseCCD = true; // 빠르게 낙하 시 충돌 누락 방지
-
-					// 던지기
-					if (AttachBase)
-					{
-						FVector Velocity = (LastAttachLocation - PreviousAttachLocation) / FMath::Max(GetWorld()->GetDeltaSeconds(), 0.001f);
-						FVector Direction = Velocity.GetSafeNormal();
-						float Speed = Velocity.Size();
-						//UE_LOG(LogTemp, Warning, TEXT("[TweezersTool] Velocity Raw: %s | SpeedRaw: %.2f"), *Velocity.ToString(), Speed);
-
-						if (!Direction.IsNearlyZero())
-						{
-							Relic->SetPhysicsLinearVelocity(Direction * Speed);
-						}
-					}
-					//UE_LOG(LogTemp, Log, TEXT("[TweezersTool] Dropped relic mesh"));
-					break;
-				}
-			}
-			PickedRelic = nullptr;
-			bHasJustDropped = true;
-		}*/
 	}
 }
 

@@ -33,7 +33,6 @@ public:
 	void OnPuzzleCompleted();
 
 	const FCRelicData& GetRelicData() const { return RelicData; }
-	TArray<FTransform> GetSnapPointTransforms() const { return SnapPointTransforms; }
 	TArray<class AActor*> GetPieceActors() const { return PieceActors; }
 
 protected:
@@ -43,8 +42,6 @@ protected:
 	UPROPERTY(EditDefaultsOnly)
 	UStaticMeshComponent* RotationBoard;
 
-	//UPROPERTY()
-	//UStaticMeshComponent* GuideMesh;
 
 	UPROPERTY()
 	AActor* SpawnedRelic;
@@ -53,12 +50,26 @@ protected:
 	class ARestoreManager* RestoreManager;
 
 	UPROPERTY()
-	TArray<FTransform> SnapPointTransforms;
+	TArray<USceneComponent*> SnapPoints;
 
 	UPROPERTY()
 	TArray<AActor*> PieceActors;
 
 private:
 	FCRelicData RelicData;
+
+	UStaticMeshComponent* GuideMesh;
+
+	void PlayFeedback(bool bSuccess);
+
+	// Feedback
+	UPROPERTY(EditAnywhere, Category = "Feedback")
+	class USoundBase* SuccessSFX = nullptr;
+	
+	UPROPERTY(EditAnywhere, Category = "Feedback")
+	class USoundBase* FailSFX = nullptr;
+
+	UPROPERTY(EditAnywhere, Category = "Feedback")
+	class UHapticFeedbackEffect_Base* FailHaptic = nullptr;
 
 };
