@@ -34,6 +34,7 @@ void ARestorePuzzleActor::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
+	TickSnap(DeltaTime);
 }
 
 void ARestorePuzzleActor::InitPuzzle(const FCRelicData& InRelicData, ARestoreManager* InManager)
@@ -134,6 +135,9 @@ void ARestorePuzzleActor::TrySnapPiece(class APieceActor* Piece)
 
 	if (Dist < SnapRadius)
 	{
+		// 이미 다른 스냅 진행 중이면 무시(또는 큐잉)
+		if (bIsSnapping) return;
+
 		// 1. DetachFromActor
 		Piece->DetachFromActor(FDetachmentTransformRules::KeepWorldTransform);
 
@@ -144,21 +148,15 @@ void ARestorePuzzleActor::TrySnapPiece(class APieceActor* Piece)
 			Primitive->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 		}
 
-		// 3. AttachToComponent
-		Piece->SetActorLocationAndRotation(SnapPoint->GetComponentLocation(), SnapPoint->GetComponentRotation());
-		bool bAttachSuccess = Piece->AttachToComponent(
-			SnapPoint,
-			FAttachmentTransformRules::KeepWorldTransform
-		);
+		 // 3) 스냅 애니메이션 시작 세팅
+		SnappingPiece = Piece;
+		TargetSnapPoint = SnapPoint;
+		SnapStartTransform = Piece->GetActorTransform();
+		SnapTargetTransform = SnapPoint->GetComponentTransform();
 
-		UE_LOG(LogTemp, Warning, TEXT("Second Attach Attempt: %s"), bAttachSuccess ? TEXT("True") : TEXT("False"));
-
-		Piece->SetSnapped(true); // 상태 기록
-		Piece->DestroyPickupComp(); // PickupComponent 제거
-
-		PlayFeedback(true);
-
-		CheckPuzzleCompleted();
+		SnapDuration = FMath::Max(0.01f, DefaultSnapDuration);
+		SnapElapsed = 0.f;
+		bIsSnapping = true;
 	}
 	else if (Dist > SnapRadius && GuideDist < GuideRadius)
 	{
@@ -170,7 +168,6 @@ void ARestorePuzzleActor::TrySnapPiece(class APieceActor* Piece)
 		}
 
 		UE_LOG(LogTemp, Warning, TEXT("TrySnapPiece: Fail (Dist=%.1f)"), Dist);
-
 		PlayFeedback(false);
 	}
 }
@@ -244,6 +241,51 @@ void ARestorePuzzleActor::PlayFeedback(bool bSuccess)
 				PC->PlayHapticEffect(FailHaptic, EControllerHand::Right);
 			}
 		}
+	}
+}
+
+void ARestorePuzzleActor::TickSnap(float DeltaSeconds)
+{
+	if (!bIsSnapping || !SnappingPiece || !TargetSnapPoint) return;
+
+	SnapElapsed += DeltaSeconds;
+	float Alpha = FMath::Clamp(SnapElapsed / SnapDuration, 0.f, 1.f);
+
+	// 부드럽게 시작/끝 (EaseInOut)
+	Alpha = FMath::InterpEaseInOut(0.f, 1.f, Alpha, SnapEaseExp);
+
+	// 위치/회전/스케일 보간
+	const FVector  L = FMath::Lerp(SnapStartTransform.GetLocation(), SnapTargetTransform.GetLocation(), Alpha);
+	const FQuat    QA = SnapStartTransform.GetRotation();
+	const FQuat    QB = SnapTargetTransform.GetRotation();
+	const FQuat    QS = FQuat::Slerp(QA, QB, Alpha).GetNormalized();
+	const FVector  S = FMath::Lerp(SnapStartTransform.GetScale3D(), SnapTargetTransform.GetScale3D(), Alpha);
+
+	SnappingPiece->SetActorLocationAndRotation(L, QS.Rotator(), /*bSweep*/false, nullptr, ETeleportType::TeleportPhysics);
+	SnappingPiece->SetActorScale3D(S);
+
+	if (Alpha >= 1.f - KINDA_SMALL_NUMBER)
+	{
+		// 최종 정착
+		SnappingPiece->SetActorTransform(SnapTargetTransform, false, nullptr, ETeleportType::TeleportPhysics);
+		SnappingPiece->AttachToComponent(TargetSnapPoint, FAttachmentTransformRules::SnapToTargetNotIncludingScale);
+
+		// 상태 업데이트 및 후처리 (기존 즉시 스냅에서 하던 동작을 여기로 이동)
+		if (UPrimitiveComponent* Primitive = Cast<UPrimitiveComponent>(SnappingPiece->GetRootComponent()))
+		{
+			Primitive->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+			Primitive->SetSimulatePhysics(false);
+		}
+
+		SnappingPiece->SetSnapped(true);
+		SnappingPiece->DestroyPickupComp();
+		PlayFeedback(true);
+		CheckPuzzleCompleted();
+
+		// 상태 종료
+		bIsSnapping = false;
+		SnappingPiece = nullptr;
+		TargetSnapPoint = nullptr;
 	}
 }
 

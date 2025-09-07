@@ -1,4 +1,4 @@
-// Fill out your copyright notice in the Description page of Project Settings.
+﻿// Fill out your copyright notice in the Description page of Project Settings.
 
 #pragma once
 
@@ -72,5 +72,29 @@ private:
 
 	UPROPERTY(EditAnywhere, Category = "Feedback")
 	class UHapticFeedbackEffect_Base* FailHaptic = nullptr;
+
+// 스냅 Lerp
+protected:
+    UPROPERTY(EditAnywhere, Category="Snap")
+    float DefaultSnapDuration = 0.35f;
+
+    UPROPERTY(EditAnywhere, Category="Snap")
+    float SnapEaseExp = 2.0f; // EaseInOut 지수(커브 세기)
+
+private:
+    UPROPERTY()
+    class APieceActor* SnappingPiece = nullptr;
+
+    UPROPERTY()
+    USceneComponent* TargetSnapPoint = nullptr;
+
+    FTransform SnapStartTransform;
+    FTransform SnapTargetTransform;
+
+    float SnapDuration = 0.f;
+    float SnapElapsed  = 0.f;
+    bool  bIsSnapping  = false;
+
+    void TickSnap(float DeltaSeconds);
 
 };
