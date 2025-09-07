@@ -16,10 +16,10 @@ struct FKeyData
 {
 	GENERATED_BODY()
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Keyboard")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Key")
 	FString KeyChar;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Keyboard")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Key")
 	float KeySizeX = 24.0f;
 };
 
@@ -34,10 +34,7 @@ public:
 
 private:
 	UPROPERTY()
-	FString  key_word;
-
-	UPROPERTY()
-	float key_press_move = 2.0f;
+	float key_press_move = -4.0f;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components", meta = (AllowPrivateAccess = "true"))
 	USceneComponent* RootSceneComponent;
@@ -61,6 +58,9 @@ protected:
 	virtual void BeginPlay() override;
 
 public:
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Key")
+	FString key_word;
+
 	UPROPERTY(BlueprintReadWrite, EditAnywhere)
 	float Size_X = 32.0f;
 
