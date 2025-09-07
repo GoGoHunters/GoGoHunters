@@ -34,31 +34,34 @@ AAC_KeyBoard::AAC_KeyBoard()
 void AAC_KeyBoard::BeginPlay()
 {
 	Super::BeginPlay();
-	
+
+	GenerateKeys();
 }
 
+/*
 void AAC_KeyBoard::OnConstruction(const FTransform& Transform)
 {
 	Super::OnConstruction(Transform);
 
 	HandleKeyClicked("test");
 }
+*/
 
 void AAC_KeyBoard::GenerateKeys()
 {
 	// 기존에 생성된 키들이 있다면 모두 삭제
-	for (AAC_Key* Key : Keys)
+	for (FKeyDataLayer KeyArray : KeysLayer)
 	{
-		if (Key)
-			Key->Destroy();
+		for (AAC_Key* Key : KeyArray.Keys)
+		{
+			if (Key)
+				Key->Destroy();
+		}
+		KeyArray.Keys.Empty();
 	}
-
-	Keys.Empty();
+	KeysLayer.Empty();
 
 	UWorld* World = GetWorld();
-
-	float MaxWidth = 0.0f;
-	float TotalHeight = -KeySpacing;
 
 	if (!KeyLayoutData.IsValidIndex(KeyLayoutIndex))
 	{
@@ -66,10 +69,11 @@ void AAC_KeyBoard::GenerateKeys()
 		return; 
 	}
 
-	const FKeyBoardLayOutData& KeyLayout = KeyLayoutData[KeyLayoutIndex];
+	float MaxWidth = 0.0f;
+	float TotalHeight = -KeySpacing;
 
-
-	for (const FKeyBoardRowData& RowData : KeyLayout.KeyLayOutArray)
+	const FKeyBoardLayOutData& TargetKeyLayout = KeyLayoutData[KeyLayoutIndex];
+	for (const FKeyBoardRowData& RowData : TargetKeyLayout.KeyLayOutArray)
 	{
 		float RowWidth = 0.0f;
 		for (const FKeyData& KeyData : RowData.KeyDataArray)
@@ -86,45 +90,100 @@ void AAC_KeyBoard::GenerateKeys()
 
 	if (World)
 	{
-		float YOffset = (TotalHeight - KeyHeight)* -0.5f;
-		for (const FKeyBoardRowData& RowData : KeyLayout.KeyLayOutArray)
+		int32 Index = 0;
+		for (const FKeyBoardLayOutData& KeyLayout : KeyLayoutData)
 		{
-			float XOffset = MaxWidth * -0.5f;
-			for (const FKeyData& KeyData : RowData.KeyDataArray)
+			float YOffset = (TotalHeight - KeyHeight)* -0.5f;
+			FKeyDataLayer KeyArray;
+			for (const FKeyBoardRowData& RowData : KeyLayout.KeyLayOutArray)
 			{
-				FActorSpawnParameters SpawnParams;
-				SpawnParams.Owner = this;
-				SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
-
-				FVector SpawnRelativeLocation = FVector(XOffset + KeyData.KeySizeX * 0.5f , YOffset, BaseSize_Z * 0.75f);
-				FRotator SpawnRotation = FRotator::ZeroRotator;
-
-				AAC_Key* NewKey = World->SpawnActor<AAC_Key>(GetActorLocation(), GetActorRotation(), SpawnParams);
-
-				if (NewKey)
+				float XOffset = MaxWidth * -0.5f;
+				
+				for (const FKeyData& KeyData : RowData.KeyDataArray)
 				{
-					NewKey->AttachToActor(this, FAttachmentTransformRules::KeepRelativeTransform);
+					FActorSpawnParameters SpawnParams;
+					SpawnParams.Owner = this;
+					SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
 
-					NewKey->SetActorRelativeLocation(SpawnRelativeLocation);
+					FVector SpawnRelativeLocation = FVector(XOffset + KeyData.KeySizeX * 0.5f , YOffset, BaseSize_Z * 0.75f);
+					FRotator SpawnRotation = FRotator::ZeroRotator;
 
-					NewKey->SetKeyText(KeyData.KeyChar);
-					NewKey->Size_X = KeyData.KeySizeX;
-					NewKey->Size_Y = this->KeyHeight;
-					NewKey->Size_Z = 8.0f;
+					AAC_Key* NewKey = World->SpawnActor<AAC_Key>(SpawnRelativeLocation, SpawnRotation, SpawnParams);
 
-					NewKey->UpdateMeshScale();
+					if (NewKey)
+					{
+						NewKey->AttachToActor(this, FAttachmentTransformRules::KeepRelativeTransform);
 
-					NewKey->OnkeyClicked.AddDynamic(this, &AAC_KeyBoard::HandleKeyClicked);
+						NewKey->SetActorRelativeLocation(SpawnRelativeLocation);
 
-					Keys.Add(NewKey);
+						NewKey->SetKeyText(KeyData.KeyChar);
+						NewKey->Size_X = KeyData.KeySizeX;
+						NewKey->Size_Y = this->KeyHeight;
+						NewKey->Size_Z = 8.0f;
+					
+						NewKey->UpdateMeshScale();
+						UE_LOG(LogTemp, Warning, TEXT("Binding delegate for key: %s"), *KeyData.KeyChar);
+						NewKey->OnkeyClicked.AddDynamic(this, &AAC_KeyBoard::HandleKeyClicked);
+
+						UE_LOG(LogTemp, Warning, TEXT("Delegate bound successfully"));
+						
+						if (Index != KeyLayoutIndex)
+						{
+							NewKey->SetActorEnableCollision(false); 
+							NewKey->SetActorHiddenInGame(true);
+						}
+
+						KeyArray.Keys.Add(NewKey);
+					}
+
+					XOffset += KeyData.KeySizeX + KeySpacing;
 				}
-
-				XOffset += KeyData.KeySizeX + KeySpacing;
+				YOffset += this->KeyHeight + KeySpacing;
 			}
-			YOffset += this->KeyHeight + KeySpacing;
+			KeysLayer.Add(KeyArray);
+			Index++;
 		}
 	}
 }
+
+void AAC_KeyBoard::UpdateKeybaordSize()
+{
+	float MaxWidth = 0.0f;
+	float TotalHeight = -KeySpacing;
+
+	const FKeyBoardLayOutData& TargetKeyLayout = KeyLayoutData[KeyLayoutIndex];
+	for (const FKeyBoardRowData& RowData : TargetKeyLayout.KeyLayOutArray)
+	{
+		float RowWidth = 0.0f;
+		for (const FKeyData& KeyData : RowData.KeyDataArray)
+		{
+			RowWidth += KeyData.KeySizeX + KeySpacing;
+		}
+		MaxWidth = FMath::Max(MaxWidth, RowWidth);
+		TotalHeight += this->KeyHeight + KeySpacing;
+	}
+	BaseSize_X = MaxWidth;
+	BaseSize_Y = TotalHeight;
+
+	UpdateBaseMeshScale();
+}
+
+void AAC_KeyBoard::UpdateVisibleLayer(int index)
+{
+	for (AAC_Key* key: KeysLayer[KeyLayoutIndex].Keys)
+	{
+		key->SetActorEnableCollision(true);
+		key->SetActorHiddenInGame(false);
+	}
+	KeyLayoutIndex = index;
+	for (AAC_Key* key : KeysLayer[KeyLayoutIndex].Keys)
+	{
+		key->SetActorEnableCollision(false);
+		key->SetActorHiddenInGame(true);
+	}
+	UpdateKeybaordSize();
+}
+
 
 
 void AAC_KeyBoard::UpdateBaseMeshScale()
@@ -147,21 +206,20 @@ void AAC_KeyBoard::HandleKeyClicked(FString KeyString)
 {
 	UE_LOG(LogTemp, Warning, TEXT("Key Clicked: %s"), *KeyString);
 
-	KeyLayoutIndex = CapsOn ? KeyLayoutBaseIndex + 1 : KeyLayoutBaseIndex;
-
-	if (KeyString.Equals(TEXT("CAPS"), ESearchCase::IgnoreCase))
-	{
-		CapsOn = CapsOn ? 0 : 1;
-	}
-	else if (KeyString.Equals(TEXT("SHIFT"), ESearchCase::IgnoreCase) && KeyLayoutIndex != 1)
-	{
-		KeyLayoutIndex = CapsOn ? KeyLayoutBaseIndex : KeyLayoutBaseIndex + 1;
-	}
-
 	if (OnkeyBoardClicked.IsBound())
 	{
 		OnkeyBoardClicked.Broadcast(KeyString);
 	}
 
-	GenerateKeys();
+
+	if (KeyString.Equals(TEXT("CAPS"), ESearchCase::IgnoreCase))
+	{
+		CapsOn = CapsOn ? 0 : 1;
+		UpdateVisibleLayer(KeyLayoutBaseIndex + CapsOn);
+	}
+	else if (KeyString.Equals(TEXT("SHIFT"), ESearchCase::IgnoreCase) && KeyLayoutIndex != 1)
+	{
+		CapsOn ? KeyLayoutBaseIndex : KeyLayoutBaseIndex + 1;
+		UpdateVisibleLayer(CapsOn ? KeyLayoutBaseIndex : KeyLayoutBaseIndex + 1);
+	}
 }

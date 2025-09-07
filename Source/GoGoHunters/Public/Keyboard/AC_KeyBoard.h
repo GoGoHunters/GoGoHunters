@@ -28,6 +28,14 @@ struct FKeyBoardLayOutData
 	TArray<FKeyBoardRowData> KeyLayOutArray;
 };
 
+USTRUCT(BlueprintType)
+struct FKeyDataLayer
+{
+	GENERATED_BODY()
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Keyboard")
+	TArray<AAC_Key*> Keys;
+};
 
 UCLASS()
 class GOGOHUNTERS_API AAC_KeyBoard : public AActor
@@ -38,7 +46,7 @@ public:
 	// Sets default values for this actor's properties
 	AAC_KeyBoard();
 
-	virtual void OnConstruction(const FTransform& Transform) override;
+	// virtual void OnConstruction(const FTransform& Transform) override;
 
 private: 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components", meta = (AllowPrivateAccess = "true"))
@@ -58,7 +66,7 @@ protected:
 	virtual void BeginPlay() override;
 
 	UPROPERTY(BlueprintReadOnly, Category = "Keyboard")
-	TArray<AAC_Key*> Keys;
+	TArray<FKeyDataLayer> KeysLayer;
 
 public:
 	UPROPERTY(EditAnywhere, Category = "Keyboard")
@@ -93,7 +101,12 @@ public:
 	float KeyBoardPadding_Y = 12.0f;
 
 
-	UPROPERTY(BlueprintAssignable, Category = "AudioRecording")
+	UPROPERTY(BlueprintAssignable, Category = "Keyboard")
 	FOnKeyBoardClickedEvent OnkeyBoardClicked;
 
+	UFUNCTION()
+	void UpdateKeybaordSize();
+
+	UFUNCTION(BlueprintCallable, Category = "Keyboard")
+	void UpdateVisibleLayer(int index);
 };
