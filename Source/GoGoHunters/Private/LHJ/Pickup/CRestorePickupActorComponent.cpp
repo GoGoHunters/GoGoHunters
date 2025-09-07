@@ -1,7 +1,10 @@
 #include "LHJ/Pickup/CRestorePickupActorComponent.h"
 
-void UCRestorePickupActorComponent::GrabOverrideFunc()
+void UCRestorePickupActorComponent::BeginPlay()
 {
+	Super::BeginPlay();
+
+	if (!PendingGrabComponent) return;
 	OriginLocation = PendingGrabComponent->GetComponentLocation();
 	OriginRotation = PendingGrabComponent->GetComponentRotation();
 }
