@@ -92,4 +92,9 @@ public:
 public:
 	UPROPERTY(BlueprintReadWrite)
 	bool bPressedDevKey = false;
+
+// 타미 대사
+private:
+	void PlayTamiCompliments(int32 CurrentLayer, float Progress);
+	void PlayTami(const FName& FunctionName);
 };
