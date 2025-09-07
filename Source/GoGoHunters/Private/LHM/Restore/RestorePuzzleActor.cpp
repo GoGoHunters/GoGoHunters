@@ -166,7 +166,7 @@ void ARestorePuzzleActor::TrySnapPiece(class APieceActor* Piece)
 		if (UPrimitiveComponent* Prim = Cast<UPrimitiveComponent>(Piece->GetRootComponent()))
 		{
 			FVector PushDir = (Piece->GetActorLocation() - SnapPoint->GetComponentLocation()).GetSafeNormal();
-			Prim->AddImpulse(PushDir * 300.f, NAME_None, true);
+			Prim->AddImpulse(PushDir * 150.f, NAME_None, true);
 		}
 
 		UE_LOG(LogTemp, Warning, TEXT("TrySnapPiece: Fail (Dist=%.1f)"), Dist);
