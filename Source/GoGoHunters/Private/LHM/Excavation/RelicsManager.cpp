@@ -146,6 +146,8 @@ void ARelicsManager::NotifyGroundProgress(float Progress)
 
 	if (bPressedDevKey) Progress = 0.05f;
 
+	PlayTamiCompliments(CurrentLayerIndex, Progress);
+
 	if (Progress >= 0.05f) // 5% 이상 파괴되었으면
 	{
 		auto CurrentLayer = GroundLayers[CurrentLayerIndex];
@@ -157,26 +159,6 @@ void ARelicsManager::NotifyGroundProgress(float Progress)
 		}
 
 		CurrentLayerIndex++;
-
-		// 타미 음성
-		if (CurrentLayerIndex == 1 && Progress >= 0.01f)
-		{
-			for (TActorIterator<APawn> It(GetWorld(), APawn::StaticClass()); It; ++It)
-			{
-				if (IsValid(*It) && (*It)->ActorHasTag(FName("Tami")))
-				{
-					if (APawn* TamiAI = *It)
-					{
-						FName FunctionName(TEXT("PlayExcavationPhase3_VisibleRelic"));
-						if (UFunction* Function = TamiAI->FindFunction(FunctionName))
-						{
-							TamiAI->ProcessEvent(Function, nullptr);
-						}
-					}
-					break;
-				}
-			}
-		}
 
 		UE_LOG(LogTemp, Log, TEXT("Destroyed Ground Layer %d / GroundLayers.num is %d"), CurrentLayerIndex + 1, GroundLayers.Num());
 
@@ -253,5 +235,45 @@ bool ARelicsManager::GetCurrentDigProgress(float& OutProgress) const
 
 	OutProgress = TotalProgress / static_cast<float>(TotalLayers); // 전체 평균
 	return true;
+}
+
+void ARelicsManager::PlayTamiCompliments(int32 CurrentLayer, float Progress)
+{
+	if (CurrentLayerIndex == 0)
+	{
+		if (Progress >= 0.01f)
+		{
+			PlayTami(TEXT("PlayExcavationCompliment2"));
+		}
+	}
+	else if (CurrentLayerIndex == 1)
+	{
+		if (Progress >= 0.02f)
+		{
+			PlayTami(TEXT("PlayExcavationCompliment3"));
+		}
+		else if (Progress >= 0.01f)
+		{
+			PlayTami(TEXT("PlayExcavationPhase3_VisibleRelic"));
+		}
+	}
+}
+
+void ARelicsManager::PlayTami(const FName& FunctionName)
+{
+	for (TActorIterator<APawn> It(GetWorld(), APawn::StaticClass()); It; ++It)
+	{
+		if (IsValid(*It) && (*It)->ActorHasTag(FName("Tami")))
+		{
+			if (APawn* TamiAI = *It)
+			{
+				if (UFunction* Function = TamiAI->FindFunction(FunctionName))
+				{
+					TamiAI->ProcessEvent(Function, nullptr);
+				}
+			}
+			break;
+		}
+	}
 }
 

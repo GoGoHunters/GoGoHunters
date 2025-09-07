@@ -135,6 +135,24 @@ void ACollectionBox::CheckAllCollected()
 
 	UE_LOG(LogTemp, Log, TEXT("[CollectionBox] Relics collected (%d/%d)"), CollectedCount, TotalCount);
 
+	if (CollectedCount == 1)
+	{
+		for (TActorIterator<APawn> It(GetWorld(), APawn::StaticClass()); It; ++It)
+		{
+			if (IsValid(*It) && (*It)->ActorHasTag(FName("Tami")))
+			{
+				if (APawn* TamiAI = *It)
+				{
+					if (UFunction* Function = TamiAI->FindFunction(TEXT("PlayExcavationCompliment4")))
+					{
+						TamiAI->ProcessEvent(Function, nullptr);
+					}
+				}
+				break;
+			}
+		}
+	}
+
 	if (TotalCount > 0 && CollectedCount == TotalCount)
 	{
 		UE_LOG(LogTemp, Log, TEXT("[CollectionBox] 모든 유물 총 %d개 수거 완료!"), CollectedCount);

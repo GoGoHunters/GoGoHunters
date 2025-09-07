@@ -423,7 +423,7 @@ void ARelicsBase::PlayTami()
         {
             if (APawn* TamiAI = *It)
             {
-                FName FunctionName(TEXT("PlayExcavationCompliment"));
+                FName FunctionName(TEXT("PlayExcavationCompliment1"));
                 if (UFunction* Function = TamiAI->FindFunction(FunctionName))
                 {
                     TamiAI->ProcessEvent(Function, nullptr);
