@@ -58,13 +58,15 @@ private:
 	UStaticMeshComponent* KeyBoardMeshComponent;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components", meta = (AllowPrivateAccess = "true"))
-	UWidgetComponent* KeyBoardInputWidget;
+	UWidgetComponent* KeyBoardInputWidgetComp;
 
 	float BaseSize_X = 500.0f;
 	float BaseSize_Y = 200.0f;
 	float BaseSize_Z = 8.0f;
 
 	void UpdateBaseMeshScale();
+
+	UFUNCTION()
 	void HandleKeyClicked(FString KeyString);
 
 protected:
@@ -114,4 +116,8 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "Keyboard")
 	void UpdateVisibleLayer(int index);
+
+private:
+	UPROPERTY(BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
+	TObjectPtr<UCTextInputWidget> KeyBoardInputWidget;
 };

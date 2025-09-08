@@ -33,7 +33,7 @@ AAC_KeyBoard::AAC_KeyBoard()
 		KeyBoardMeshComponent->SetRelativeScale3D(FVector(BaseSize_X / MeshSize_cm.X, BaseSize_Y / MeshSize_cm.Y, BaseSize_Z / MeshSize_cm.Z));
 	}
 
-	CHelpers::CreateComponent<UWidgetComponent>(this, &KeyBoardInputWidget, "KeyBoardInputWidget", RootComponent);
+	CHelpers::CreateComponent<UWidgetComponent>(this, &KeyBoardInputWidgetComp, "KeyBoardInputWidget", RootComponent);
 }
 
 // Called when the game starts or when spawned
@@ -42,6 +42,14 @@ void AAC_KeyBoard::BeginPlay()
 	Super::BeginPlay();
 
 	GenerateKeys();
+
+	if (UUserWidget* widget = KeyBoardInputWidgetComp->GetWidget())
+	{
+		KeyBoardInputWidget = Cast<UCTextInputWidget>(widget);
+	}
+
+	if (KeyBoardInputWidget)
+		KeyBoardInputWidget->FocusInput();
 }
 
 /*
