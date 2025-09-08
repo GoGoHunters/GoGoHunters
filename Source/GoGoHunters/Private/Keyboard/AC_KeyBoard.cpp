@@ -3,6 +3,10 @@
 
 #include "KeyBoard/AC_KeyBoard.h"
 
+#include "Components/WidgetComponent.h"
+#include "UIs/Keyboard/CTextInputWidget.h"
+#include "Utilities/CHelpers.h"
+
 // Sets default values
 AAC_KeyBoard::AAC_KeyBoard()
 {
@@ -28,6 +32,8 @@ AAC_KeyBoard::AAC_KeyBoard()
 		FVector MeshSize_cm = KeyBoard_Mesh->GetBoundingBox().GetExtent() * 2;
 		KeyBoardMeshComponent->SetRelativeScale3D(FVector(BaseSize_X / MeshSize_cm.X, BaseSize_Y / MeshSize_cm.Y, BaseSize_Z / MeshSize_cm.Z));
 	}
+
+	CHelpers::CreateComponent<UWidgetComponent>(this, &KeyBoardInputWidget, "KeyBoardInputWidget", RootComponent);
 }
 
 // Called when the game starts or when spawned
@@ -49,7 +55,7 @@ void AAC_KeyBoard::OnConstruction(const FTransform& Transform)
 
 void AAC_KeyBoard::GenerateKeys()
 {
-	// ±âÁ¸¿¡ »ý¼ºµÈ Å°µéÀÌ ÀÖ´Ù¸é ¸ðµÎ »èÁ¦
+	// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ Å°ï¿½ï¿½ï¿½ï¿½ ï¿½Ö´Ù¸ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 	for (FKeyDataLayer KeyArray : KeysLayer)
 	{
 		for (AAC_Key* Key : KeyArray.Keys)

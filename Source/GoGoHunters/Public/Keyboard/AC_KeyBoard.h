@@ -8,6 +8,8 @@
 #include "AC_KeyBoard.generated.h"
 
 
+class UWidgetComponent;
+class UCTextInputWidget;
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnKeyBoardClickedEvent, FString, KeyString);
 
 USTRUCT(BlueprintType)
@@ -45,7 +47,7 @@ class GOGOHUNTERS_API AAC_KeyBoard : public AActor
 public:	
 	// Sets default values for this actor's properties
 	AAC_KeyBoard();
-
+	
 	// virtual void OnConstruction(const FTransform& Transform) override;
 
 private: 
@@ -54,6 +56,9 @@ private:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components", meta = (AllowPrivateAccess = "true"))
 	UStaticMeshComponent* KeyBoardMeshComponent;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components", meta = (AllowPrivateAccess = "true"))
+	UWidgetComponent* KeyBoardInputWidget;
 
 	float BaseSize_X = 500.0f;
 	float BaseSize_Y = 200.0f;

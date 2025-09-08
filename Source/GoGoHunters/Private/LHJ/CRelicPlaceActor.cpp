@@ -24,9 +24,9 @@ ACRelicPlaceActor::ACRelicPlaceActor()
 	RecoverRelicWidget->SetCastShadow(false);
 }
 
-void ACRelicPlaceActor::RerunConstructionScripts()
+void ACRelicPlaceActor::OnConstruction(const FTransform& Transform)
 {
-	Super::RerunConstructionScripts();
+	Super::OnConstruction(Transform);
 	DetectCollision->SetRelativeLocationAndRotation(DetectCollisionLocation, DetectCollisionRotation);
 	DetectCollision->SetRelativeScale3D(DetectCollisionSize);
 	
