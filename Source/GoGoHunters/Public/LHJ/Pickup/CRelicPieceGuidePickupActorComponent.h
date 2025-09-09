@@ -17,6 +17,8 @@ private:
 	float RotationSensitivity = 1.0f;
 	
 	FQuat LastControllerQuat;
+	bool bIsInertiaActive = false;
+	float AngularVelocityYaw = 0.f;
 
 	UCRelicPieceGuidePickupActorComponent();
 	virtual void TickComponent(float DeltaTime, enum ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
