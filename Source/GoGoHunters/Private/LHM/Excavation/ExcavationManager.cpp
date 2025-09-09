@@ -243,7 +243,13 @@ void AExcavationManager::ChangeCompletedPhase()
 	// 타미 음성
 	PlayTami(TEXT("PlayExcavationCompleted2"));
 
-	// Phase UI (로비/박물관 이동)
+	GetWorldTimerManager().ClearTimer(KeyboardSpawnTimerHandle);
+
+	FTimerDelegate D;
+	D.BindUObject(this, &AExcavationManager::SpawnKeyboardActor);
+	GetWorldTimerManager().SetTimer(KeyboardSpawnTimerHandle, D, 8.f, false);
+
+	/*// Phase UI (로비/박물관 이동)
 	
 	//FTimerHandle PhaseUIVisibilityHandle;
 	//GetWorldTimerManager().SetTimer(PhaseUIVisibilityHandle, [this]()
@@ -259,7 +265,7 @@ void AExcavationManager::ChangeCompletedPhase()
 	// BindUObject 사용: UObject 생명주기와 함께 안전해짐
 	FTimerDelegate D;
 	D.BindUObject(this, &AExcavationManager::ShowLobbyMuseumButtons);
-	GetWorldTimerManager().SetTimer(LobbyMuseumTimerHandle, D, 15.0f, false);
+	GetWorldTimerManager().SetTimer(LobbyMuseumTimerHandle, D, 15.0f, false);*/
 
 	// 게임 인스턴스에서 유물 등록
 	if (UGI_Base* GI = Cast<UGI_Base>(UGameplayStatics::GetGameInstance(GetWorld())))
@@ -359,6 +365,12 @@ void AExcavationManager::PlayTami(const FName& FunctionName)
 			break;
 		}
 	}
+}
+
+void AExcavationManager::SpawnKeyboardActor()
+{
+	if(!IsValid(CurrentActiveManager)) return;
+	CurrentActiveManager->SpawnKeyboard();
 }
 
 void AExcavationManager::ShowLobbyMuseumButtons()

@@ -121,6 +121,13 @@ protected:
 private:
 	void PlayTami(const FName& FunctionName);
 
+// 키보드 액터 스폰
+	UFUNCTION()
+	void SpawnKeyboardActor();
+
+	FTimerHandle KeyboardSpawnTimerHandle;
+
+// 로비 박물관 버튼 노출
 public:
 	UFUNCTION()
 	void ShowLobbyMuseumButtons();
@@ -129,4 +136,5 @@ public:
 	bool bUseBtnLobbynMuseum = false;
 
 	FTimerHandle LobbyMuseumTimerHandle;
+
 };

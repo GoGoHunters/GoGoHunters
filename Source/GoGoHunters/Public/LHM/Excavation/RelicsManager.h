@@ -88,6 +88,13 @@ public:
     // 현재 진행 중인 땅의 파괴도(0~50)를 반환
     bool GetCurrentDigProgress(float& OutProgress) const;
 
+public:
+	UFUNCTION()
+	void SpawnKeyboard();
+
+	UPROPERTY(EditDefaultsOnly)
+	TSubclassOf<class AAC_KeyBoard> KeyBoardClass;
+
 // 개발자 키
 public:
 	UPROPERTY(BlueprintReadWrite)

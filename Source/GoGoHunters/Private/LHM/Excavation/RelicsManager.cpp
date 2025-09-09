@@ -10,6 +10,7 @@
 #include "Kismet/GameplayStatics.h"
 #include "EngineUtils.h"
 #include "Engine/TextureRenderTarget2D.h"
+#include "Keyboard/AC_KeyBoard.h"
 
 // Sets default values
 ARelicsManager::ARelicsManager()
@@ -235,6 +236,21 @@ bool ARelicsManager::GetCurrentDigProgress(float& OutProgress) const
 
 	OutProgress = TotalProgress / static_cast<float>(TotalLayers); // 전체 평균
 	return true;
+}
+
+void ARelicsManager::SpawnKeyboard()
+{
+	if (!IsValid(Relics)) return;
+	if (!KeyBoardClass) return;
+
+	FVector SpawnLocation = GetActorLocation() + FVector(-169, 20, 290);
+	FRotator SpawnRotation = GetActorRotation() + FRotator(0, 270, 70); // (Pitch=0.000000,Yaw=90.000000,Roll=-70.000000)
+
+	FActorSpawnParameters Params;
+	Params.Owner = this;
+
+	GetWorld()->SpawnActor<AAC_KeyBoard>(KeyBoardClass, SpawnLocation, SpawnRotation, Params);
+	UE_LOG(LogTemp, Log, TEXT("[RelicsManager] Keyboard 스폰 완료"));
 }
 
 void ARelicsManager::PlayTamiCompliments(int32 CurrentLayer, float Progress)
