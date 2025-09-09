@@ -53,15 +53,24 @@ void AExcavationWidgetActor::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
-	if (WidgetComponent)
+	if (bIsVisible)
 	{
-		APlayerCameraManager* CamManager = UGameplayStatics::GetPlayerCameraManager(GetWorld(), 0);
-		if (CamManager)
+		if (WidgetComponent)
 		{
-			FVector CamLocation = CamManager->GetCameraLocation();
-			FRotator LookAtRotation = UKismetMathLibrary::FindLookAtRotation(WidgetComponent->GetComponentLocation(), CamLocation);
-			WidgetComponent->SetWorldRotation(LookAtRotation);
+			APlayerCameraManager* CamManager = UGameplayStatics::GetPlayerCameraManager(GetWorld(), 0);
+			if (CamManager)
+			{
+				FVector CamLocation = CamManager->GetCameraLocation();
+				FRotator LookAtRotation = UKismetMathLibrary::FindLookAtRotation(WidgetComponent->GetComponentLocation(), CamLocation);
+				WidgetComponent->SetWorldRotation(LookAtRotation);
+			}
 		}
 	}
+}
+
+void AExcavationWidgetActor::SetCollisionAndVisible(bool InVisible)
+{
+	bIsVisible = InVisible;
+	this->SetActorEnableCollision(bIsVisible);
 }
 

@@ -20,38 +20,30 @@ public:
 	UFUNCTION(BlueprintCallable)
 	void SetVisibilityFlagTrigger(bool bVisible);
 
-	void SetVisibilityCloseLid(bool bVisible);
-
 	UFUNCTION(BlueprintCallable)
 	void SetVisibilityLobby(bool bVisible);
 
 	UFUNCTION(BlueprintCallable)
-	void SetVisibilityMuseum(bool bVisible);
+	void SetVisibilityRestore(bool bVisible);
 
 protected:
 	UFUNCTION()
 	void OnClick_FlagTrigger();
-
-	UFUNCTION()
-	void OnClick_CloseLid();
 	
 	UFUNCTION()
 	void OnClick_Lobby();
 	
 	UFUNCTION()
-	void OnClick_Museum();
+	void OnClick_Restore();
 
 	UPROPERTY(meta = (BindWidget))
 	class UButton* Btn_FlagTrigger;
 	
 	UPROPERTY(meta = (BindWidget))
-	class UButton* Btn_CloseLid;
-	
-	UPROPERTY(meta = (BindWidget))
 	class UButton* Btn_Lobby;
 	
 	UPROPERTY(meta = (BindWidget))
-	class UButton* Btn_Museum;
+	class UButton* Btn_Restore;
 
 private:
 	// ExcavationManager 찾기 및 연결

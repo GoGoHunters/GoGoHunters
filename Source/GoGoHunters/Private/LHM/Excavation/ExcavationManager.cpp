@@ -15,6 +15,7 @@
 #include "LHM/Excavation/CollectionBox.h"
 #include "LHJ/Tutorial/CTutorialManager.h"
 #include "LHM/UI/WarningUI.h"
+#include "LHM/UI/CollectionBoxUI.h"
 
 // Sets default values
 AExcavationManager::AExcavationManager()
@@ -123,16 +124,15 @@ void AExcavationManager::NotifyCollectionCompleted(class ARelicsManager* FromMan
 {
 	if (!IsValid(FromManager)) return;
 	if (!IsValid(FromCollectionBox)) return;
-	if (!PhaseUI) return;
+	if (!CollectionBoxUI) return;
 
 	CurrentActiveManager = FromManager;
 	CollectionBox = FromCollectionBox;
 
 	PlayTami(TEXT("PlayExcavationCompleted1"));
 
-	// Phase UI 가시화 (수거함 완료 트리거)
-	// Phase UI에서 완료버튼 클릭하면 수거함 닫기
-	PhaseUI->SetVisibilityCloseLid(true);
+	// UI에서 완료버튼 클릭하면 수거함 닫기
+	CollectionBoxUI->SetVisibilityCloseLid(true);
 
 	// 경고 UI 리셋
 	if (WarningUI) WarningUI->ResetWarnings();
@@ -229,11 +229,10 @@ void AExcavationManager::ChangeCompletedPhase()
 {
 	if (!IsValid(CurrentActiveManager)) return;
 	if (!IsValid(CollectionBox)) return;
-	if (!BrushingUI) return;
+	if (!BrushingUI || !CollectionBoxUI) return;
 
-	PhaseUI->SetVisibilityCloseLid(false);
+	CollectionBoxUI->SetVisibilityCloseLid(false);
 	BrushingUI->SetVisibility(ESlateVisibility::Hidden);
-	//PlayPopupUiAnim(true);
 
 	// 수거함 닫기 애니메이션
 	CollectionBox->PlayBoxCloseAnimation();
@@ -371,11 +370,11 @@ void AExcavationManager::SpawnKeyboardActor()
 	CurrentActiveManager->SpawnKeyboard();
 }
 
-void AExcavationManager::ShowLobbyMuseumButtons()
+void AExcavationManager::ShowLobbyRestoreButtons()
 {
 	if (!IsValid(this) || !IsValid(PhaseUI) || bUseBtnLobbynMuseum) return;
 	PhaseUI->SetVisibilityLobby(true);
-	PhaseUI->SetVisibilityMuseum(true);
+	PhaseUI->SetVisibilityRestore(true);
 }
 
 bool AExcavationManager::RegisterRelicCollector(FString CollectorName)

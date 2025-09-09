@@ -70,7 +70,7 @@ private:
 
 // 발굴 단계 트리거 버튼 위젯 / 발굴 진행률 위젯 액터
 protected:
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Excavation")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	TSubclassOf<class AExcavationWidgetActor> PhaseUIActorClass;
 
 	UPROPERTY()
