@@ -208,7 +208,7 @@ void AAC_KeyBoard::UpdateVisibleLayer(int index)
 
 void AAC_KeyBoard::EnterPlayerInitial(const FString& Initial)
 {
-	GEngine->AddOnScreenDebugMessage(-1, 10.f, FColor::Red, FString::Printf(TEXT("%s"), *Initial));
+	// GEngine->AddOnScreenDebugMessage(-1, 10.f, FColor::Red, FString::Printf(TEXT("%s"), *Initial));
 	AlertMsgWidgetComp->SetVisibility(true);
 	AlertMsgWidget->SetInitialText(Initial);	
 }

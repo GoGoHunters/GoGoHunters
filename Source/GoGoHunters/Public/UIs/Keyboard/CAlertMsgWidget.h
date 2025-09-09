@@ -51,5 +51,7 @@ private:
 	UFUNCTION()
 	void OnClickBtnOk();
 	UFUNCTION()
+	void OnClickBtnClose();
+	UFUNCTION()
 	void OnClickClose();
 };
