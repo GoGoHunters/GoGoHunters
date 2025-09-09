@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
+#include "LHJ/CRelicData.h"
 #include "ExcavationManager.generated.h"
 
 // 발굴 단계 열거형
@@ -129,4 +130,10 @@ public:
 	bool bUseBtnLobbynMuseum = false;
 
 	FTimerHandle LobbyMuseumTimerHandle;
+
+private:
+	UPROPERTY()
+	FCRelicData RecentlyRegisteredRelic;
+public:
+	bool RegisterRelicCollector(FString CollectorName);
 };

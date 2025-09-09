@@ -266,9 +266,9 @@ FCRelicData UCMuseumComponent::RegisterRelic(const int32& InRelicTag)
 	return FCRelicData();
 }
 
-void UCMuseumComponent::RegisterRelicCollectorName(FCRelicData& InRelicData, FName InCollectorName)
+bool UCMuseumComponent::RegisterRelicCollectorName(FCRelicData& InRelicData, FName InCollectorName)
 {
-	if (InCollectorName == NAME_None) return;
+	if (InCollectorName == NAME_None) return false;
 	
 	if (UGI_Base* GI = Cast<UGI_Base>(UGameplayStatics::GetGameInstance(GetWorld())))
 	{
@@ -276,7 +276,9 @@ void UCMuseumComponent::RegisterRelicCollectorName(FCRelicData& InRelicData, FNa
 		FRelicSaveData NewSaveData;
 		NewSaveData.RelicData = InRelicData;
 		GI->SaveRelicData(NewSaveData);
+		return true;
 	}
+	return false;
 }
 
 void UCMuseumComponent::RecoverRelic(FCRelicData& InRelicData)

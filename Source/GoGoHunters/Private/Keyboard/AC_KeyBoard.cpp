@@ -4,6 +4,7 @@
 #include "KeyBoard/AC_KeyBoard.h"
 
 #include "Components/WidgetComponent.h"
+#include "UIs/Keyboard/CAlertMsgWidget.h"
 #include "UIs/Keyboard/CTextInputWidget.h"
 #include "Utilities/CHelpers.h"
 
@@ -34,6 +35,8 @@ AAC_KeyBoard::AAC_KeyBoard()
 	}
 
 	CHelpers::CreateComponent<UWidgetComponent>(this, &KeyBoardInputWidgetComp, "KeyBoardInputWidget", RootComponent);
+	CHelpers::CreateComponent<UWidgetComponent>(this, &AlertMsgWidgetComp, "AlertMsgWidgetComp", RootComponent);
+	AlertMsgWidgetComp->SetVisibility(false);
 }
 
 // Called when the game starts or when spawned
@@ -46,10 +49,15 @@ void AAC_KeyBoard::BeginPlay()
 	if (UUserWidget* widget = KeyBoardInputWidgetComp->GetWidget())
 	{
 		KeyBoardInputWidget = Cast<UCTextInputWidget>(widget);
+		if (KeyBoardInputWidget)
+			KeyBoardInputWidget->SetKeyboard(this);
 	}
-
-	if (KeyBoardInputWidget)
-		KeyBoardInputWidget->FocusInput();
+	if (UUserWidget* widget = AlertMsgWidgetComp->GetWidget())
+	{
+		AlertMsgWidget = Cast<UCAlertMsgWidget>(widget);
+		if (AlertMsgWidget)
+			AlertMsgWidget->SetKeyboard(this);
+	}
 }
 
 /*
@@ -198,7 +206,18 @@ void AAC_KeyBoard::UpdateVisibleLayer(int index)
 	UpdateKeybaordSize();
 }
 
+void AAC_KeyBoard::EnterPlayerInitial(const FString& Initial)
+{
+	GEngine->AddOnScreenDebugMessage(-1, 10.f, FColor::Red, FString::Printf(TEXT("%s"), *Initial));
+	AlertMsgWidgetComp->SetVisibility(true);
+	AlertMsgWidget->SetInitialText(Initial);	
+}
 
+void AAC_KeyBoard::FinishEnterPlayerInitial()
+{
+	AlertMsgWidgetComp->SetVisibility(false);
+	KeyBoardInputWidget->CompleteRequest();
+}
 
 void AAC_KeyBoard::UpdateBaseMeshScale()
 {

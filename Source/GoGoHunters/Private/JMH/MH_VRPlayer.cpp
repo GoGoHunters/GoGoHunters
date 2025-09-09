@@ -351,7 +351,7 @@ void AMH_VRPlayer::RotateHeldObject(const struct FInputActionValue& Value)
 }
 
 void AMH_VRPlayer::TriggerInteract(const FInputActionInstance& IA_Instance)
-{
+{	
 	// WidgetInteraction 활성화
 	SetWidgetInteractionUsing(true);
 	// LineTraceEffect 활성화/비활성화

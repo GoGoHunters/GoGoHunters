@@ -8,6 +8,7 @@
 #include "AC_KeyBoard.generated.h"
 
 
+class UCAlertMsgWidget;
 class UWidgetComponent;
 class UCTextInputWidget;
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnKeyBoardClickedEvent, FString, KeyString);
@@ -59,6 +60,8 @@ private:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components", meta = (AllowPrivateAccess = "true"))
 	UWidgetComponent* KeyBoardInputWidgetComp;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components", meta = (AllowPrivateAccess = "true"))
+	UWidgetComponent* AlertMsgWidgetComp;
 
 	float BaseSize_X = 500.0f;
 	float BaseSize_Y = 200.0f;
@@ -117,7 +120,12 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Keyboard")
 	void UpdateVisibleLayer(int index);
 
+	void EnterPlayerInitial(const FString& Initial);
+	void FinishEnterPlayerInitial();
+
 private:
 	UPROPERTY(BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<UCTextInputWidget> KeyBoardInputWidget;
+	UPROPERTY(BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
+	TObjectPtr<UCAlertMsgWidget> AlertMsgWidget;
 };

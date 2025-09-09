@@ -53,7 +53,7 @@ public:
 	UFUNCTION(BlueprintCallable)
 	FCRelicData RegisterRelic(const int32& InRelicTag = -1);
 	UFUNCTION(BlueprintCallable)
-	void RegisterRelicCollectorName(FCRelicData& InRelicData, FName InCollectorName = NAME_None);
+	bool RegisterRelicCollectorName(FCRelicData& InRelicData, FName InCollectorName = NAME_None);
 	void RecoverRelic(FCRelicData& InRelicData);
 	void GrabRelic(ACRelicBase* GrabRelic);
 	void GrabRelicEnd(ACRelicBase* GrabRelic, const FVector& HandComponentLocation);
