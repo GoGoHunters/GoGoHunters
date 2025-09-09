@@ -285,7 +285,7 @@ void AExcavationManager::ChangeCompletedPhase()
 						RelicTag = Relics->GetRelicTag();
 					}
 
-					MuseumComponent->RegisterRelic(RelicTag);
+					RecentlyRegisteredRelic = MuseumComponent->RegisterRelic(RelicTag);
 					UE_LOG(LogTemp, Log, TEXT("[ExcavationManager] 유물 등록 완료 - 태그: %d"), RelicTag);
 				}
 			}
@@ -378,4 +378,21 @@ void AExcavationManager::ShowLobbyMuseumButtons()
 	if (!IsValid(this) || !IsValid(PhaseUI) || bUseBtnLobbynMuseum) return;
 	PhaseUI->SetVisibilityLobby(true);
 	PhaseUI->SetVisibilityMuseum(true);
+}
+
+bool AExcavationManager::RegisterRelicCollector(FString CollectorName)
+{
+	if (RecentlyRegisteredRelic.RelicName.ToString().IsEmpty()) return false;
+	if (APlayerController* PC = UGameplayStatics::GetPlayerController(GetWorld(), 0))
+	{
+		if (APawn* Pawn = PC->GetPawn())
+		{
+			if (UCMuseumComponent* MuseumComponent = Pawn->FindComponentByClass<UCMuseumComponent>())
+			{
+				FString TrimCollectorName = CollectorName.TrimStartAndEnd();
+				return MuseumComponent->RegisterRelicCollectorName(RecentlyRegisteredRelic, FName(*TrimCollectorName));
+			}
+		}
+	}
+	return false;
 }

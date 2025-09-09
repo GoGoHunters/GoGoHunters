@@ -4,6 +4,7 @@
 #include "Blueprint/UserWidget.h"
 #include "CTextInputWidget.generated.h"
 
+class AAC_KeyBoard;
 class UEditableText;
 
 /** 문자 제한에 걸렸을 때 브로드캐스트 */
@@ -18,25 +19,16 @@ class GOGOHUNTERS_API UCTextInputWidget : public UUserWidget
 	GENERATED_BODY()
 
 public:
-	/** 키 라벨 기반 입력 (a, 1, -, Space, Backspace, Left, Right, Caps, ShiftDown, ShiftUp, Numpad0..9 등) */
+	/** 키 라벨 기반 입력 (a, 1, -, Space, Backspace, Shift, Numpad0..9 등) */
 	UFUNCTION(BlueprintCallable, Category="VirtualKeyboard")
 	void PressKeyLabel(const FString& Label);
-
-	/** 문자열 통째로 삽입 (붙여넣기 등) */
-	UFUNCTION(BlueprintCallable, Category="VirtualKeyboard")
-	void InsertString(const FString& InString);
-
-	/** 위젯에 UI 포커스를 줘서 캐럿이 확실히 보이게 */
-	UFUNCTION(BlueprintCallable, Category="VirtualKeyboard")
-	void FocusInput();
-
-	/** 상태 조회 */
-	UFUNCTION(BlueprintPure, Category="VirtualKeyboard")
-	int32 GetCaret() const { return Caret; }
 
 	UFUNCTION(BlueprintPure, Category="VirtualKeyboard")
 	FString GetText() const;
 
+	void SetKeyboard (AAC_KeyBoard* InKeyboard) {KeyBoard = InKeyboard;}
+	void CompleteRequest() {bRequest = false;}
+	
 	/** 제한에 걸렸을 때 알림(BP에서 텍스트 빨갛게, 진동/SFX 등) */
 	UPROPERTY(BlueprintAssignable, Category="VirtualKeyboard|CharLimit")
 	FOnCharLimitReached OnCharLimitReached;
@@ -45,40 +37,24 @@ private:
 	UPROPERTY(EditDefaultsOnly, meta = (BindWidget))
 	UEditableText* Txt_Initial;
 
-	/** 생성 시 커서를 끝으로 둘지 여부 */
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="VirtualKeyboard", meta = (AllowPrivateAccess=true))
-	bool bPlaceCaretAtEndOnConstruct = true;
-
-	// 편집 상태
-	int32 Caret = 0;
-	bool bCapsLock = false;
-	bool bShift = false;
-
-	/** 제한 초과 문자열 삽입 시: true=남은 분량만 잘라서 삽입, false=전체 거부 */
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="VirtualKeyboard|CharLimit", meta = (AllowPrivateAccess=true))
-	bool bTruncateOnInsert = true;
+	UPROPERTY()
+	TObjectPtr<AAC_KeyBoard> KeyBoard;
+	
 	// 문자 제한 상태
 	bool  bUseCharLimit = false;
 	int32 MaxChars = 20; // bUseCharLimit=true일 때만 의미 있음
 
+	bool bRequest = false; // 이름 등록 단계인지 확인
+
 	virtual void NativeConstruct() override;
-	
+
 	// 핵심 동작
 	void InsertChar(TCHAR Ch);
 	void Backspace();
-	void MoveCursorLeft();
-	void MoveCursorRight();
-	void ToggleCaps() { bCapsLock = !bCapsLock; }
-	void ShiftDown()  { bShift = true;  }
-	void ShiftUp()    { bShift = false; }
-
-	void SetTextAndClampCaret(const FString& NewText);
+	void SetTextInTextBox(const FString& NewText);
 
 	// 라벨 → 문자 변환
 	bool MakeOutputCharFromLabel(const FString& Label, TCHAR& OutChar) const;
-	bool TryMapNamedKeyToChar(const FString& Label, TCHAR& OutChar) const;  // Minus/Equals/Period/...
-	bool TryMapNumpadToChar(const FString& Label, TCHAR& OutChar) const;    // Numpad0..9, Add/Sub/Mul/Div/Decimal
-	bool MapShiftedSymbol(TCHAR Base, TCHAR& OutShifted) const;             // 상단 숫자열 Shift 기호
 
 	// 명령 라벨 처리
 	bool HandleCommandLabel(const FString& Label);
