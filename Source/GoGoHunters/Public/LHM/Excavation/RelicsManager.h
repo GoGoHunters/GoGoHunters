@@ -52,9 +52,6 @@ protected:
 	UPROPERTY(VisibleAnywhere)
 	class UChildActorComponent* RelicsChild;
 
-	//UPROPERTY(EditAnywhere)
-	//UStaticMeshComponent* ExcavationLand_01;
-
 	UPROPERTY(EditAnywhere)
 	UStaticMeshComponent* ExcavationLand_02;
 
@@ -70,6 +67,16 @@ private:
 	class ARelicsBase* Relics;
 
 	int32 CurrentLayerIndex = 0;
+
+// 발굴 진행률 액터
+protected:
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	TSubclassOf<class AExcavationProgressWidgetActor> ProgressClass;
+
+	UPROPERTY()
+	class AExcavationProgressWidgetActor* ProgressActor;
+
+private:
 	bool bBrushPhaseStarted = false;
 
 	UFUNCTION()

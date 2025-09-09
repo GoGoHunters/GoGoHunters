@@ -11,6 +11,7 @@
 #include "EngineUtils.h"
 #include "Engine/TextureRenderTarget2D.h"
 #include "Keyboard/AC_KeyBoard.h"
+#include "LHM/Excavation/ExcavationProgressWidgetActor.h"
 
 // Sets default values
 ARelicsManager::ARelicsManager()
@@ -104,6 +105,21 @@ void ARelicsManager::BeginPlay()
 		Relics = Cast<ARelicsBase>(RelicsChild->GetChildActor());
 		Relics->SetRelicsManager(this);
 	}
+
+	if (ProgressClass)
+	{
+		FActorSpawnParameters SpawnParams;
+		SpawnParams.Owner = this;
+
+		ProgressActor = GetWorld()->SpawnActor<AExcavationProgressWidgetActor>(ProgressClass, GetActorLocation(), GetActorRotation(), SpawnParams);
+
+		if (ProgressActor)
+		{
+			ProgressActor->AttachToActor(this, FAttachmentTransformRules::KeepRelativeTransform);
+			ProgressActor->SetActorLocation(GetActorLocation()+ FVector(-260, 0, 240));
+			ProgressActor->SetActorHiddenInGame(true);
+		}
+	}
 }
 
 // Called every frame
@@ -115,6 +131,8 @@ void ARelicsManager::Tick(float DeltaTime)
 
 void ARelicsManager::StartExcavation()
 {
+	if (GetRelics()) GetRelics()->ActivateMarker();
+
 	for (auto Ground : GroundLayers)
 	{
 		if (IsValid(Ground))
@@ -133,8 +151,8 @@ void ARelicsManager::StartExcavation()
 		}
 	}
 
-	if (ExcavationLand_02)
-		ExcavationLand_02->SetHiddenInGame(false);
+	if (ExcavationLand_02) ExcavationLand_02->SetHiddenInGame(false);
+	if (ProgressActor) ProgressActor->SetActorHiddenInGame(false);
 
 	bBrushPhaseStarted = false;
 

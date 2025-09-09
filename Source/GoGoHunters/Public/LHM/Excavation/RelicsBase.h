@@ -72,7 +72,7 @@ public:
 protected:
 	UPROPERTY(EditAnywhere, Category="Relics")
 	int32 RelicTag = -1;
-
+	
 // 탐지
 public:
 	bool GetIsDetected() const { return bIsDetected; }

@@ -47,6 +47,7 @@ void AExcavationManager::BeginPlay()
 void AExcavationManager::EndPlay(const EEndPlayReason::Type EndPlayReason)
 {
 	GetWorldTimerManager().ClearTimer(LobbyMuseumTimerHandle);
+	GetWorldTimerManager().ClearTimer(KeyboardSpawnTimerHandle);
 	GetWorldTimerManager().ClearAllTimersForObject(this);
 
 	Super::EndPlay(EndPlayReason);
@@ -209,11 +210,9 @@ bool AExcavationManager::IsToolAvailableForPhase(int32 ToolIndex) const
 
 void AExcavationManager::ChangeExcavationPhase()
 {
-	if( !CurrentActiveManager || !CurrentActiveManager->GetRelics() ) return;
+	if (!CurrentActiveManager) return;
 	if (!PhaseUI || !DiggingUI) return;
 	
-	CurrentActiveManager->GetRelics()->ActivateMarker();
-
 	CurrentActiveManager->StartExcavation();
 
 	PlayTami(TEXT("PlayExcavationPhase2_PlantedFlag"));
