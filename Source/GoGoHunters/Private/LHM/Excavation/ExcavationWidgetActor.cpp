@@ -4,6 +4,8 @@
 #include "LHM/Excavation/ExcavationWidgetActor.h"
 #include "Components/WidgetComponent.h"
 #include "LHM/UI/ExcavationPhaseUI.h"
+#include "Kismet/GameplayStatics.h"
+#include "Kismet/KismetMathLibrary.h"
 
 // Sets default values
 AExcavationWidgetActor::AExcavationWidgetActor()
@@ -51,5 +53,15 @@ void AExcavationWidgetActor::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
+	if (WidgetComponent)
+	{
+		APlayerCameraManager* CamManager = UGameplayStatics::GetPlayerCameraManager(GetWorld(), 0);
+		if (CamManager)
+		{
+			FVector CamLocation = CamManager->GetCameraLocation();
+			FRotator LookAtRotation = UKismetMathLibrary::FindLookAtRotation(WidgetComponent->GetComponentLocation(), CamLocation);
+			WidgetComponent->SetWorldRotation(LookAtRotation);
+		}
+	}
 }
 

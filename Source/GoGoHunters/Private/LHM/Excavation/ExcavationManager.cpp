@@ -104,10 +104,9 @@ void AExcavationManager::NotifyExcavationCompleted(class ARelicsManager* FromMan
 void AExcavationManager::NotifyDustingCompleted(class ARelicsManager* FromManager)
 {
 	if (!IsValid(FromManager)) return;
-	if (!WarningUI) return;
 
 	// 경고 UI 리셋
-	WarningUI->ResetWarnings();
+	if (WarningUI) WarningUI->ResetWarnings();
 
 	// 수거박스 생성 요청
 	FromManager->SpawnCollectionBox();
@@ -124,7 +123,7 @@ void AExcavationManager::NotifyCollectionCompleted(class ARelicsManager* FromMan
 {
 	if (!IsValid(FromManager)) return;
 	if (!IsValid(FromCollectionBox)) return;
-	if (!PhaseUI || !WarningUI) return;
+	if (!PhaseUI) return;
 
 	CurrentActiveManager = FromManager;
 	CollectionBox = FromCollectionBox;
@@ -136,7 +135,7 @@ void AExcavationManager::NotifyCollectionCompleted(class ARelicsManager* FromMan
 	PhaseUI->SetVisibilityCloseLid(true);
 
 	// 경고 UI 리셋
-	WarningUI->ResetWarnings();
+	if (WarningUI) WarningUI->ResetWarnings();
 }
 
 void AExcavationManager::SetCurrentPhase(EExcavationPhase NewPhase)

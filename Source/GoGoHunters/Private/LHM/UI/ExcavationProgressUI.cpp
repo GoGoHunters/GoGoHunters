@@ -64,10 +64,7 @@ void UExcavationProgressUI::UpdatePhaseImagesOpacity(int32 ActiveIndex)
 		{
 			if (Image)
 			{
-				FLinearColor Color = Image->ColorAndOpacity;
-				Color.A = Opacity;
-				Image->SetColorAndOpacity(Color);
-				//Image->SetRenderOpacity(Opacity);
+				Image->SetRenderOpacity(Opacity);
 			}
 		};
 		 
