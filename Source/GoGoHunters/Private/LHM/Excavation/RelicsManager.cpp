@@ -130,7 +130,7 @@ void ARelicsManager::BeginPlay()
 		if (PhaseUIActor)
 		{
 			PhaseUIActor->AttachToActor(this, FAttachmentTransformRules::KeepRelativeTransform);
-			PhaseUIActor->SetActorLocation(GetActorLocation() + FVector(0, 0, 340));
+			PhaseUIActor->SetActorLocation(GetActorLocation() + FVector(-200, 0, 340));
 			PhaseUIActor->SetActorEnableCollision(false);
 		}
 	}
@@ -177,11 +177,11 @@ void ARelicsManager::NotifyGroundProgress(float Progress)
 {
 	if (CurrentLayerIndex >= GroundLayers.Num()) return;
 
-	if (bPressedDevKey) Progress = 0.05f;
+	if (bPressedDevKey) Progress = 0.07f;
 
-	PlayTamiCompliments(CurrentLayerIndex, Progress);
+	//PlayTamiCompliments(CurrentLayerIndex, Progress);
 
-	if (Progress >= 0.05f) // 5% 이상 파괴되었으면
+	if (Progress >= 0.07f) // 6% 이상 파괴되었으면
 	{
 		auto CurrentLayer = GroundLayers[CurrentLayerIndex];
 		if (IsValid(CurrentLayer))
@@ -261,7 +261,7 @@ bool ARelicsManager::GetCurrentDigProgress(float& OutProgress) const
 		else
 		{
 			float Destruction = Ground->CalculateDestructionFromRenderTarget();
-			float Normalized = FMath::Clamp(Destruction / 0.05f, 0.0f, 1.0f); // layer[0]: 5%/layer[i]: 1% 기준으로 정규화
+			float Normalized = FMath::Clamp(Destruction / 0.07f, 0.0f, 1.0f); // layer[0]: 6%/layer[i]: 1% 기준으로 정규화
 			TotalProgress += Normalized;
 		}
 	}
@@ -281,8 +281,13 @@ void ARelicsManager::SpawnKeyboard()
 	FActorSpawnParameters Params;
 	Params.Owner = this;
 
-	GetWorld()->SpawnActor<AAC_KeyBoard>(KeyBoardClass, SpawnLocation, SpawnRotation, Params);
+	KeyBoardActor = GetWorld()->SpawnActor<AAC_KeyBoard>(KeyBoardClass, SpawnLocation, SpawnRotation, Params);
 	UE_LOG(LogTemp, Log, TEXT("[RelicsManager] Keyboard 스폰 완료"));
+}
+
+void ARelicsManager::DestroyKeyboard()
+{
+	if (KeyBoardActor) KeyBoardActor->Destroy();
 }
 
 void ARelicsManager::PlayTamiCompliments(int32 CurrentLayer, float Progress)

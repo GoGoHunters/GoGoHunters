@@ -372,7 +372,11 @@ void AExcavationManager::SpawnKeyboardActor()
 
 void AExcavationManager::ShowLobbyRestoreButtons()
 {
+	if (!IsValid(CurrentActiveManager)) return;
 	if (!IsValid(this) || !IsValid(PhaseUI) || bUseBtnLobbynMuseum) return;
+
+	CurrentActiveManager->DestroyKeyboard();
+
 	PhaseUI->SetVisibilityLobby(true);
 	PhaseUI->SetVisibilityRestore(true);
 }

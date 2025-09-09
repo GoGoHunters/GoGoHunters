@@ -105,8 +105,14 @@ public:
 	UFUNCTION()
 	void SpawnKeyboard();
 
+	UFUNCTION()
+	void DestroyKeyboard();
+
 	UPROPERTY(EditDefaultsOnly)
 	TSubclassOf<class AAC_KeyBoard> KeyBoardClass;
+
+	UPROPERTY()
+	class AAC_KeyBoard* KeyBoardActor;
 
 // 개발자 키
 public:
