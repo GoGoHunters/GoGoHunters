@@ -125,26 +125,6 @@ void AMH_VRPlayer::BeginPlay()
 			RelicsGroundRefs.Add(*It);
 		}
 	}
-
-	if(CurrentLevel == "LV_TestExcavation")
-	{
-		FActorSpawnParameters SpawnParams;
-		SpawnParams.Owner = this;
-
-		FVector SpawnLocation = FVector::ZeroVector;
-		FRotator SpawnRotation = FRotator::ZeroRotator;
-
-		// Excavation Phase UI 
-		if (ExcavationUIActorClass)
-		{
-			ExcavationUIActor = GetWorld()->SpawnActor<AExcavationWidgetActor>(ExcavationUIActorClass, SpawnLocation, SpawnRotation, SpawnParams);
-			if (ExcavationUIActor)
-			{
-				ExcavationUIActor->AttachToComponent(VRCamera, FAttachmentTransformRules::SnapToTargetNotIncludingScale, NAME_None);
-				ExcavationUIActor->SetActorEnableCollision(false);
-			}
-		}
-	}
 #pragma endregion 발굴 레벨에서만 초기화
 
 	// 레벨에 있는 튜토리얼 매니저를 찾아서 저장

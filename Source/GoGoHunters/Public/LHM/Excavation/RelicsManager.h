@@ -68,8 +68,14 @@ private:
 
 	int32 CurrentLayerIndex = 0;
 
-// 발굴 진행률 액터
+// 발굴 단계 트리거 버튼 위젯 / 발굴 진행률 위젯 액터
 protected:
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Excavation")
+	TSubclassOf<class AExcavationWidgetActor> PhaseUIActorClass;
+
+	UPROPERTY()
+	class AExcavationWidgetActor* PhaseUIActor;
+
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	TSubclassOf<class AExcavationProgressWidgetActor> ProgressClass;
 

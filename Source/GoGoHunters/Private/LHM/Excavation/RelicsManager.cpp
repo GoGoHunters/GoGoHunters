@@ -12,11 +12,12 @@
 #include "Engine/TextureRenderTarget2D.h"
 #include "Keyboard/AC_KeyBoard.h"
 #include "LHM/Excavation/ExcavationProgressWidgetActor.h"
+#include "LHM/Excavation/ExcavationWidgetActor.h"
 
 // Sets default values
 ARelicsManager::ARelicsManager()
 {
- 	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
+	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
 
 	RootComponent = CreateDefaultSubobject<USceneComponent>(TEXT("RootScene"));
@@ -32,7 +33,7 @@ ARelicsManager::ARelicsManager()
 	ExcavationLand_02->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
 	ExcavationLand_02->SetCollisionObjectType(ECC_WorldStatic);
 	ExcavationLand_02->SetCollisionResponseToAllChannels(ECR_Block);
-	
+
 	ExcavationLand_02->bReceivesDecals = false;
 
 	RelicsChild = CreateDefaultSubobject<UChildActorComponent>(TEXT("Relics"));
@@ -112,12 +113,25 @@ void ARelicsManager::BeginPlay()
 		SpawnParams.Owner = this;
 
 		ProgressActor = GetWorld()->SpawnActor<AExcavationProgressWidgetActor>(ProgressClass, GetActorLocation(), GetActorRotation(), SpawnParams);
-
 		if (ProgressActor)
 		{
 			ProgressActor->AttachToActor(this, FAttachmentTransformRules::KeepRelativeTransform);
-			ProgressActor->SetActorLocation(GetActorLocation()+ FVector(-260, 0, 240));
+			ProgressActor->SetActorLocation(GetActorLocation() + FVector(-260, 0, 240));
 			ProgressActor->SetActorHiddenInGame(true);
+		}
+	}
+
+	if (PhaseUIActorClass)
+	{
+		FActorSpawnParameters SpawnParams;
+		SpawnParams.Owner = this;
+
+		PhaseUIActor = GetWorld()->SpawnActor<AExcavationWidgetActor>(PhaseUIActorClass, GetActorLocation(), GetActorRotation(), SpawnParams);
+		if (PhaseUIActor)
+		{
+			PhaseUIActor->AttachToActor(this, FAttachmentTransformRules::KeepRelativeTransform);
+			PhaseUIActor->SetActorLocation(GetActorLocation() + FVector(0, 0, 340));
+			PhaseUIActor->SetActorEnableCollision(false);
 		}
 	}
 }
@@ -223,19 +237,19 @@ void ARelicsManager::SpawnCollectionBox()
 bool ARelicsManager::GetCurrentDigProgress(float& OutProgress) const
 {
 	int32 TotalLayers = GroundLayers.Num();
-	
+
 	if (TotalLayers == 0)
 	{
 		OutProgress = 0.0f;
 		return false;
 	}
-	
+
 	float TotalProgress = 0.0f;
 
-	for(int32 i = 0; i < TotalLayers; ++i)
+	for (int32 i = 0; i < TotalLayers; ++i)
 	{
 		ARelicsGround* Ground = GroundLayers[i];
-		if(!IsValid(Ground)) // Destroy된 레이어는 파괴 완료로 간주
+		if (!IsValid(Ground)) // Destroy된 레이어는 파괴 완료로 간주
 		{
 			TotalProgress += 1.0f;
 		}
