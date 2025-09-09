@@ -101,6 +101,8 @@ public:
 
 	void SetBrushingUI(class UBrushingUI* InBrushingUI) { BrushingUI = InBrushingUI; }
 
+	void SetCollectionBoxUI(class UCollectionBoxUI* InCollectionBoxUI) { CollectionBoxUI = InCollectionBoxUI; }
+
 	void SetWarningUI(class UWarningUI* InWarningUI) { WarningUI = InWarningUI; }
 	
 	void HandleWarningReset(); // 경고 3회 → 3초 뒤 호출
@@ -118,6 +120,9 @@ protected:
     UPROPERTY()
     class UBrushingUI* BrushingUI;
 
+	UPROPERTY()
+	class UCollectionBoxUI* CollectionBoxUI;
+
 // 타미 대사
 private:
 	void PlayTami(const FName& FunctionName);
@@ -131,7 +136,7 @@ private:
 // 로비 박물관 버튼 노출
 public:
 	UFUNCTION()
-	void ShowLobbyMuseumButtons();
+	void ShowLobbyRestoreButtons();
 
 	UPROPERTY(BlueprintReadWrite)
 	bool bUseBtnLobbynMuseum = false;

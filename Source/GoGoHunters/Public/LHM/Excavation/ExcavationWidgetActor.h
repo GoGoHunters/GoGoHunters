@@ -23,8 +23,12 @@ public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
+	void SetCollisionAndVisible(bool InVisible);
+
 private:
 	UPROPERTY(EditDefaultsOnly)
     class UWidgetComponent* WidgetComponent;
+
+	bool bIsVisible = false;
 
 };

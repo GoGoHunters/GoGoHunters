@@ -9,6 +9,9 @@
 #include "EngineUtils.h"
 #include "LHM/UI/BrushingUI.h"
 #include "LHM/UI/DecalProgressUI.h"
+#include "Components/WidgetComponent.h"
+#include "LHM/UI/CollectionBoxUI.h"
+#include "Kismet/KismetMathLibrary.h"
 
 // Sets default values
 ACollectionBox::ACollectionBox()
@@ -24,6 +27,16 @@ ACollectionBox::ACollectionBox()
 	TriggerVolume->SetCollisionProfileName(TEXT("OverlapAllDynamic"));
 	TriggerVolume->SetGenerateOverlapEvents(true);
 
+	static ConstructorHelpers::FClassFinder<UUserWidget> WidgetClassFinder(TEXT("/Game/LHM/UI/WBP_CloseBtnUI"));
+	if (WidgetClassFinder.Succeeded())
+	{
+		WidgetComponent = CreateDefaultSubobject<UWidgetComponent>(TEXT("CloseBtnUI"));
+		WidgetComponent->SetWidgetClass(WidgetClassFinder.Class);
+		WidgetComponent->SetupAttachment(RootComponent);
+		WidgetComponent->SetWidgetSpace(EWidgetSpace::World);
+		WidgetComponent->SetDrawSize(FVector2D(200, 100));
+		WidgetComponent->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	}
 }
 
 // Called when the game starts or when spawned
@@ -33,6 +46,15 @@ void ACollectionBox::BeginPlay()
 
 	TriggerVolume->OnComponentBeginOverlap.AddDynamic(this, &ACollectionBox::OnOverlapBegin);
 	TriggerVolume->OnComponentEndOverlap.AddDynamic(this, &ACollectionBox::OnOverlapEnd);
+
+	if (WidgetComponent)
+	{
+		UUserWidget* UserWidget = WidgetComponent->GetWidget();
+		if (UCollectionBoxUI* CloseBtnUI = Cast<UCollectionBoxUI>(UserWidget))
+		{
+			CloseBtnUI->SetOwningWidgetActor(this);
+		}
+	}
 }
 
 // Called every frame
@@ -40,6 +62,19 @@ void ACollectionBox::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
+	if (bVisibleCloseBtnUI)
+	{
+		if (WidgetComponent)
+		{
+			APlayerCameraManager* CamManager = UGameplayStatics::GetPlayerCameraManager(GetWorld(), 0);
+			if (CamManager)
+			{
+				FVector CamLocation = CamManager->GetCameraLocation();
+				FRotator LookAtRotation = UKismetMathLibrary::FindLookAtRotation(WidgetComponent->GetComponentLocation(), CamLocation);
+				WidgetComponent->SetWorldRotation(LookAtRotation);
+			}
+		}
+	}
 }
 
 void ACollectionBox::OnOverlapBegin(UPrimitiveComponent* Overlapped, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& Hit)
@@ -207,6 +242,23 @@ void ACollectionBox::ResetCollectedRelics()
 void ACollectionBox::PlayBoxCloseAnimation()
 {
 	K2_CloseLid();
+}
+
+void ACollectionBox::SetColleionCloseBtnUI(bool bVisible)
+{
+	if (bVisible)
+	{
+		bVisibleCloseBtnUI = true;
+		WidgetComponent->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
+		WidgetComponent->SetCollisionResponseToAllChannels(ECollisionResponse::ECR_Ignore);
+		WidgetComponent->SetCollisionResponseToChannel(ECC_Visibility, ECR_Block);
+		WidgetComponent->SetCollisionProfileName("VRUI");
+	}
+	else
+	{
+		bVisibleCloseBtnUI = false;
+		WidgetComponent->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	}
 }
 
 void ACollectionBox::PressedDevKey()

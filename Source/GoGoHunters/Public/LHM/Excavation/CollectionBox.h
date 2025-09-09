@@ -68,6 +68,17 @@ public:
 	UFUNCTION(BlueprintImplementableEvent)
     void K2_CloseLid();
 
+// CollectionBox UI
+public:
+	void SetColleionCloseBtnUI(bool bVisible);
+
+private:
+	UPROPERTY(EditDefaultsOnly)
+    class UWidgetComponent* WidgetComponent;
+
+	bool bVisibleCloseBtnUI = false;
+
+public:
 // 개발자 키
 	UFUNCTION(BlueprintCallable)
 	void PressedDevKey();
