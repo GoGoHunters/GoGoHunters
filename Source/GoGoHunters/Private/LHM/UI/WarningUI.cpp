@@ -4,10 +4,10 @@
 #include "LHM/UI/WarningUI.h"
 #include "Components/Image.h"
 #include "Components/Overlay.h"
-#include "LHM/Excavation/ExcavationWarningWidgetActor.h"
 #include "LHM/Excavation/ExcavationManager.h"
 #include "EngineUtils.h"
 #include "Components/WidgetComponent.h"
+#include "LHM/Excavation/ExcavationProgressWidgetActor.h"
 
 void UWarningUI::NativeConstruct()
 {
@@ -69,9 +69,9 @@ void UWarningUI::ShowNextWarning()
 
 void UWarningUI::SetWarningVisibility(bool bVisible)
 {
-	if (OwningWidgetActor && OwningWidgetActor->GetWidgetComponent())
+	if (OwningWidgetActor && OwningWidgetActor->GetWarningWidget())
 	{
-		OwningWidgetActor->GetWidgetComponent()->SetHiddenInGame(!bVisible);
+		OwningWidgetActor->GetWarningWidget()->SetHiddenInGame(!bVisible);
 	}
 }
 

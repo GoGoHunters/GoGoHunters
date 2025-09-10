@@ -363,7 +363,7 @@ void ARelicsBase::ResetDecalsAndProgress()
             if (OverlayMID)
             {
                 // 원래 색상으로 복구
-                OverlayMID->SetVectorParameterValue(FName("Color"), FLinearColor(1.0f, 0.267f, 0.0f, 1.0f));
+                OverlayMID->SetVectorParameterValue(FName("Color"), FLinearColor(0.027364f, 0.536458f, 0.0f, 1.0f)); // 0.027364, 0.536458
             }
         }
     }

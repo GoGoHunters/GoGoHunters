@@ -66,7 +66,7 @@ public:
 	UPROPERTY(EditAnywhere)
 	float BrushSwipeThresholdMin = 30.0f;
 	UPROPERTY(EditAnywhere)
-	float BrushSwipeThresholdMax = 300.0f;
+	float BrushSwipeThresholdMax = 200.0f;
 
 	// 데칼 페이드 속도
 	UPROPERTY(EditAnywhere)
@@ -80,6 +80,9 @@ public:
 
 private:
 	UPROPERTY(EditAnywhere, Category = "Warning|Feedback")
+	USoundBase* WarningSFX = nullptr;
+
+	UPROPERTY(EditAnywhere, Category = "Warning|Feedback")
 	USoundBase* HardBrushSFX = nullptr;
 
 	UPROPERTY(EditAnywhere, Category = "Warning|Feedback")
@@ -89,14 +92,25 @@ private:
 	float WarningDelayAfterImpact = 2.0f; // 2초 지연
 
 	// 경고 연출 + 지연 호출 래퍼
-	void HandleBrushHardSwipeFeedbackAndWarn(/*class ARelicsBase* Relic*/);
+	void HandleBrushHardSwipeFeedbackAndWarn();
+
+	// 2초 지연 후 판정 콜백
+	void OnWarningDelayElapsed();
+
+	// 진행 중인 경고 판정 취소
+	void CancelPendingWarningCheck();
 
 	void ResetWarningCooldown();
 
 	FTimerHandle WarningCooldownHandle;
+	FTimerHandle WarningDelayHandle;
 
 	bool bCanTriggerWarning = true;
 	float WarningCooldownDuration = 3.0f;
+
+	// 2초 판정 상태
+	bool bWarningCheckPending = false;
+	bool bWarningWindowHadDropBelow = false;
 
 // 사운드 재생 쿨타임
 private:

@@ -23,7 +23,12 @@ public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 	
+	class UWidgetComponent* GetWarningWidget() const { return WarningWidget; }
+
 private:
 	UPROPERTY(EditDefaultsOnly)
-    class UWidgetComponent* WidgetComponent;
+    class UWidgetComponent* ProgressWidget;
+
+	UPROPERTY(EditDefaultsOnly)
+    class UWidgetComponent* WarningWidget;
 };
