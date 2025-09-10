@@ -44,22 +44,12 @@ protected:
 	void HandleRelicItemClicked(const FCRelicData& RelicData);
 
 protected:
-	/*UPROPERTY(meta = (BindWidget))
-	class UHorizontalBox* HorizontalBox_Row1;
-	UPROPERTY(meta = (BindWidget))
-	class UHorizontalBox* HorizontalBox_Row2;
-	UPROPERTY(meta = (BindWidget))
-	class UHorizontalBox* HorizontalBox_Row3;*/
 
 	UPROPERTY(meta = (BindWidget)) class UOverlay* Overlay1_1;
 	UPROPERTY(meta = (BindWidget)) class UOverlay* Overlay1_2;
 	UPROPERTY(meta = (BindWidget)) class UOverlay* Overlay1_3;
-	UPROPERTY(meta = (BindWidget)) class UOverlay* Overlay2_1;
-	UPROPERTY(meta = (BindWidget)) class UOverlay* Overlay2_2;
-	UPROPERTY(meta = (BindWidget)) class UOverlay* Overlay2_3;
-	UPROPERTY(meta = (BindWidget)) class UOverlay* Overlay3_1;
-	UPROPERTY(meta = (BindWidget)) class UOverlay* Overlay3_2;
-	UPROPERTY(meta = (BindWidget)) class UOverlay* Overlay3_3;
+	UPROPERTY(meta = (BindWidget)) class UOverlay* Overlay1_4;
+	UPROPERTY(meta = (BindWidget)) class UOverlay* Overlay1_5;
 
 	TArray<UOverlay*> RelicSlotOverlays;
 
@@ -96,7 +86,7 @@ protected:
 	class UTextBlock* Txt_EmptyRelics;
 
 	UPROPERTY(EditDefaultsOnly)
-	int32 ItemsPerPage = 9;
+	int32 ItemsPerPage = 5;
 	int32 CurrentPage = 0;
 	int32 MaxPage = 0;
 
