@@ -28,10 +28,14 @@ public:
 	void NotifyPuzzleCompleted(class ARestorePuzzleActor* PuzzleActor);
 
 	void SetRestoreUI(class URestoreUI* InRestoreUI) { RestoreUI = InRestoreUI; }
+	void SetCompleteUI(class URestorationCompleteUI* InCompleteUI) { CompleteUI = InCompleteUI; }
 
 private:
 	UPROPERTY()
 	TObjectPtr<class URestoreUI> RestoreUI;
+	
+	UPROPERTY()
+	TObjectPtr<class URestorationCompleteUI> CompleteUI;
 
 	//UPROPERTY(EditAnywhere, Category = "Puzzle")
 	//TSubclassOf<class ARestorePuzzleActor> PuzzleActorClass;
