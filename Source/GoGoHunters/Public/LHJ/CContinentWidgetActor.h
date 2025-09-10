@@ -4,6 +4,7 @@
 #include "GameFramework/Actor.h"
 #include "CContinentWidgetActor.generated.h"
 
+class UTextRenderComponent;
 class UWidgetComponent;
 class UCContinentWidget;
 class ACWorldMap;
@@ -29,6 +30,18 @@ private:
 	UWidgetComponent* WidgetComponent;
 	UPROPERTY()
 	TObjectPtr<UCContinentWidget> ContinentWidget;
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
+	UTextRenderComponent* TitleTextComp;
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
+	UTextRenderComponent* DescTextComp;
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
+	UTextRenderComponent* MoveTextComp;
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
+	UTextRenderComponent* CloseTextComp;
+	
 	UPROPERTY()
 	TObjectPtr<ACWorldMap> OuterOwner;
+
+	FVector CloseTextLoc1=FVector(-21.5,-37,0);
+	FVector CloseTextLoc2=FVector(0,-37,0);
 };

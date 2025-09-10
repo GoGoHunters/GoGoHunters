@@ -1,7 +1,5 @@
 #include "LHJ/CRelicDescActor.h"
 
-#include "GameDelegates.h"
-#include "Components/WidgetComponent.h"
 #include "Components/TextRenderComponent.h"
 #include "Utilities/CHelpers.h"
 
@@ -17,27 +15,28 @@ ACRelicDescActor::ACRelicDescActor()
 	TitleTextComp->SetVerticalAlignment(EVRTA_TextCenter);
 	TitleTextComp->SetWorldSize(3.f);
 	TitleTextComp->SetTextRenderColor(FColor(255, 155, 14, 1));
+	TitleTextComp->SetTranslucentSortPriority(2);
 	
 	CHelpers::CreateComponent<UTextRenderComponent>(this, &DescTextComp, "DescTextComp", RootComponent);
 	DescTextComp->SetRelativeLocation(FVector(6.5, 0, 7));
 	DescTextComp->SetHorizontalAlignment(EHTA_Center);
 	DescTextComp->SetVerticalAlignment(EVRTA_TextTop);
 	DescTextComp->SetWorldSize(1.3f);
+	DescTextComp->SetTranslucentSortPriority(2);
 	
 	CHelpers::CreateComponent<UTextRenderComponent>(this, &CollectorTextComp, "CollectorTextComp", RootComponent);
 	CollectorTextComp->SetRelativeLocation(FVector(6.5, 30, 22));
 	CollectorTextComp->SetHorizontalAlignment(EHTA_Left);
 	CollectorTextComp->SetVerticalAlignment(EVRTA_TextCenter);
 	CollectorTextComp->SetWorldSize(1.f);
+	CollectorTextComp->SetTranslucentSortPriority(2);
 	
 	CHelpers::CreateComponent<UTextRenderComponent>(this, &DateTextComp, "DateTextComp", RootComponent);
 	DateTextComp->SetRelativeLocation(FVector(6.5, 30, 19));
 	DateTextComp->SetHorizontalAlignment(EHTA_Left);
 	DateTextComp->SetVerticalAlignment(EVRTA_TextCenter);
 	DateTextComp->SetWorldSize(1.f);
-
-	// CHelpers::CreateComponent<UWidgetComponent>(this, &DescWidget, "DescWidget", RootComponent);
-	// DescWidget->SetCastShadow(false);
+	DateTextComp->SetTranslucentSortPriority(2);
 }
 
 void ACRelicDescActor::UpdateDescriptionWidget(bool bUpdate, FCRelicData InRelicData,
@@ -48,19 +47,6 @@ void ACRelicDescActor::UpdateDescriptionWidget(bool bUpdate, FCRelicData InRelic
 	param.RelicDetailData = InRelicDetailData;
 	param.IsUpdate = bUpdate;
 	UpdateData(param);
-	// UUserWidget* WBPDescriptionWidget = DescWidget->GetWidget();
-	// if (!WBPDescriptionWidget) return;
-	//
-	// FName FunctionName(TEXT("UpdateData"));
-	// UFunction* Function = WBPDescriptionWidget->FindFunction(FunctionName);
-	// if (Function)
-	// {
-	// 	FCRelicDataParam param;
-	// 	param.RelicData = InRelicData;
-	// 	param.RelicDetailData = InRelicDetailData;
-	// 	param.IsUpdate = bUpdate;
-	// 	WBPDescriptionWidget->ProcessEvent(Function, &param);
-	// }
 }
 
 void ACRelicDescActor::UpdateData(FCRelicDataParam Param)

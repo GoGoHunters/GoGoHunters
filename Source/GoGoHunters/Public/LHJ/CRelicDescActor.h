@@ -28,8 +28,6 @@ private:
 	UTextRenderComponent* CollectorTextComp;
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
 	UTextRenderComponent* DateTextComp;
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
-	UWidgetComponent* DescWidget;
 	
 	ACRelicDescActor();
 	void UpdateData(FCRelicDataParam Param);
