@@ -179,7 +179,7 @@ void ARelicsManager::NotifyGroundProgress(float Progress)
 
 	if (bPressedDevKey) Progress = 0.07f;
 
-	//PlayTamiCompliments(CurrentLayerIndex, Progress);
+	PlayTamiCompliments(CurrentLayerIndex, Progress);
 
 	if (Progress >= 0.07f) // 6% 이상 파괴되었으면
 	{
@@ -292,22 +292,27 @@ void ARelicsManager::DestroyKeyboard()
 
 void ARelicsManager::PlayTamiCompliments(int32 CurrentLayer, float Progress)
 {
+	// 레이어와 진행도에 따른 1회성 재생 가드
 	if (CurrentLayerIndex == 0)
 	{
-		if (Progress >= 0.01f)
+		if (!bPlayedCompliment2 && Progress >= 0.02f)
 		{
+			bPlayedCompliment2 = true;
 			PlayTami(TEXT("PlayExcavationCompliment2"));
 		}
 	}
 	else if (CurrentLayerIndex == 1)
 	{
-		if (Progress >= 0.02f)
+		if (!bPlayedVisibleRelic && Progress >= 0.01f)
 		{
-			PlayTami(TEXT("PlayExcavationCompliment3"));
-		}
-		else if (Progress >= 0.01f)
-		{
+			bPlayedVisibleRelic = true;
 			PlayTami(TEXT("PlayExcavationPhase3_VisibleRelic"));
+		}
+
+		if (!bPlayedCompliment3 && Progress >= 0.04f)
+		{
+			bPlayedCompliment3 = true;
+			PlayTami(TEXT("PlayExcavationCompliment3"));
 		}
 	}
 }

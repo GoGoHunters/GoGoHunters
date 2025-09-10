@@ -123,4 +123,9 @@ public:
 private:
 	void PlayTamiCompliments(int32 CurrentLayer, float Progress);
 	void PlayTami(const FName& FunctionName);
+
+	// 중복 재생 방지 플래그
+	bool bPlayedCompliment2 = false;
+	bool bPlayedCompliment3 = false;
+	bool bPlayedVisibleRelic = false;
 };
