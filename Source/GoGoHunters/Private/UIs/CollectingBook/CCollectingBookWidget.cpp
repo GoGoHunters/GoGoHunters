@@ -1,13 +1,4 @@
-#include "Containers/UnrealString.h"
-// 리터럴 "\\n"을 실제 줄바꿈으로 변환하고 CRLF를 정규화
-static FString NormalizeNewlines(const FString& In)
-{
-    FString S = In;
-    S.ReplaceInline(TEXT("\r\n"), TEXT("\n"));
-    S.ReplaceInline(TEXT("\r"), TEXT(""));
-    S.ReplaceInline(TEXT("\\n"), TEXT("\n"));
-    return S;
-}
+
 #include "UIs/CollectingBook/CCollectingBookWidget.h"
 #include "base/GI_Base.h"
 #include "Components/Button.h"
@@ -17,6 +8,17 @@ static FString NormalizeNewlines(const FString& In)
 #include "Components/UniformGridSlot.h"
 #include "Components/WidgetSwitcher.h"
 #include "UIs/CollectingBook/CCollectingItem.h"
+#include "Containers/UnrealString.h"
+
+// 리터럴 "\\n"을 실제 줄바꿈으로 변환하고 CRLF를 정규화
+static FString NormalizeNewlines(const FString& In)
+{
+	FString S = In;
+	S.ReplaceInline(TEXT("\r\n"), TEXT("\n"));
+	S.ReplaceInline(TEXT("\r"), TEXT(""));
+	S.ReplaceInline(TEXT("\\n"), TEXT("\n"));
+	return S;
+}
 
 void UCCollectingBookWidget::NativeConstruct()
 {
