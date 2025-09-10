@@ -36,14 +36,14 @@ void AExcavationWarningWidgetActor::BeginPlay()
 {
 	Super::BeginPlay();
 
-	if (WidgetComponent)
-	{
-		UUserWidget* UserWidget = WidgetComponent->GetWidget();
-		if (UWarningUI* WarningUI = Cast<UWarningUI>(UserWidget))
-		{
-			WarningUI->SetOwningWidgetActor(this);
-		}
-	}
+	//if (WidgetComponent)
+	//{
+	//	UUserWidget* UserWidget = WidgetComponent->GetWidget();
+	//	if (UWarningUI* WarningUI = Cast<UWarningUI>(UserWidget))
+	//	{
+	//		//WarningUI->SetOwningWidgetActor(this);
+	//	}
+	//}
 }
 
 // Called every frame

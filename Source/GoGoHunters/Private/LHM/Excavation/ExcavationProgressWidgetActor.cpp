@@ -4,6 +4,7 @@
 #include "LHM/Excavation/ExcavationProgressWidgetActor.h"
 #include "Components/WidgetComponent.h"
 #include "LHM/UI/ExcavationProgressUI.h"
+#include "LHM/UI/WarningUI.h"
 
 // Sets default values
 AExcavationProgressWidgetActor::AExcavationProgressWidgetActor()
@@ -13,21 +14,31 @@ AExcavationProgressWidgetActor::AExcavationProgressWidgetActor()
 
 	RootComponent = CreateDefaultSubobject<USceneComponent>(TEXT("RootScene"));
 
-	static ConstructorHelpers::FClassFinder<UUserWidget> WidgetClassFinder(TEXT("/Game/LHM/UI/WBP_ExcavationProgressUI"));
-	if (WidgetClassFinder.Succeeded())
+	static ConstructorHelpers::FClassFinder<UUserWidget> ProgressWidgetClassFinder(TEXT("/Game/LHM/UI/WBP_ExcavationProgressUI"));
+	if (ProgressWidgetClassFinder.Succeeded())
 	{
-		WidgetComponent = CreateDefaultSubobject<UWidgetComponent>(TEXT("ProgressUI"));
-		WidgetComponent->SetWidgetClass(WidgetClassFinder.Class);
-		WidgetComponent->SetupAttachment(RootComponent);
-		WidgetComponent->SetWidgetSpace(EWidgetSpace::World);
-		//WidgetComponent->SetRelativeScale3D(FVector(0.3));
-		//WidgetComponent->SetRelativeRotation(FRotator(0, 90, 0));
-		//WidgetComponent->SetDrawSize(FVector2D(300, 100));
+		ProgressWidget = CreateDefaultSubobject<UWidgetComponent>(TEXT("ProgressUI"));
+		ProgressWidget->SetWidgetClass(ProgressWidgetClassFinder.Class);
+		ProgressWidget->SetupAttachment(RootComponent);
+		ProgressWidget->SetWidgetSpace(EWidgetSpace::World);
 
-		WidgetComponent->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
-		WidgetComponent->SetCollisionResponseToAllChannels(ECollisionResponse::ECR_Ignore);
-		WidgetComponent->SetCollisionResponseToChannel(ECC_Visibility, ECR_Block);
-		WidgetComponent->SetCollisionProfileName("VRUI");
+		ProgressWidget->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+		ProgressWidget->SetCollisionProfileName("NoCollision");
+	}
+
+	static ConstructorHelpers::FClassFinder<UUserWidget> WarningWidgetClassFinder(TEXT("/Game/LHM/UI/WBP_WarningUI"));
+	if (WarningWidgetClassFinder.Succeeded())
+	{
+		WarningWidget = CreateDefaultSubobject<UWidgetComponent>(TEXT("WarningUI"));
+		WarningWidget->SetWidgetClass(WarningWidgetClassFinder.Class);
+		WarningWidget->SetupAttachment(RootComponent);
+		WarningWidget->SetWidgetSpace(EWidgetSpace::World);
+		WarningWidget->SetDrawSize(FVector2D(300, 100));
+
+		WarningWidget->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+		WarningWidget->SetCollisionProfileName("NoCollision");
+
+		WarningWidget->SetHiddenInGame(true);
 	}
 }
 
@@ -36,12 +47,21 @@ void AExcavationProgressWidgetActor::BeginPlay()
 {
 	Super::BeginPlay();
 
-	if (WidgetComponent)
+	if (ProgressWidget)
 	{
-		UUserWidget* UserWidget = WidgetComponent->GetWidget();
+		UUserWidget* UserWidget = ProgressWidget->GetWidget();
 		if (UExcavationProgressUI* ProgressUI = Cast<UExcavationProgressUI>(UserWidget))
 		{
 			ProgressUI->SetOwningWidgetActor(this);
+		}
+	}
+
+	if (WarningWidget)
+	{
+		UUserWidget* UserWidget = WarningWidget->GetWidget();
+		if (UWarningUI* WarningUI = Cast<UWarningUI>(UserWidget))
+		{
+			WarningUI->SetOwningWidgetActor(this);
 		}
 	}
 }
