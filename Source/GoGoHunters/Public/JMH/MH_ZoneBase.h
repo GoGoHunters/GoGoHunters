@@ -100,7 +100,7 @@ public:
 	UPROPERTY()
 	class AMH_VRPlayer* VRPlayer;
 
-	UPROPERTY(EditDefaultsOnly)
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
 	UWidgetComponent* MessageWidgetComponent;
 
 	UPROPERTY(EditDefaultsOnly)

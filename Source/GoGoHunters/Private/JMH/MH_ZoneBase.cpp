@@ -97,7 +97,7 @@ void AMH_ZoneBase::OnPlayerInteracted_Implementation(AActor* Player)
 void AMH_ZoneBase::ShowZoneMessageUI(FString Message)
 {
 	if (!MessageUI) return;
-	MessageWidgetComponent->SetVisibility(true);	
+	if (MessageWidgetComponent) MessageWidgetComponent->SetVisibility(true);
 }
 
 void AMH_ZoneBase::OnZoneOverlapBegin(UPrimitiveComponent* OverlappedComp, AActor* OtherActor,
@@ -126,8 +126,8 @@ void AMH_ZoneBase::OnZoneOverlapEnd(UPrimitiveComponent* OverlappedComponent, AA
 
 void AMH_ZoneBase::HandleMessageUIClose()
 {
-	MessageWidgetComponent->SetVisibility(false);
-	RestoreListComponent->SetVisibility(false);
+	if (MessageWidgetComponent) MessageWidgetComponent->SetVisibility(false);
+	if (RestoreListComponent) RestoreListComponent->SetVisibility(false);
 }
 
 void AMH_ZoneBase::HandleMapInteraction()
@@ -138,24 +138,24 @@ void AMH_ZoneBase::HandleMapInteraction()
 void AMH_ZoneBase::HandleRestoreInteraction()
 {
 	//GEngine->AddOnScreenDebugMessage(-1, 2.f, FColor::Green, TEXT("[Restore] 유물 복원 UI 실행"));
-	MessageUI->ShowButtons(true,false);
+	if (MessageUI) MessageUI->ShowButtons(true,false);
 	ShowZoneMessageUI(GuideMessage);
-	MessageWidgetComponent->SetVisibility(true);
+	if (MessageWidgetComponent) MessageWidgetComponent->SetVisibility(true);
 }
 
 void AMH_ZoneBase::HandleMyMuseumInteraction()
 {
-	MessageUI->ShowButtons(true,false);
+	if (MessageUI) MessageUI->ShowButtons(true,false);
 	//GEngine->AddOnScreenDebugMessage(-1, 2.f, FColor::Magenta, TEXT("[Museum] 유물 전시 UI 열림"));
 	ShowZoneMessageUI(GuideMessage);
-	MessageWidgetComponent->SetVisibility(true);
+	if (MessageWidgetComponent) MessageWidgetComponent->SetVisibility(true);
 }
 
 void AMH_ZoneBase::HandleRecordInteraction()
 {
-	MessageUI->ShowButtons(true,true);
+	if (MessageUI) MessageUI->ShowButtons(true,true);
 	ShowZoneMessageUI(GuideMessage);
-	MessageWidgetComponent->SetVisibility(true);
+	if (MessageWidgetComponent) MessageWidgetComponent->SetVisibility(true);
 }
 
 void AMH_ZoneBase::HandleSettingsInteraction()
@@ -165,21 +165,21 @@ void AMH_ZoneBase::HandleSettingsInteraction()
 
 void AMH_ZoneBase::HandleExitInteraction()
 {
-	MessageUI->ShowButtons(true,false);
+	if (MessageUI) MessageUI->ShowButtons(true,false);
 	//GEngine->AddOnScreenDebugMessage(-1, 2.f, FColor::White, TEXT("[Exit] Exit 메뉴 실행"));
 	// TODO: Exit UI 열기
 	ShowZoneMessageUI(GuideMessage);
-	MessageWidgetComponent->SetVisibility(true);
+	if (MessageWidgetComponent) MessageWidgetComponent->SetVisibility(true);
 }
 
 void AMH_ZoneBase::HandleLobbyInteraction()
 {
-	MessageUI->ShowButtons(true,false);
+	if (MessageUI) MessageUI->ShowButtons(true,false);
 	ShowZoneMessageUI(GuideMessage);
-	MessageWidgetComponent->SetVisibility(true);
+	if (MessageWidgetComponent) MessageWidgetComponent->SetVisibility(true);
 }
 
 void AMH_ZoneBase::HandleRestoreListInteraction()
 {
-	RestoreListComponent->SetVisibility(true);
+	if (RestoreListComponent) RestoreListComponent->SetVisibility(true);
 }

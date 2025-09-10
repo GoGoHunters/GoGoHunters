@@ -19,9 +19,7 @@ void URestoreUI::NativeConstruct()
 	Super::NativeConstruct();
 
 	RelicSlotOverlays = {
-		Overlay1_1, Overlay1_2, Overlay1_3,
-		Overlay2_1, Overlay2_2, Overlay2_3,
-		Overlay3_1, Overlay3_2, Overlay3_3
+		Overlay1_1, Overlay1_2, Overlay1_3, Overlay1_4, Overlay1_5
 	};
 
 	if (UGI_Base* GI = Cast<UGI_Base>(UGameplayStatics::GetGameInstance(this)))
