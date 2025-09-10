@@ -23,6 +23,9 @@ protected:
 public:	
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
+	
+	UFUNCTION()
+	void OnOverlapBegin(UPrimitiveComponent* Overlapped, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& Hit);
 
 	void InitPuzzle(const FCRelicData& InRelicData, class ARestoreManager* InManager);
 
@@ -36,6 +39,9 @@ public:
 	TArray<class AActor*> GetPieceActors() const { return PieceActors; }
 
 protected:
+	UPROPERTY(EditDefaultsOnly)
+	class UBoxComponent* KillZone;
+
 	UPROPERTY(EditDefaultsOnly)
 	TSubclassOf<AActor> RelicClass;
 
@@ -61,6 +67,7 @@ protected:
 
 	UPROPERTY()
 	TArray<AActor*> PieceActors;
+	TMap<APieceActor*, FTransform> InitialPieceTransforms;
 
 private:
 	FCRelicData RelicData;
