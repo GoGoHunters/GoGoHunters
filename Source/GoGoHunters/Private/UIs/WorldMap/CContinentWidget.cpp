@@ -57,7 +57,7 @@ void UCContinentWidget::SetContinentData(const FCContinentData& ContinentData)
 	}
 	else
 	{
-		Btn_Join->SetVisibility(ESlateVisibility::SelfHitTestInvisible);
+		Btn_Join->SetVisibility(ESlateVisibility::Visible);
 		SB_Exit->SetVisibility(ESlateVisibility::SelfHitTestInvisible);
 		SB_Exit_NotUseJoin->SetVisibility(ESlateVisibility::Hidden);
 	}
