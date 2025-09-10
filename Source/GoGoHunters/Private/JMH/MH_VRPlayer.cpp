@@ -21,6 +21,7 @@
 #include "Components/WidgetComponent.h"
 #include "GameFramework/SpringArmComponent.h"
 #include "JMH/CMuseumComponent.h"
+#include "KeyBoard/AC_Key.h"
 #include "LHJ/CRelicBase.h"
 #include "LHJ/CRelicCollectionWidgetActor.h"
 #include "LHJ/Tutorial/CTutorialManager.h"
@@ -157,13 +158,13 @@ void AMH_VRPlayer::SetupPlayerInputComponent(UInputComponent* PlayerInputCompone
 
 	UEnhancedInputComponent* EnhancedInput = Cast<UEnhancedInputComponent>(PlayerInputComponent);
 
-	 EnhancedInput->BindAction(IA_MHTurn, ETriggerEvent::Triggered, this, &AMH_VRPlayer::TestTurn);
+	EnhancedInput->BindAction(IA_MHTurn, ETriggerEvent::Triggered, this, &AMH_VRPlayer::TestTurn);
 	EnhancedInput->BindAction(IA_MHVRTurn, ETriggerEvent::Triggered, this, &AMH_VRPlayer::VRTurn);
-	 EnhancedInput->BindAction(IA_MHLookUp, ETriggerEvent::Triggered, this, &AMH_VRPlayer::TestLookUp);
+	EnhancedInput->BindAction(IA_MHLookUp, ETriggerEvent::Triggered, this, &AMH_VRPlayer::TestLookUp);
 	EnhancedInput->BindAction(IA_MHInteract, ETriggerEvent::Triggered, this, &AMH_VRPlayer::TriggerInteract);
 	EnhancedInput->BindAction(IA_MHInteract, ETriggerEvent::Completed, this, &AMH_VRPlayer::TriggerInteractCompleted);
-	 EnhancedInput->BindAction(IA_MHTestTeleportStart, ETriggerEvent::Started, this, &AMH_VRPlayer::F_TeleportStart);
-	 EnhancedInput->BindAction(IA_MHTestTeleportEnd, ETriggerEvent::Completed, this, &AMH_VRPlayer::F_TeleportEnd);
+	EnhancedInput->BindAction(IA_MHTestTeleportStart, ETriggerEvent::Started, this, &AMH_VRPlayer::F_TeleportStart);
+	EnhancedInput->BindAction(IA_MHTestTeleportEnd, ETriggerEvent::Completed, this, &AMH_VRPlayer::F_TeleportEnd);
 	EnhancedInput->BindAction(IA_MHVRTeleport, ETriggerEvent::Started, this, &AMH_VRPlayer::F_TeleportStart);
 	EnhancedInput->BindAction(IA_MHVRTeleport, ETriggerEvent::Completed, this, &AMH_VRPlayer::F_TeleportEnd);
 
@@ -172,14 +173,14 @@ void AMH_VRPlayer::SetupPlayerInputComponent(UInputComponent* PlayerInputCompone
 	EnhancedInput->BindAction(IA_MHGrab, ETriggerEvent::Completed, this, &AMH_VRPlayer::TryUnGrab);
 	EnhancedInput->BindAction(IA_MHGrab_L, ETriggerEvent::Started, this, &AMH_VRPlayer::TryGrab);
 	EnhancedInput->BindAction(IA_MHGrab_L, ETriggerEvent::Completed, this, &AMH_VRPlayer::TryUnGrab);
-	 EnhancedInput->BindAction(IA_AdjustTeleportDirection, ETriggerEvent::Triggered, this, &AMH_VRPlayer::HandleThumbstickInput);
-	 EnhancedInput->BindAction(IA_RotateHeldObject, ETriggerEvent::Triggered, this, &AMH_VRPlayer::HandleThumbstickInput);
+	EnhancedInput->BindAction(IA_AdjustTeleportDirection, ETriggerEvent::Triggered, this, &AMH_VRPlayer::HandleThumbstickInput);
+	EnhancedInput->BindAction(IA_RotateHeldObject, ETriggerEvent::Triggered, this, &AMH_VRPlayer::HandleThumbstickInput);
 
 	// Excavation Tool Actions
-	 EnhancedInput->BindAction(IA_ExcavationTool1, ETriggerEvent::Started, this, &AMH_VRPlayer::ExcavationTool1);
-	 EnhancedInput->BindAction(IA_ExcavationTool2, ETriggerEvent::Started, this, &AMH_VRPlayer::ExcavationTool2);
-	 EnhancedInput->BindAction(IA_ExcavationTool3, ETriggerEvent::Started, this, &AMH_VRPlayer::ExcavationTool3);
-	 EnhancedInput->BindAction(IA_ExcavationTool4, ETriggerEvent::Started, this, &AMH_VRPlayer::ExcavationTool4);
+	EnhancedInput->BindAction(IA_ExcavationTool1, ETriggerEvent::Started, this, &AMH_VRPlayer::ExcavationTool1);
+	EnhancedInput->BindAction(IA_ExcavationTool2, ETriggerEvent::Started, this, &AMH_VRPlayer::ExcavationTool2);
+	EnhancedInput->BindAction(IA_ExcavationTool3, ETriggerEvent::Started, this, &AMH_VRPlayer::ExcavationTool3);
+	EnhancedInput->BindAction(IA_ExcavationTool4, ETriggerEvent::Started, this, &AMH_VRPlayer::ExcavationTool4);
 	EnhancedInput->BindAction(IA_ExcavationDetect, ETriggerEvent::Triggered, this, &AMH_VRPlayer::ExcavationDetectStart);
 	EnhancedInput->BindAction(IA_ExcavationDetect, ETriggerEvent::Completed, this, &AMH_VRPlayer::ExcavationDetectEnd);
 	EnhancedInput->BindAction(IA_ExcavationDig, ETriggerEvent::Started, this, &AMH_VRPlayer::ExcavationDigStart);
@@ -375,6 +376,11 @@ void AMH_VRPlayer::TriggerInteract(const FInputActionInstance& IA_Instance)
 		// 함수 내부에서 UI 업데이트까지 수행
 		TryWorldMapInteraction(IA_Instance);		
 	}
+	// 발굴맵과 키보드 테스트 맵에서만 작동
+	else if (CurrentLevel.ToLower().Contains("excavation")||CurrentLevel.ToLower().Contains("keyboard"))
+	{
+		TryKeyboardInteraction();
+	}
 	
 	// 아무 곳에도 닿지 않았으면
 	if (!bInteracteAnyComponent)
@@ -412,6 +418,11 @@ void AMH_VRPlayer::TriggerInteractCompleted()
 	{
 		// WorldMap Interaction 초기화
 		ResetWorldMapInteraction();
+	}
+	// 발굴맵과 키보드 테스트 맵에서만 작동
+	else if (CurrentLevel.ToLower().Contains("excavation")||CurrentLevel.ToLower().Contains("keyboard"))
+	{
+		TriggerKeyboardInteraction();
 	}
 }
 
@@ -928,6 +939,67 @@ void AMH_VRPlayer::Drop(UMotionControllerComponent* GrabController)
 
 	if (!RGrabedObject && !LGrabedObject)
 		SetPlayerState(EPlayerVRState::Idle);
+}
+
+void AMH_VRPlayer::TryKeyboardInteraction()
+{
+	if (!RWidgetInteractionComponent) return;
+
+	FVector Start = RWidgetInteractionComponent->GetComponentLocation();
+	FVector End = Start + (RWidgetInteractionComponent->GetForwardVector() * WidgetInteractionDistance);
+
+	FHitResult HitResult;
+	FCollisionQueryParams Params;
+	Params.AddIgnoredActor(this);
+
+	if (GetWorld()->LineTraceSingleByChannel(HitResult, Start, End, ECC_GameTraceChannel14, Params))
+	{
+		if (!CurrentHoverKey)
+		{
+			CurrentHoverKey = HitResult.GetActor();
+			if(AAC_Key* Key = Cast<AAC_Key>(CurrentHoverKey))
+			{
+				Key->SetHover(true);
+				Key->KeyPress();
+			}
+		}
+		else if (CurrentHoverKey != HitResult.GetActor())
+		{
+			if(AAC_Key* Key = Cast<AAC_Key>(CurrentHoverKey))
+			{
+				Key->KeyRelease(false);
+				Key->SetHover(false);
+			}
+
+			CurrentHoverKey = HitResult.GetActor();
+			if(AAC_Key* Key = Cast<AAC_Key>(CurrentHoverKey))
+			{
+				Key->SetHover(true);
+				Key->KeyPress();
+			}
+		}
+	}
+	else
+	{
+		if(AAC_Key* Key = Cast<AAC_Key>(CurrentHoverKey))
+		{
+			Key->KeyRelease(false);
+			Key->SetHover(false);
+		}
+
+		CurrentHoverKey = nullptr;
+	}
+}
+
+void AMH_VRPlayer::TriggerKeyboardInteraction()
+{
+	if (!CurrentHoverKey) return;
+	if(AAC_Key* Key = Cast<AAC_Key>(CurrentHoverKey))
+	{
+		Key->KeyRelease(true);
+		Key->SetHover(false);
+	}
+	CurrentHoverKey = nullptr;
 }
 
 void AMH_VRPlayer::TestTurn(const FInputActionValue& Value)

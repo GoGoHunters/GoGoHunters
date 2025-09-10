@@ -35,8 +35,10 @@ AAC_KeyBoard::AAC_KeyBoard()
 	}
 
 	CHelpers::CreateComponent<UWidgetComponent>(this, &KeyBoardInputWidgetComp, "KeyBoardInputWidget", RootComponent);
+	KeyBoardInputWidgetComp->SetCastShadow(false);
 	CHelpers::CreateComponent<UWidgetComponent>(this, &AlertMsgWidgetComp, "AlertMsgWidgetComp", RootComponent);
 	AlertMsgWidgetComp->SetVisibility(false);
+	AlertMsgWidgetComp->SetCastShadow(false);
 }
 
 // Called when the game starts or when spawned

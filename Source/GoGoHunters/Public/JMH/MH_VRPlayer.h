@@ -346,4 +346,11 @@ private:
 	AActor* GetNearGrabableObject(USceneComponent* GrabController);
 	void ObjectGrab(AActor* GrabObject, UMotionControllerComponent* GrabController, bool IsPulling);
 	void Drop(UMotionControllerComponent* GrabController); // 박물관 상태 변환용
+
+private:
+	UPROPERTY()
+	TObjectPtr<AActor> CurrentHoverKey;
+
+	void TryKeyboardInteraction();
+	void TriggerKeyboardInteraction();
 };

@@ -70,14 +70,14 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere)
 	UStaticMesh* Key_Mesh;
 
-	// Ű ��ư
+	// Ű ��ư
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Materials")
 	UMaterialInterface* BaseMaterial;
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Materials")
 	UMaterialInterface* HoverMaterial;
 
-	// Ű �ؽ�Ʈ
+	// Ű �ؽ�Ʈ
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Key")
 	FColor  BaseTextColor = FColor::White;
 
@@ -95,7 +95,7 @@ public:
 	void KeyPress();
 
 	UFUNCTION(BlueprintCallable, Category = "Key")
-	void KeyRelease();
+	void KeyRelease(bool bTrigger);
 
 	UPROPERTY(BlueprintAssignable, Category = "AudioRecording")
 	FOnKeyClickedEvent OnkeyClicked;

@@ -41,7 +41,7 @@ private:
 	TObjectPtr<AAC_KeyBoard> KeyBoard;
 	
 	// 문자 제한 상태
-	bool  bUseCharLimit = false;
+	bool  bUseCharLimit = true;
 	int32 MaxChars = 20; // bUseCharLimit=true일 때만 의미 있음
 
 	bool bRequest = false; // 이름 등록 단계인지 확인
