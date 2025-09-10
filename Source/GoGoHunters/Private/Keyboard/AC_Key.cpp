@@ -65,6 +65,7 @@ void AAC_Key::SetKeyText(const FString& NewText)
 	if (KeyTextComponent)
 	{
 		KeyTextComponent->SetText(FText::FromString(NewText));
+		key_word = NewText;
 	}
 }
 
@@ -96,23 +97,23 @@ void AAC_Key::SetHover(bool bIsHovered)
 	{
 		SetKeyMaterial(BaseMaterial);
 		SetKeyTextColor(BaseTextColor);
-		KeyRelease();
 	}
 }
 
 void AAC_Key::KeyPress()
 {
+	UE_LOG(LogTemp, Display, TEXT("Key Press"));
 	this->KeySceneComponent->SetRelativeLocation(FVector(0, 0, key_press_move));
-
-	if (OnkeyClicked.IsBound())
-	{
-		OnkeyClicked.Broadcast(this->key_word);
-	}
 }
 
 void AAC_Key::KeyRelease()
 {
 	this->KeySceneComponent->SetRelativeLocation(FVector::ZeroVector);
+	UE_LOG(LogTemp, Display, TEXT("Key Release"));
+	if (OnkeyClicked.IsBound())
+	{
+		OnkeyClicked.Broadcast(this->key_word);
+	}
 }
 
 void AAC_Key::UpdateMeshScale()	

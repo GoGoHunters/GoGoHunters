@@ -11,6 +11,7 @@
 #include "LHM/UI/BrushingUI.h"
 #include "Components/BoxComponent.h"
 #include "LHM/UI/WarningUI.h"
+#include "LHM/Excavation/ExcavationProgressWidgetActor.h"
 
 // Sets default values
 ARelicsBase::ARelicsBase()
@@ -97,23 +98,23 @@ void ARelicsBase::BeginPlay()
 {
 	Super::BeginPlay();
 
-    if (MarkerClass)
-    {
-        FActorSpawnParameters SpawnParams;
-        SpawnParams.Owner = this;
-        Marker = GetWorld()->SpawnActor<AExcavationMarker>(MarkerClass, GetActorLocation(), GetActorRotation(), SpawnParams);
+	if (MarkerClass)
+	{
+		FActorSpawnParameters SpawnParams;
+		SpawnParams.Owner = this;
+		Marker = GetWorld()->SpawnActor<AExcavationMarker>(MarkerClass, GetActorLocation(), GetActorRotation(), SpawnParams);
 
-        if (Marker)
-        {
-            Marker->AttachToActor(this, FAttachmentTransformRules::KeepRelativeTransform);
-            Marker->SetActorLocation(GetActorLocation() + FVector(-70, 0, 11)); // (X=-70.000000,Y=0.000000,Z=11.000000)
-            Marker->SetActorRotation(GetActorRotation()+FRotator(0,-90,0));
-            Marker->SetActorRelativeScale3D(FVector(2.0f));
-            Marker->SetActorHiddenInGame(true);
-        }
-    }
+		if (Marker)
+		{
+			Marker->AttachToActor(this, FAttachmentTransformRules::KeepRelativeTransform);
+			Marker->SetActorLocation(GetActorLocation() + FVector(-70, 0, 11)); // (X=-70.000000,Y=0.000000,Z=11.000000)
+			Marker->SetActorRotation(GetActorRotation() + FRotator(0, -90, 0));
+			Marker->SetActorRelativeScale3D(FVector(2.0f));
+			Marker->SetActorHiddenInGame(true);
+		}
+	}
 
-    TriggerVolume->OnComponentBeginOverlap.AddDynamic(this, &ARelicsBase::OnOverlapBegin);
+	TriggerVolume->OnComponentBeginOverlap.AddDynamic(this, &ARelicsBase::OnOverlapBegin);
 }
 
 // Called every frame
@@ -423,7 +424,7 @@ void ARelicsBase::PlayTami()
         {
             if (APawn* TamiAI = *It)
             {
-                FName FunctionName(TEXT("PlayExcavationCompliment"));
+                FName FunctionName(TEXT("PlayExcavationCompliment1"));
                 if (UFunction* Function = TamiAI->FindFunction(FunctionName))
                 {
                     TamiAI->ProcessEvent(Function, nullptr);

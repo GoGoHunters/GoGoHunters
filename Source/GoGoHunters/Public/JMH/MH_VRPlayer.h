@@ -181,12 +181,6 @@ public:
 	UPROPERTY(BlueprintReadOnly)
 	TArray<class ARelicsGround*> RelicsGroundRefs;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Excavation")
-	TSubclassOf<class AExcavationWidgetActor> ExcavationUIActorClass;
-
-	UPROPERTY()
-	class AExcavationWidgetActor* ExcavationUIActor;
-
 #pragma endregion 발굴 관련
 
 	//마우스 회전방지

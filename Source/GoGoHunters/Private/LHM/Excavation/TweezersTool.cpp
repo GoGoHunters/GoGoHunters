@@ -240,8 +240,8 @@ void ATweezersTool::HandleHardImpactFeedbackAndWarn(UPrimitiveComponent* HitComp
 	{
 		if (HardImpactHaptic)
 		{
-			PC->PlayHapticEffect(HardImpactHaptic, EControllerHand::Left);
-			//PC->PlayHapticEffect(HardImpactHaptic, EControllerHand::Right);
+			PC->PlayHapticEffect(HardImpactHaptic, EControllerHand::Right);
+			//PC->PlayHapticEffect(HardImpactHaptic, EControllerHand::Left);
 		}
 	}
 

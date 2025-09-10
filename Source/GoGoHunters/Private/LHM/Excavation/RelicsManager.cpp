@@ -10,11 +10,14 @@
 #include "Kismet/GameplayStatics.h"
 #include "EngineUtils.h"
 #include "Engine/TextureRenderTarget2D.h"
+#include "Keyboard/AC_KeyBoard.h"
+#include "LHM/Excavation/ExcavationProgressWidgetActor.h"
+#include "LHM/Excavation/ExcavationWidgetActor.h"
 
 // Sets default values
 ARelicsManager::ARelicsManager()
 {
- 	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
+	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
 
 	RootComponent = CreateDefaultSubobject<USceneComponent>(TEXT("RootScene"));
@@ -30,7 +33,7 @@ ARelicsManager::ARelicsManager()
 	ExcavationLand_02->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
 	ExcavationLand_02->SetCollisionObjectType(ECC_WorldStatic);
 	ExcavationLand_02->SetCollisionResponseToAllChannels(ECR_Block);
-	
+
 	ExcavationLand_02->bReceivesDecals = false;
 
 	RelicsChild = CreateDefaultSubobject<UChildActorComponent>(TEXT("Relics"));
@@ -103,6 +106,34 @@ void ARelicsManager::BeginPlay()
 		Relics = Cast<ARelicsBase>(RelicsChild->GetChildActor());
 		Relics->SetRelicsManager(this);
 	}
+
+	if (ProgressClass)
+	{
+		FActorSpawnParameters SpawnParams;
+		SpawnParams.Owner = this;
+
+		ProgressActor = GetWorld()->SpawnActor<AExcavationProgressWidgetActor>(ProgressClass, GetActorLocation(), GetActorRotation(), SpawnParams);
+		if (ProgressActor)
+		{
+			ProgressActor->AttachToActor(this, FAttachmentTransformRules::KeepRelativeTransform);
+			ProgressActor->SetActorLocation(GetActorLocation() + FVector(-260, 0, 240));
+			ProgressActor->SetActorHiddenInGame(true);
+		}
+	}
+
+	if (PhaseUIActorClass)
+	{
+		FActorSpawnParameters SpawnParams;
+		SpawnParams.Owner = this;
+
+		PhaseUIActor = GetWorld()->SpawnActor<AExcavationWidgetActor>(PhaseUIActorClass, GetActorLocation(), GetActorRotation(), SpawnParams);
+		if (PhaseUIActor)
+		{
+			PhaseUIActor->AttachToActor(this, FAttachmentTransformRules::KeepRelativeTransform);
+			PhaseUIActor->SetActorLocation(GetActorLocation() + FVector(-200, 0, 340));
+			PhaseUIActor->SetActorEnableCollision(false);
+		}
+	}
 }
 
 // Called every frame
@@ -114,6 +145,8 @@ void ARelicsManager::Tick(float DeltaTime)
 
 void ARelicsManager::StartExcavation()
 {
+	if (GetRelics()) GetRelics()->ActivateMarker();
+
 	for (auto Ground : GroundLayers)
 	{
 		if (IsValid(Ground))
@@ -132,8 +165,8 @@ void ARelicsManager::StartExcavation()
 		}
 	}
 
-	if (ExcavationLand_02)
-		ExcavationLand_02->SetHiddenInGame(false);
+	if (ExcavationLand_02) ExcavationLand_02->SetHiddenInGame(false);
+	if (ProgressActor) ProgressActor->SetActorHiddenInGame(false);
 
 	bBrushPhaseStarted = false;
 
@@ -144,9 +177,11 @@ void ARelicsManager::NotifyGroundProgress(float Progress)
 {
 	if (CurrentLayerIndex >= GroundLayers.Num()) return;
 
-	if (bPressedDevKey) Progress = 0.05f;
+	if (bPressedDevKey) Progress = 0.07f;
 
-	if (Progress >= 0.05f) // 5% 이상 파괴되었으면
+	//PlayTamiCompliments(CurrentLayerIndex, Progress);
+
+	if (Progress >= 0.07f) // 6% 이상 파괴되었으면
 	{
 		auto CurrentLayer = GroundLayers[CurrentLayerIndex];
 		if (IsValid(CurrentLayer))
@@ -157,26 +192,6 @@ void ARelicsManager::NotifyGroundProgress(float Progress)
 		}
 
 		CurrentLayerIndex++;
-
-		// 타미 음성
-		if (CurrentLayerIndex == 1 && Progress >= 0.01f)
-		{
-			for (TActorIterator<APawn> It(GetWorld(), APawn::StaticClass()); It; ++It)
-			{
-				if (IsValid(*It) && (*It)->ActorHasTag(FName("Tami")))
-				{
-					if (APawn* TamiAI = *It)
-					{
-						FName FunctionName(TEXT("PlayExcavationPhase3_VisibleRelic"));
-						if (UFunction* Function = TamiAI->FindFunction(FunctionName))
-						{
-							TamiAI->ProcessEvent(Function, nullptr);
-						}
-					}
-					break;
-				}
-			}
-		}
 
 		UE_LOG(LogTemp, Log, TEXT("Destroyed Ground Layer %d / GroundLayers.num is %d"), CurrentLayerIndex + 1, GroundLayers.Num());
 
@@ -222,19 +237,19 @@ void ARelicsManager::SpawnCollectionBox()
 bool ARelicsManager::GetCurrentDigProgress(float& OutProgress) const
 {
 	int32 TotalLayers = GroundLayers.Num();
-	
+
 	if (TotalLayers == 0)
 	{
 		OutProgress = 0.0f;
 		return false;
 	}
-	
+
 	float TotalProgress = 0.0f;
 
-	for(int32 i = 0; i < TotalLayers; ++i)
+	for (int32 i = 0; i < TotalLayers; ++i)
 	{
 		ARelicsGround* Ground = GroundLayers[i];
-		if(!IsValid(Ground)) // Destroy된 레이어는 파괴 완료로 간주
+		if (!IsValid(Ground)) // Destroy된 레이어는 파괴 완료로 간주
 		{
 			TotalProgress += 1.0f;
 		}
@@ -246,12 +261,72 @@ bool ARelicsManager::GetCurrentDigProgress(float& OutProgress) const
 		else
 		{
 			float Destruction = Ground->CalculateDestructionFromRenderTarget();
-			float Normalized = FMath::Clamp(Destruction / 0.05f, 0.0f, 1.0f); // layer[0]: 5%/layer[i]: 1% 기준으로 정규화
+			float Normalized = FMath::Clamp(Destruction / 0.07f, 0.0f, 1.0f); // layer[0]: 6%/layer[i]: 1% 기준으로 정규화
 			TotalProgress += Normalized;
 		}
 	}
 
 	OutProgress = TotalProgress / static_cast<float>(TotalLayers); // 전체 평균
 	return true;
+}
+
+void ARelicsManager::SpawnKeyboard()
+{
+	if (!IsValid(Relics)) return;
+	if (!KeyBoardClass) return;
+
+	FVector SpawnLocation = GetActorLocation() + FVector(-169, 20, 290);
+	FRotator SpawnRotation = GetActorRotation() + FRotator(0, 270, 70); // (Pitch=0.000000,Yaw=90.000000,Roll=-70.000000)
+
+	FActorSpawnParameters Params;
+	Params.Owner = this;
+
+	KeyBoardActor = GetWorld()->SpawnActor<AAC_KeyBoard>(KeyBoardClass, SpawnLocation, SpawnRotation, Params);
+	UE_LOG(LogTemp, Log, TEXT("[RelicsManager] Keyboard 스폰 완료"));
+}
+
+void ARelicsManager::DestroyKeyboard()
+{
+	if (KeyBoardActor) KeyBoardActor->Destroy();
+}
+
+void ARelicsManager::PlayTamiCompliments(int32 CurrentLayer, float Progress)
+{
+	if (CurrentLayerIndex == 0)
+	{
+		if (Progress >= 0.01f)
+		{
+			PlayTami(TEXT("PlayExcavationCompliment2"));
+		}
+	}
+	else if (CurrentLayerIndex == 1)
+	{
+		if (Progress >= 0.02f)
+		{
+			PlayTami(TEXT("PlayExcavationCompliment3"));
+		}
+		else if (Progress >= 0.01f)
+		{
+			PlayTami(TEXT("PlayExcavationPhase3_VisibleRelic"));
+		}
+	}
+}
+
+void ARelicsManager::PlayTami(const FName& FunctionName)
+{
+	for (TActorIterator<APawn> It(GetWorld(), APawn::StaticClass()); It; ++It)
+	{
+		if (IsValid(*It) && (*It)->ActorHasTag(FName("Tami")))
+		{
+			if (APawn* TamiAI = *It)
+			{
+				if (UFunction* Function = TamiAI->FindFunction(FunctionName))
+				{
+					TamiAI->ProcessEvent(Function, nullptr);
+				}
+			}
+			break;
+		}
+	}
 }
 

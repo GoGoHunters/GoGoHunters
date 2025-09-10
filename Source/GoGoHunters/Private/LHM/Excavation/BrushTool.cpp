@@ -197,8 +197,8 @@ void ABrushTool::HandleBrushHardSwipeFeedbackAndWarn(/*class ARelicsBase* Relic*
 	{
 		if (HardBrushHaptic)
 		{
-			PC->PlayHapticEffect(HardBrushHaptic, EControllerHand::Left);
-			//PC->PlayHapticEffect(HardBrushHaptic, EControllerHand::Right);
+			PC->PlayHapticEffect(HardBrushHaptic, EControllerHand::Right);
+			//PC->PlayHapticEffect(HardBrushHaptic, EControllerHand::Left);
 		}
 	}
 

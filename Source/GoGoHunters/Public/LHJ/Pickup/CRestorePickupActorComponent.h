@@ -15,7 +15,7 @@ class GOGOHUNTERS_API UCRestorePickupActorComponent : public UCPickupActorCompon
 private:
 	FVector OriginLocation;
 	FRotator OriginRotation;
-	
-	void GrabOverrideFunc() override;
+
+	void BeginPlay() override;
 	void ReleaseOverrideFunc() override;
 };

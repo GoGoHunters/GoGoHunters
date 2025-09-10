@@ -8,6 +8,9 @@
 #include "AC_KeyBoard.generated.h"
 
 
+class UCAlertMsgWidget;
+class UWidgetComponent;
+class UCTextInputWidget;
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnKeyBoardClickedEvent, FString, KeyString);
 
 USTRUCT(BlueprintType)
@@ -28,6 +31,14 @@ struct FKeyBoardLayOutData
 	TArray<FKeyBoardRowData> KeyLayOutArray;
 };
 
+USTRUCT(BlueprintType)
+struct FKeyDataLayer
+{
+	GENERATED_BODY()
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Keyboard")
+	TArray<AAC_Key*> Keys;
+};
 
 UCLASS()
 class GOGOHUNTERS_API AAC_KeyBoard : public AActor
@@ -37,8 +48,8 @@ class GOGOHUNTERS_API AAC_KeyBoard : public AActor
 public:	
 	// Sets default values for this actor's properties
 	AAC_KeyBoard();
-
-	virtual void OnConstruction(const FTransform& Transform) override;
+	
+	// virtual void OnConstruction(const FTransform& Transform) override;
 
 private: 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components", meta = (AllowPrivateAccess = "true"))
@@ -47,18 +58,25 @@ private:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components", meta = (AllowPrivateAccess = "true"))
 	UStaticMeshComponent* KeyBoardMeshComponent;
 
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components", meta = (AllowPrivateAccess = "true"))
+	UWidgetComponent* KeyBoardInputWidgetComp;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components", meta = (AllowPrivateAccess = "true"))
+	UWidgetComponent* AlertMsgWidgetComp;
+
 	float BaseSize_X = 500.0f;
 	float BaseSize_Y = 200.0f;
 	float BaseSize_Z = 8.0f;
 
 	void UpdateBaseMeshScale();
+
+	UFUNCTION()
 	void HandleKeyClicked(FString KeyString);
 
 protected:
 	virtual void BeginPlay() override;
 
 	UPROPERTY(BlueprintReadOnly, Category = "Keyboard")
-	TArray<AAC_Key*> Keys;
+	TArray<FKeyDataLayer> KeysLayer;
 
 public:
 	UPROPERTY(EditAnywhere, Category = "Keyboard")
@@ -93,7 +111,21 @@ public:
 	float KeyBoardPadding_Y = 12.0f;
 
 
-	UPROPERTY(BlueprintAssignable, Category = "AudioRecording")
+	UPROPERTY(BlueprintAssignable, Category = "Keyboard")
 	FOnKeyBoardClickedEvent OnkeyBoardClicked;
 
+	UFUNCTION()
+	void UpdateKeybaordSize();
+
+	UFUNCTION(BlueprintCallable, Category = "Keyboard")
+	void UpdateVisibleLayer(int index);
+
+	void EnterPlayerInitial(const FString& Initial);
+	void FinishEnterPlayerInitial();
+
+private:
+	UPROPERTY(BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
+	TObjectPtr<UCTextInputWidget> KeyBoardInputWidget;
+	UPROPERTY(BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
+	TObjectPtr<UCAlertMsgWidget> AlertMsgWidget;
 };

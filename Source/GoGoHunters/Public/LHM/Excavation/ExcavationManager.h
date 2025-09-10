@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
+#include "LHJ/CRelicData.h"
 #include "ExcavationManager.generated.h"
 
 // 발굴 단계 열거형
@@ -100,6 +101,8 @@ public:
 
 	void SetBrushingUI(class UBrushingUI* InBrushingUI) { BrushingUI = InBrushingUI; }
 
+	void SetCollectionBoxUI(class UCollectionBoxUI* InCollectionBoxUI) { CollectionBoxUI = InCollectionBoxUI; }
+
 	void SetWarningUI(class UWarningUI* InWarningUI) { WarningUI = InWarningUI; }
 	
 	void HandleWarningReset(); // 경고 3회 → 3초 뒤 호출
@@ -117,16 +120,32 @@ protected:
     UPROPERTY()
     class UBrushingUI* BrushingUI;
 
+	UPROPERTY()
+	class UCollectionBoxUI* CollectionBoxUI;
+
 // 타미 대사
 private:
 	void PlayTami(const FName& FunctionName);
 
+// 키보드 액터 스폰
+	UFUNCTION()
+	void SpawnKeyboardActor();
+
+	FTimerHandle KeyboardSpawnTimerHandle;
+
+// 로비 박물관 버튼 노출
 public:
 	UFUNCTION()
-	void ShowLobbyMuseumButtons();
+	void ShowLobbyRestoreButtons();
 
 	UPROPERTY(BlueprintReadWrite)
 	bool bUseBtnLobbynMuseum = false;
 
 	FTimerHandle LobbyMuseumTimerHandle;
+
+private:
+	UPROPERTY()
+	FCRelicData RecentlyRegisteredRelic;
+public:
+	bool RegisterRelicCollector(FString CollectorName);
 };

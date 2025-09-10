@@ -18,23 +18,16 @@ void UExcavationPhaseUI::NativeConstruct()
 		Btn_FlagTrigger->SetVisibility(ESlateVisibility::Hidden);
 	}
 
-	if (Btn_CloseLid)
-	{
-		Btn_CloseLid->OnClicked.AddDynamic(this, &UExcavationPhaseUI::OnClick_CloseLid);
-		Btn_CloseLid->SetVisibility(ESlateVisibility::Hidden);
-	}
-
-
 	if (Btn_Lobby)
 	{
 		Btn_Lobby->OnClicked.AddDynamic(this, &UExcavationPhaseUI::OnClick_Lobby);
 		Btn_Lobby->SetVisibility(ESlateVisibility::Hidden);
 	}
 
-	if (Btn_Museum)
+	if (Btn_Restore)
 	{
-		Btn_Museum->OnClicked.AddDynamic(this, &UExcavationPhaseUI::OnClick_Museum);
-		Btn_Museum->SetVisibility(ESlateVisibility::Hidden);
+		Btn_Restore->OnClicked.AddDynamic(this, &UExcavationPhaseUI::OnClick_Restore);
+		Btn_Restore->SetVisibility(ESlateVisibility::Hidden);
 	}
 }
 
@@ -43,15 +36,7 @@ void UExcavationPhaseUI::SetVisibilityFlagTrigger(bool bVisible)
 	if (!Btn_FlagTrigger || !OwningWidgetActor) return;
 	
 	Btn_FlagTrigger->SetVisibility(bVisible ? ESlateVisibility::Visible : ESlateVisibility::Hidden);
-	OwningWidgetActor->SetActorEnableCollision(bVisible ? true : false);
-}
-
-void UExcavationPhaseUI::SetVisibilityCloseLid(bool bVisible)
-{
-	if (!Btn_CloseLid || !OwningWidgetActor) return;
-	
-	Btn_CloseLid->SetVisibility(bVisible ? ESlateVisibility::Visible : ESlateVisibility::Hidden);
-	OwningWidgetActor->SetActorEnableCollision(bVisible ? true : false);
+	OwningWidgetActor->SetCollisionAndVisible(bVisible);
 }
 
 void UExcavationPhaseUI::SetVisibilityLobby(bool bVisible)
@@ -59,25 +44,20 @@ void UExcavationPhaseUI::SetVisibilityLobby(bool bVisible)
 	if (!Btn_Lobby || !OwningWidgetActor) return;
 
 	Btn_Lobby->SetVisibility(bVisible ? ESlateVisibility::Visible : ESlateVisibility::Hidden);
-	OwningWidgetActor->SetActorEnableCollision(bVisible ? true : false);
+	OwningWidgetActor->SetCollisionAndVisible(bVisible);
 }
 
-void UExcavationPhaseUI::SetVisibilityMuseum(bool bVisible)
+void UExcavationPhaseUI::SetVisibilityRestore(bool bVisible)
 {
-	if (!Btn_Museum || !OwningWidgetActor) return;
+	if (!Btn_Restore || !OwningWidgetActor) return;
 
-	Btn_Museum->SetVisibility(bVisible ? ESlateVisibility::Visible : ESlateVisibility::Hidden);
-	OwningWidgetActor->SetActorEnableCollision(bVisible ? true : false);
+	Btn_Restore->SetVisibility(bVisible ? ESlateVisibility::Visible : ESlateVisibility::Hidden);
+	OwningWidgetActor->SetCollisionAndVisible(bVisible);
 }
 
 void UExcavationPhaseUI::OnClick_FlagTrigger()
 {
 	if (ExcavationManager) ExcavationManager->ChangeExcavationPhase();
-}
-
-void UExcavationPhaseUI::OnClick_CloseLid()
-{
-	if(ExcavationManager) ExcavationManager->ChangeCompletedPhase();
 }
 
 void UExcavationPhaseUI::OnClick_Lobby()
@@ -88,11 +68,11 @@ void UExcavationPhaseUI::OnClick_Lobby()
 	}
 }
 
-void UExcavationPhaseUI::OnClick_Museum()
+void UExcavationPhaseUI::OnClick_Restore()
 {
 	if (UGI_Base* GI = Cast<UGI_Base>(GetGameInstance()))
 	{
-		GI->TransitionToLevel(FString("LV_MyMuseum"));
+		GI->TransitionToLevel(FString("LV_Restore"));
 	}
 }
 

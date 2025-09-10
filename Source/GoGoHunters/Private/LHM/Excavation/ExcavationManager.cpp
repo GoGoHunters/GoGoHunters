@@ -15,6 +15,7 @@
 #include "LHM/Excavation/CollectionBox.h"
 #include "LHJ/Tutorial/CTutorialManager.h"
 #include "LHM/UI/WarningUI.h"
+#include "LHM/UI/CollectionBoxUI.h"
 
 // Sets default values
 AExcavationManager::AExcavationManager()
@@ -47,6 +48,7 @@ void AExcavationManager::BeginPlay()
 void AExcavationManager::EndPlay(const EEndPlayReason::Type EndPlayReason)
 {
 	GetWorldTimerManager().ClearTimer(LobbyMuseumTimerHandle);
+	GetWorldTimerManager().ClearTimer(KeyboardSpawnTimerHandle);
 	GetWorldTimerManager().ClearAllTimersForObject(this);
 
 	Super::EndPlay(EndPlayReason);
@@ -103,10 +105,9 @@ void AExcavationManager::NotifyExcavationCompleted(class ARelicsManager* FromMan
 void AExcavationManager::NotifyDustingCompleted(class ARelicsManager* FromManager)
 {
 	if (!IsValid(FromManager)) return;
-	if (!WarningUI) return;
 
 	// 경고 UI 리셋
-	WarningUI->ResetWarnings();
+	if (WarningUI) WarningUI->ResetWarnings();
 
 	// 수거박스 생성 요청
 	FromManager->SpawnCollectionBox();
@@ -123,19 +124,18 @@ void AExcavationManager::NotifyCollectionCompleted(class ARelicsManager* FromMan
 {
 	if (!IsValid(FromManager)) return;
 	if (!IsValid(FromCollectionBox)) return;
-	if (!PhaseUI || !WarningUI) return;
+	if (!CollectionBoxUI) return;
 
 	CurrentActiveManager = FromManager;
 	CollectionBox = FromCollectionBox;
 
 	PlayTami(TEXT("PlayExcavationCompleted1"));
 
-	// Phase UI 가시화 (수거함 완료 트리거)
-	// Phase UI에서 완료버튼 클릭하면 수거함 닫기
-	PhaseUI->SetVisibilityCloseLid(true);
+	// UI에서 완료버튼 클릭하면 수거함 닫기
+	CollectionBoxUI->SetVisibilityCloseLid(true);
 
 	// 경고 UI 리셋
-	WarningUI->ResetWarnings();
+	if (WarningUI) WarningUI->ResetWarnings();
 }
 
 void AExcavationManager::SetCurrentPhase(EExcavationPhase NewPhase)
@@ -209,11 +209,9 @@ bool AExcavationManager::IsToolAvailableForPhase(int32 ToolIndex) const
 
 void AExcavationManager::ChangeExcavationPhase()
 {
-	if( !CurrentActiveManager || !CurrentActiveManager->GetRelics() ) return;
+	if (!CurrentActiveManager) return;
 	if (!PhaseUI || !DiggingUI) return;
 	
-	CurrentActiveManager->GetRelics()->ActivateMarker();
-
 	CurrentActiveManager->StartExcavation();
 
 	PlayTami(TEXT("PlayExcavationPhase2_PlantedFlag"));
@@ -231,11 +229,10 @@ void AExcavationManager::ChangeCompletedPhase()
 {
 	if (!IsValid(CurrentActiveManager)) return;
 	if (!IsValid(CollectionBox)) return;
-	if (!BrushingUI) return;
+	if (!BrushingUI || !CollectionBoxUI) return;
 
-	PhaseUI->SetVisibilityCloseLid(false);
+	CollectionBoxUI->SetVisibilityCloseLid(false);
 	BrushingUI->SetVisibility(ESlateVisibility::Hidden);
-	//PlayPopupUiAnim(true);
 
 	// 수거함 닫기 애니메이션
 	CollectionBox->PlayBoxCloseAnimation();
@@ -243,7 +240,13 @@ void AExcavationManager::ChangeCompletedPhase()
 	// 타미 음성
 	PlayTami(TEXT("PlayExcavationCompleted2"));
 
-	// Phase UI (로비/박물관 이동)
+	GetWorldTimerManager().ClearTimer(KeyboardSpawnTimerHandle);
+
+	FTimerDelegate D;
+	D.BindUObject(this, &AExcavationManager::SpawnKeyboardActor);
+	GetWorldTimerManager().SetTimer(KeyboardSpawnTimerHandle, D, 8.f, false);
+
+	/*// Phase UI (로비/박물관 이동)
 	
 	//FTimerHandle PhaseUIVisibilityHandle;
 	//GetWorldTimerManager().SetTimer(PhaseUIVisibilityHandle, [this]()
@@ -259,7 +262,7 @@ void AExcavationManager::ChangeCompletedPhase()
 	// BindUObject 사용: UObject 생명주기와 함께 안전해짐
 	FTimerDelegate D;
 	D.BindUObject(this, &AExcavationManager::ShowLobbyMuseumButtons);
-	GetWorldTimerManager().SetTimer(LobbyMuseumTimerHandle, D, 15.0f, false);
+	GetWorldTimerManager().SetTimer(LobbyMuseumTimerHandle, D, 15.0f, false);*/
 
 	// 게임 인스턴스에서 유물 등록
 	if (UGI_Base* GI = Cast<UGI_Base>(UGameplayStatics::GetGameInstance(GetWorld())))
@@ -279,7 +282,7 @@ void AExcavationManager::ChangeCompletedPhase()
 						RelicTag = Relics->GetRelicTag();
 					}
 
-					MuseumComponent->RegisterRelic(RelicTag);
+					RecentlyRegisteredRelic = MuseumComponent->RegisterRelic(RelicTag);
 					UE_LOG(LogTemp, Log, TEXT("[ExcavationManager] 유물 등록 완료 - 태그: %d"), RelicTag);
 				}
 			}
@@ -361,9 +364,36 @@ void AExcavationManager::PlayTami(const FName& FunctionName)
 	}
 }
 
-void AExcavationManager::ShowLobbyMuseumButtons()
+void AExcavationManager::SpawnKeyboardActor()
 {
+	if(!IsValid(CurrentActiveManager)) return;
+	CurrentActiveManager->SpawnKeyboard();
+}
+
+void AExcavationManager::ShowLobbyRestoreButtons()
+{
+	if (!IsValid(CurrentActiveManager)) return;
 	if (!IsValid(this) || !IsValid(PhaseUI) || bUseBtnLobbynMuseum) return;
+
+	CurrentActiveManager->DestroyKeyboard();
+
 	PhaseUI->SetVisibilityLobby(true);
-	PhaseUI->SetVisibilityMuseum(true);
+	PhaseUI->SetVisibilityRestore(true);
+}
+
+bool AExcavationManager::RegisterRelicCollector(FString CollectorName)
+{
+	if (RecentlyRegisteredRelic.RelicName.ToString().IsEmpty()) return false;
+	if (APlayerController* PC = UGameplayStatics::GetPlayerController(GetWorld(), 0))
+	{
+		if (APawn* Pawn = PC->GetPawn())
+		{
+			if (UCMuseumComponent* MuseumComponent = Pawn->FindComponentByClass<UCMuseumComponent>())
+			{
+				FString TrimCollectorName = CollectorName.TrimStartAndEnd();
+				return MuseumComponent->RegisterRelicCollectorName(RecentlyRegisteredRelic, FName(*TrimCollectorName));
+			}
+		}
+	}
+	return false;
 }
