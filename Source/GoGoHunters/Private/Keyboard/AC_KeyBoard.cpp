@@ -11,7 +11,6 @@
 // Sets default values
 AAC_KeyBoard::AAC_KeyBoard()
 {
-
 	static ConstructorHelpers::FObjectFinder<UStaticMesh> MeshAsset(TEXT("/Game/KeyBoard/assets/Cube_KeyBoard.Cube_KeyBoard"));
 
 	if (MeshAsset.Succeeded())
@@ -60,6 +59,19 @@ void AAC_KeyBoard::BeginPlay()
 		if (AlertMsgWidget)
 			AlertMsgWidget->SetKeyboard(this);
 	}
+}
+
+void AAC_KeyBoard::EndPlay(const EEndPlayReason::Type EndPlayReason)
+{
+	for (FKeyDataLayer& CachedKeys : KeysLayer)
+	{
+		for (AAC_Key*& CachedKey : CachedKeys.Keys)
+		{
+			CachedKey->Destroy();
+		}
+	}
+	
+	Super::EndPlay(EndPlayReason);
 }
 
 /*
