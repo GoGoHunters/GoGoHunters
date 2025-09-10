@@ -104,14 +104,21 @@ ACContinentWidgetActor::ACContinentWidgetActor()
 	TitleTextComp->SetTranslucentSortPriority(2);
 	
 	CHelpers::CreateComponent<UTextRenderComponent>(this, &DescTextComp, "DescTextComp", RootComponent);
-	DescTextComp->SetRelativeLocationAndRotation(FVector(48,30.5,0),FRotator(90,0,90));
+	DescTextComp->SetRelativeLocationAndRotation(FVector(73,30.5,0),FRotator(90,0,90));
 	DescTextComp->SetHorizontalAlignment(EHTA_Left);
 	DescTextComp->SetVerticalAlignment(EVRTA_TextTop);
 	DescTextComp->SetWorldSize(2.5f);
 	DescTextComp->SetTranslucentSortPriority(2);
+
+	CHelpers::CreateComponent<UTextRenderComponent>(this, &RelicsTextComp, "RelicsTextComp", RootComponent);
+	RelicsTextComp->SetRelativeLocationAndRotation(FVector(48,30.5,0),FRotator(90,0,90));
+	RelicsTextComp->SetHorizontalAlignment(EHTA_Left);
+	RelicsTextComp->SetVerticalAlignment(EVRTA_TextTop);
+	RelicsTextComp->SetWorldSize(2.5f);
+	RelicsTextComp->SetTranslucentSortPriority(2);
 	
 	CHelpers::CreateComponent<UTextRenderComponent>(this, &MoveTextComp, "MoveTextComp", RootComponent);
-	MoveTextComp->SetRelativeLocationAndRotation(FVector(21.5,-37,0),FRotator(90,0,90));
+	MoveTextComp->SetRelativeLocationAndRotation(FVector(21.5,-44.2,0),FRotator(90,0,90));
 	MoveTextComp->SetHorizontalAlignment(EHTA_Center);
 	MoveTextComp->SetVerticalAlignment(EVRTA_TextCenter);
 	MoveTextComp->SetWorldSize(3.f);
@@ -148,22 +155,30 @@ void ACContinentWidgetActor::SetContinentData(const FCContinentData& ContinentDa
 	FString strDesc = "";
 	if (!ContinentData.ContinentDesc.TrimStartAndEnd().IsEmpty()) 
 	{
-		strDesc += FormatTextWithLineBreaks_Local(ContinentData.ContinentDesc, 25);
+		strDesc += FormatTextWithLineBreaks_Local(ContinentData.ContinentDesc, 40);
 	}
-	
-	if (ContinentData.RelicsArray.Num() > 0)
-	{
-		strDesc += TEXT("\n등장 유물\n");
-		for (const auto& Relic : ContinentData.RelicsArray) 
-		{
-			strDesc += TEXT("※") + Relic + TEXT("\n");
-		}
-	}
+
 	// 리터럴 "\\n"을 실제 줄바꿈으로 변환하여 출력
 	strDesc.ReplaceInline(TEXT("\r\n"), TEXT("\n"));
 	strDesc.ReplaceInline(TEXT("\r"), TEXT(""));
 	strDesc.ReplaceInline(TEXT("\\n"), TEXT("\n"));
 	DescTextComp->SetText(FText::AsCultureInvariant(strDesc));
+
+	FString strRelics = "";
+	if (ContinentData.RelicsArray.Num() > 0)
+	{
+		strRelics += TEXT("등장 유물\n");
+		for (const auto& Relic : ContinentData.RelicsArray) 
+		{
+			strRelics += TEXT("※") + Relic + TEXT("\n");
+		}
+	}
+
+	// 리터럴 "\\n"을 실제 줄바꿈으로 변환하여 출력
+	strRelics.ReplaceInline(TEXT("\r\n"), TEXT("\n"));
+	strRelics.ReplaceInline(TEXT("\r"), TEXT(""));
+	strRelics.ReplaceInline(TEXT("\\n"), TEXT("\n"));
+	RelicsTextComp->SetText(FText::AsCultureInvariant(strRelics));
 
 	if (!ContinentData.UseJoin)
 	{
