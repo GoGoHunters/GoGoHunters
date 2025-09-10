@@ -101,42 +101,82 @@ void ACRelicDescActor::VisibleComponent(bool bShown)
 
 FString ACRelicDescActor::FormatTextWithLineBreaks(const FString& Text, int32 MaxLength)
 {
-	if (Text.Len() <= MaxLength)
-	{
-		return Text;
-	}
-	
+	// CR/LF 정규화 (실개행 유지). 리터럴 "\\n"은 아래 루프에서 줄바꿈으로 처리
+	FString Normalized = Text;
+	Normalized.ReplaceInline(TEXT("\r\n"), TEXT("\n"));
+	Normalized.ReplaceInline(TEXT("\r"), TEXT(""));
+
 	FString Result;
-	FString RemainingText = Text;
-	
-	while (RemainingText.Len() > MaxLength)
+	FString CurrentLine;
+
+	int32 idx = 0;
+	while (idx < Normalized.Len())
 	{
-		// MaxLength까지의 텍스트를 찾되, 공백이 있는 경우 가장 가까운 공백에서 자르기
-		int32 CutPosition = MaxLength;
-		for (int32 i = MaxLength; i >= 0; i--)
+		const TCHAR ch = Normalized[idx];
+
+		// 리터럴 "\\n" 처리: 출력하지 않고 줄바꿈, 카운트 초기화
+		if (ch == TEXT('\\') && (idx + 1) < Normalized.Len() && Normalized[idx + 1] == TEXT('n'))
 		{
-			if (RemainingText[i] == TEXT(' '))
+			if (CurrentLine.Len() > 0)
 			{
-				CutPosition = i;
-				break;
+				Result += CurrentLine;
+				CurrentLine.Empty();
+			}
+			Result += TEXT("\n");
+			idx += 2;
+			continue;
+		}
+
+		// 실제 개행 처리
+		if (ch == TEXT('\n'))
+		{
+			if (CurrentLine.Len() > 0)
+			{
+				Result += CurrentLine;
+				CurrentLine.Empty();
+			}
+			Result += TEXT("\n");
+			++idx;
+			continue;
+		}
+
+		CurrentLine.AppendChar(ch);
+
+		// 최대 길이에 도달 시 단어 기준 줄바꿈, 카운트 초기화
+		if (CurrentLine.Len() >= MaxLength)
+		{
+			int32 SpaceIndex = INDEX_NONE;
+			for (int32 si = CurrentLine.Len() - 1; si >= 0; --si)
+			{
+				if (CurrentLine[si] == TEXT(' '))
+				{
+					SpaceIndex = si;
+					break;
+				}
+			}
+
+			if (SpaceIndex != INDEX_NONE)
+			{
+				Result += CurrentLine.Left(SpaceIndex);
+				Result += TEXT("\n");
+				CurrentLine = CurrentLine.Mid(SpaceIndex + 1);
+				CurrentLine = CurrentLine.TrimStart();
+			}
+			else
+			{
+				Result += CurrentLine.Left(MaxLength);
+				Result += TEXT("\n");
+				CurrentLine = CurrentLine.Mid(MaxLength);
 			}
 		}
-		
-		// 공백을 찾지 못한 경우 MaxLength에서 자르기
-		if (CutPosition == MaxLength)
-		{
-			CutPosition = MaxLength;
-		}
-		
-		Result += RemainingText.Left(CutPosition) + TEXT("\n");
-		RemainingText = RemainingText.Mid(CutPosition + 1);
+
+		++idx;
 	}
-	
-	// 남은 텍스트가 있으면 추가
-	if (RemainingText.Len() > 0)
+
+	if (CurrentLine.Len() > 0)
 	{
-		Result += RemainingText;
+		Result += CurrentLine;
 	}
-	
+
 	return Result;
 }
