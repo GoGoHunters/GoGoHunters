@@ -6,6 +6,8 @@
 #include "LHM/Restore/RestoreManager.h"
 #include "EngineUtils.h"
 #include "Kismet/GameplayStatics.h"
+#include "Components/WidgetComponent.h"
+#include "LHM/UI/RestoreProgressUI.h"
 
 // Sets default values
 ARestorePuzzleActor::ARestorePuzzleActor()
@@ -19,14 +21,29 @@ ARestorePuzzleActor::ARestorePuzzleActor()
 	RotationBoard->SetupAttachment(RootComponent);
 	RotationBoard->SetRelativeScale3D(FVector(0.3f));
 
+	static ConstructorHelpers::FClassFinder<UUserWidget> WidgetClassFinder(TEXT("/Game/LHM/UI/WBP_RestoreProgressUI"));
+	if (WidgetClassFinder.Succeeded())
+	{
+		ProgressWidgetComp = CreateDefaultSubobject<UWidgetComponent>(TEXT("ProgressUI"));
+		ProgressWidgetComp->SetWidgetClass(WidgetClassFinder.Class);
+		ProgressWidgetComp->SetupAttachment(RootComponent);
+		ProgressWidgetComp->SetWidgetSpace(EWidgetSpace::World);
+		ProgressWidgetComp->SetDrawSize(FVector2D(350, 120));
+
+		ProgressWidgetComp->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+		ProgressWidgetComp->SetCollisionProfileName("NoCollision");
+	}
 }
 
 // Called when the game starts or when spawned
 void ARestorePuzzleActor::BeginPlay()
 {
 	Super::BeginPlay();
-	
-	UE_LOG(LogTemp, Warning, TEXT("RestorePuzzleActor BeginPlay"));
+
+	if (UUserWidget* UserWidget = ProgressWidgetComp->GetWidget())
+	{
+		ProgressUI = Cast<URestoreProgressUI>(UserWidget);
+	}
 }
 
 // Called every frame
@@ -279,6 +296,7 @@ void ARestorePuzzleActor::TickSnap(float DeltaSeconds)
 
 		SnappingPiece->SetSnapped(true);
 		SnappingPiece->DestroyPickupComp();
+		ProgressUI->SetSnappedImage();
 		PlayFeedback(true);
 		CheckPuzzleCompleted();
 
