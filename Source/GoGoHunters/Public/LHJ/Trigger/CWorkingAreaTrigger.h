@@ -33,9 +33,11 @@ private:
 
 	UPROPERTY()
 	TObjectPtr<APawn> TamiAI;
+	UPROPERTY()
+	TObjectPtr<AActor> Player;
 	
 	UPROPERTY(EditAnywhere, Category="Param|Trigger")
-	bool bActiveTrigger;
+	bool bActiveTrigger = true;
 	UPROPERTY(EditAnywhere, Category="Param|Trigger")
 	bool bTemporaryDeactivation = false;
 	

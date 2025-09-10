@@ -38,43 +38,59 @@ void ACWorkingAreaTrigger::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
-}
-
-void ACWorkingAreaTrigger::OnTriggerBeginOverrlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
-	UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
-{
-	// 임시 비활성화 상태면 패스
-	if (bTemporaryDeactivation) return;
-	
-	// 플레이어가 아니면 패스
-	if (!OtherActor->IsA(AMH_VRPlayer::StaticClass())) return;
-
-	// 타미 없으면 패스
-	if (!TamiAI) return;
-	
-	FName FunctionName(TEXT("NotifyPlayerInTrigger"));
-	UFunction* Function = TamiAI->FindFunction(FunctionName);
-	if (Function)
+	if (Player && !bTemporaryDeactivation)
 	{
-		FCNotifyPlayerInTrigger param;
-		param.bPlayerInTrigger = true;
-		param.TamiLocation = GetSceneCompLocation();
-		TamiAI->ProcessEvent(Function, &param);
+		FName FunctionName(TEXT("NotifyPlayerInTrigger"));
+		UFunction* Function = TamiAI->FindFunction(FunctionName);
+		if (Function)
+		{
+			FCNotifyPlayerInTrigger param;
+			param.bPlayerInTrigger = true;
+			param.TamiLocation = GetSceneCompLocation();
+			TamiAI->ProcessEvent(Function, &param);
+		}
+		Player = nullptr;
 	}
 }
 
-void ACWorkingAreaTrigger::OnTriggerEndOverrlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
-	UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
+void ACWorkingAreaTrigger::OnTriggerBeginOverrlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
+                                                  UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep,
+                                                  const FHitResult& SweepResult)
 {
-	// 임시 비활성화 상태면 패스
-	if (bTemporaryDeactivation) return;
-	
 	// 플레이어가 아니면 패스
 	if (!OtherActor->IsA(AMH_VRPlayer::StaticClass())) return;
 
 	// 타미 없으면 패스
 	if (!TamiAI) return;
 
+	// 임시 비활성화 상태면 패스
+	if (bTemporaryDeactivation)
+	{
+		Player = OtherActor;
+	}
+	else
+	{
+		FName FunctionName(TEXT("NotifyPlayerInTrigger"));
+		UFunction* Function = TamiAI->FindFunction(FunctionName);
+		if (Function)
+		{
+			FCNotifyPlayerInTrigger param;
+			param.bPlayerInTrigger = true;
+			param.TamiLocation = GetSceneCompLocation();
+			TamiAI->ProcessEvent(Function, &param);
+		}
+	}	
+}
+
+void ACWorkingAreaTrigger::OnTriggerEndOverrlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
+                                                UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
+{
+	// 플레이어가 아니면 패스
+	if (!OtherActor->IsA(AMH_VRPlayer::StaticClass())) return;
+
+	// 타미 없으면 패스
+	if (!TamiAI) return;
+	
 	FName FunctionName(TEXT("NotifyPlayerInTrigger"));
 	UFunction* Function = TamiAI->FindFunction(FunctionName);
 	if (Function)
@@ -83,6 +99,7 @@ void ACWorkingAreaTrigger::OnTriggerEndOverrlap(UPrimitiveComponent* OverlappedC
 		param.bPlayerInTrigger = false;
 		TamiAI->ProcessEvent(Function, &param);
 	}
+	Player = nullptr;
 }
 
 FVector ACWorkingAreaTrigger::GetSceneCompLocation()
