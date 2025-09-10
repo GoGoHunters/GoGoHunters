@@ -8,6 +8,7 @@
 #include "Kismet/GameplayStatics.h"
 #include "Components/WidgetComponent.h"
 #include "LHM/UI/RestoreProgressUI.h"
+#include "Components/BoxComponent.h"
 
 // Sets default values
 ARestorePuzzleActor::ARestorePuzzleActor()
@@ -33,6 +34,11 @@ ARestorePuzzleActor::ARestorePuzzleActor()
 		ProgressWidgetComp->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 		ProgressWidgetComp->SetCollisionProfileName("NoCollision");
 	}
+
+	KillZone = CreateDefaultSubobject<UBoxComponent>(TEXT("KillZone"));
+	KillZone->SetupAttachment(RootComponent);
+	KillZone->SetGenerateOverlapEvents(true);
+	KillZone->OnComponentBeginOverlap.AddDynamic(this, &ARestorePuzzleActor::OnOverlapBegin);
 }
 
 // Called when the game starts or when spawned
@@ -52,6 +58,23 @@ void ARestorePuzzleActor::Tick(float DeltaTime)
 	Super::Tick(DeltaTime);
 
 	TickSnap(DeltaTime);
+}
+
+void ARestorePuzzleActor::OnOverlapBegin(UPrimitiveComponent* Overlapped, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& Hit)
+{
+	if (!OtherActor) return;
+
+	APieceActor* OverlappedPiece = Cast<APieceActor>(OtherActor);
+
+	if (OverlappedPiece)
+	{
+		const FTransform* InitialTransform = InitialPieceTransforms.Find(OverlappedPiece);
+
+		if (InitialTransform)
+		{
+			OverlappedPiece->SetActorTransform(*InitialTransform, false, nullptr, ETeleportType::TeleportPhysics);
+		}
+	}
 }
 
 void ARestorePuzzleActor::InitPuzzle(const FCRelicData& InRelicData, ARestoreManager* InManager)
@@ -109,6 +132,7 @@ void ARestorePuzzleActor::InitPuzzle(const FCRelicData& InRelicData, ARestoreMan
 		if (APieceActor* Piece = Cast<APieceActor>(ChildActors[i]))
 		{
 			PieceActors.Add(Piece);
+			InitialPieceTransforms.Add(Piece, Piece->GetActorTransform());
 			Piece->SetPieceIndex(i); // 이름 순서대로 인덱스 지정
 			UE_LOG(LogTemp, Warning, TEXT("PieceActors(%d): %s"), i, *Piece->GetName());
 		}
