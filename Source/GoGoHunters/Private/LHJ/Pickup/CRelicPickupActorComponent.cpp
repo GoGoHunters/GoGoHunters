@@ -23,6 +23,20 @@ void UCRelicPickupActorComponent::TickComponent(float DeltaTime, enum ELevelTick
 void UCRelicPickupActorComponent::Pickup(USceneComponent* AttachTo, bool IsPulling)
 {
 	Super::Pickup(AttachTo, IsPulling);
+
+	ARestorePuzzleActor* PuzzleActor = nullptr;
+	for (TActorIterator<ARestorePuzzleActor> It(GetWorld()); It; ++It)
+	{
+		PuzzleActor = *It;
+		if (PuzzleActor)
+		{
+			if (APieceActor* OwnerPiece = Cast<APieceActor>(OwnerActor))
+			{
+				PuzzleActor->PlaySnapFeedback(OwnerPiece);
+			}
+		}
+		break;
+	}
 }
 
 void UCRelicPickupActorComponent::Drop(USceneComponent* DropFrom)

@@ -265,6 +265,11 @@ void ARestorePuzzleActor::OnPuzzleCompleted()
 	RestoreManager->NotifyPuzzleCompleted(this);
 }
 
+void ARestorePuzzleActor::PlaySnapFeedback(APieceActor* Piece)
+{
+	if (SnapSFX) UGameplayStatics::PlaySoundAtLocation(this, SnapSFX, Piece->GetActorLocation());
+}
+
 void ARestorePuzzleActor::PlayFeedback(bool bSuccess)
 {
 	if(bSuccess)
