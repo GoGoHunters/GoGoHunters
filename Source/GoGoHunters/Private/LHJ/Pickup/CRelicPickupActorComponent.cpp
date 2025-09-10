@@ -24,6 +24,11 @@ void UCRelicPickupActorComponent::Pickup(USceneComponent* AttachTo, bool IsPulli
 {
 	Super::Pickup(AttachTo, IsPulling);
 
+	if (bInvokedFromDrop)
+	{
+		return;
+	}
+
 	ARestorePuzzleActor* PuzzleActor = nullptr;
 	for (TActorIterator<ARestorePuzzleActor> It(GetWorld()); It; ++It)
 	{
@@ -41,6 +46,7 @@ void UCRelicPickupActorComponent::Pickup(USceneComponent* AttachTo, bool IsPulli
 
 void UCRelicPickupActorComponent::Drop(USceneComponent* DropFrom)
 {
+	bInvokedFromDrop = true;
 	Super::Drop(DropFrom);
 
 	ARestorePuzzleActor* PuzzleActor = nullptr;
@@ -56,6 +62,8 @@ void UCRelicPickupActorComponent::Drop(USceneComponent* DropFrom)
 		}
 		break;
 	}
+
+	bInvokedFromDrop = false;
 }
 
 void UCRelicPickupActorComponent::GrabOverrideFunc()
