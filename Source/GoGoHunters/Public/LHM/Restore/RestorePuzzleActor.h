@@ -32,6 +32,7 @@ public:
 	UFUNCTION()
 	void TrySnapPiece(class APieceActor* Piece);
 
+	void PlaySnapFeedback(APieceActor* Piece);
 	void CheckPuzzleCompleted();
 	void OnPuzzleCompleted();
 
@@ -78,6 +79,9 @@ private:
 	void PlayFeedback(bool bSuccess);
 
 	// Feedback
+	UPROPERTY(EditAnywhere, Category = "Feedback")
+	class USoundBase* SnapSFX = nullptr;
+
 	UPROPERTY(EditAnywhere, Category = "Feedback")
 	class USoundBase* SuccessSFX = nullptr;
 	
