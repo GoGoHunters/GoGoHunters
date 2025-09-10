@@ -24,10 +24,6 @@ public:
 	
 private:
 	UPROPERTY(EditDefaultsOnly, meta=(BindWidget))
-	TObjectPtr<UTextBlock> Txt_Title;
-	UPROPERTY(EditDefaultsOnly, meta=(BindWidget))
-	TObjectPtr<UTextBlock> Txt_Desc;
-	UPROPERTY(EditDefaultsOnly, meta=(BindWidget))
 	TObjectPtr<UButton> Btn_Join;
 	UPROPERTY(EditDefaultsOnly, meta=(BindWidget))
 	TObjectPtr<UButton> Btn_Exit;

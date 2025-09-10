@@ -79,32 +79,45 @@ void ABrushTool::CheckBrushSwipe(float DeltaTime)
 	Relic = Cast<ARelicsBase>(CurrentOverlappingRelic);
 	if (!Relic) return;
 
+	// 경고 지연 판정 중에는 내려갔는지 감시만 한다
+	if (bWarningCheckPending)
+	{
+		if (SwipeSpeed < BrushSwipeThresholdMax)
+		{
+			bWarningWindowHadDropBelow = true;
+		}
+		else
+		{
+			bWarningWindowHadDropBelow = false;
+		}
+	}
+
+	// [1] 가장 가까운 메시
+	UStaticMeshComponent* ClosestMesh = Relic->GetClosestRelicMesh(BoxMesh->GetComponentLocation());
+	if (!ClosestMesh) return;
+
+	// [2] 데칼이 하나라도 남아 있는지 확인
+	bool bHasRemainingDecal = false;
+
+	for (const auto& Pair : Relic->DecalToMeshMap)
+	{
+		if (Pair.Value == ClosestMesh)
+		{
+			bHasRemainingDecal = true;
+			break;
+		}
+	}
+
+	// [3] 데칼이 남아 있지 않으면 return
+	if (!bHasRemainingDecal) return;
+
 	if (SwipeSpeed > BrushSwipeThresholdMin
 		&& SwipeSpeed < BrushSwipeThresholdMax)
 	{
 
-		// [1] 가장 가까운 메시
-		UStaticMeshComponent* ClosestMesh = Relic->GetClosestRelicMesh(BoxMesh->GetComponentLocation());
-		if (!ClosestMesh) return;
-
-		// [2] 데칼이 하나라도 남아 있는지 확인
-		bool bHasRemainingDecal = false;
-
-		for (const auto& Pair : Relic->DecalToMeshMap)
-		{
-			if (Pair.Value == ClosestMesh)
-			{
-				bHasRemainingDecal = true;
-				break;
-			}
-		}
-		
-		// [3] 데칼이 남아 있지 않으면 return
-		if (!bHasRemainingDecal) return;		
-
 		Relic->ReduceDustOpacity(BoxMesh->GetComponentLocation(), FadeSpeed * DeltaTime, *this);
 	}
-	else if (bCanTriggerWarning && SwipeSpeed >= BrushSwipeThresholdMax)
+	else if (bCanTriggerWarning && !bWarningCheckPending && SwipeSpeed >= BrushSwipeThresholdMax)
 	{
 		HandleBrushHardSwipeFeedbackAndWarn();
 	}
@@ -182,51 +195,42 @@ void ABrushTool::SetIsBrushing(bool _bIsBrushing)
 	if (!bIsBrushing) StopFeedback();
 }
 
-void ABrushTool::HandleBrushHardSwipeFeedbackAndWarn(/*class ARelicsBase* Relic*/)
+void ABrushTool::HandleBrushHardSwipeFeedbackAndWarn()
 {
 	if (!Relic) return;
+	// 추가 가드: 중복 호출 방지
+	if (bWarningCheckPending || !bCanTriggerWarning) return;
 
-	// 1) 즉시 사운드
+	// 먼저 플래그 설정하여 같은 틱 내 재진입 방지
+	bCanTriggerWarning = false;
+	bWarningCheckPending = true;
+	bWarningWindowHadDropBelow = false;
+
+	// 1) 사운드
 	if (HardBrushSFX)
 	{
 		UGameplayStatics::PlaySoundAtLocation(this, HardBrushSFX, GetActorLocation());
 	}
 
-	// 2) 즉시 햅틱
+	// 2) 햅틱
 	if (APlayerController* PC = UGameplayStatics::GetPlayerController(GetWorld(), 0))
 	{
 		if (HardBrushHaptic)
 		{
 			PC->PlayHapticEffect(HardBrushHaptic, EControllerHand::Right);
-			//PC->PlayHapticEffect(HardBrushHaptic, EControllerHand::Left);
 		}
 	}
 
-	// 3) 2초 뒤 실제 경고 카운트
 	if (UWorld* World = GetWorld())
 	{
-		TWeakObjectPtr<ARelicsBase> RelicWeak = Relic;
-
-		FTimerHandle DelayHandle;
+		World->GetTimerManager().ClearTimer(WarningDelayHandle);
 		World->GetTimerManager().SetTimer(
-			DelayHandle,
-			FTimerDelegate::CreateLambda([this, RelicWeak]()
-			{
-				if (!IsValid(this) || !RelicWeak.IsValid()) return;
-
-				RelicWeak->CountWarning();
-
-				// 쿨타임 시작
-				bCanTriggerWarning = false;
-				GetWorld()->GetTimerManager().SetTimer(
-					WarningCooldownHandle,
-					this,
-					&ABrushTool::ResetWarningCooldown,
-					WarningCooldownDuration,
-					false
-					);
-			}
-		), WarningDelayAfterImpact, false);
+			WarningDelayHandle,
+			this,
+			&ABrushTool::OnWarningDelayElapsed,
+			WarningDelayAfterImpact,
+			false
+		);
 	}
 }
 
@@ -235,3 +239,60 @@ void ABrushTool::ResetWarningCooldown()
 	bCanTriggerWarning = true;
 }
 
+void ABrushTool::OnWarningDelayElapsed()
+{
+	// 2초 경과 후 상태 평가
+	const bool bStillOverlapping = (CurrentOverlappingRelic != nullptr);
+	const bool bShouldWarn = bStillOverlapping && (Relic != nullptr) && !bWarningWindowHadDropBelow && (SwipeSpeed >= BrushSwipeThresholdMax);
+
+	/*UE_LOG(LogTemp, Log, TEXT("[BrushTool] Warning Delay Elapsed: StillOverlapping=%d, RelicValid=%d, HadDropBelow=%d, SwipeSpeed=%.2f, ShouldWarn=%d"),
+		bStillOverlapping,
+		(Relic != nullptr),
+		bWarningWindowHadDropBelow,
+		SwipeSpeed,
+		bShouldWarn
+	);*/
+
+	bWarningCheckPending = false;
+	bWarningWindowHadDropBelow = false;
+
+	if (bShouldWarn)
+	{
+		// 경고 사운드 및 UI 표시
+		if (WarningSFX) UGameplayStatics::PlaySoundAtLocation(this, WarningSFX, GetActorLocation());
+
+		Relic->CountWarning();
+
+		// 쿨타임 시작 (판정 성공 시에만)
+		if (UWorld* World = GetWorld())
+		{
+			World->GetTimerManager().ClearTimer(WarningCooldownHandle);
+			World->GetTimerManager().SetTimer(
+				WarningCooldownHandle,
+				this,
+				&ABrushTool::ResetWarningCooldown,
+				WarningCooldownDuration,
+				false
+			);
+		}
+	}
+	else
+	{
+		// 경고 미표시 → 즉시 재트리거 허용
+		bCanTriggerWarning = true;
+	}
+}
+
+void ABrushTool::CancelPendingWarningCheck()
+{
+	if (!bWarningCheckPending) return;
+
+	if (UWorld* World = GetWorld())
+	{
+		World->GetTimerManager().ClearTimer(WarningDelayHandle);
+	}
+
+	bWarningCheckPending = false;
+	bWarningWindowHadDropBelow = false;
+	bCanTriggerWarning = true;
+}

@@ -15,25 +15,24 @@ public:
 	// Sets default values for this actor's properties
 	ARestorWidgetActor();
 
+	//class UWidgetComponent* GetCompleteWidgetComp() const { return CompleteWidgetComp; }
+	void ShowCompleteUI(bool bShow);
+
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
-public:
-    UFUNCTION(BlueprintCallable)
-    class URestoreUI* GetRestoreUI() const { return RestoreUI; }
-
 protected:
-    UPROPERTY(VisibleAnywhere, Category = "Components")
+    UPROPERTY(VisibleAnywhere)
     class USceneComponent* RootScene;
 
-    UPROPERTY(VisibleAnywhere, Category = "Components")
+    UPROPERTY(VisibleAnywhere)
     class UStaticMeshComponent* BookMesh;
 
-    UPROPERTY(VisibleAnywhere, Category = "Components")
-    class UWidgetComponent* WidgetComponent;
+    UPROPERTY(VisibleAnywhere)
+    class UWidgetComponent* RestoreWidgetComp;
 
-    UPROPERTY()
-    class URestoreUI* RestoreUI;
+    UPROPERTY(VisibleAnywhere)
+    class UWidgetComponent* CompleteWidgetComp;
 
 };

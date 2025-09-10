@@ -5,6 +5,7 @@
 #include "GameFramework/Actor.h"
 #include "CRelicDescActor.generated.h"
 
+class UTextRenderComponent;
 struct FCRelicDetailData;
 class UWidgetComponent;
 
@@ -20,10 +21,16 @@ private:
 	UPROPERTY(EditDefaultsOnly)
 	UStaticMeshComponent* MeshComp;
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
-	UWidgetComponent* DescWidget;
+	UTextRenderComponent* TitleTextComp;
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
+	UTextRenderComponent* DescTextComp;
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
+	UTextRenderComponent* CollectorTextComp;
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
+	UTextRenderComponent* DateTextComp;
 	
 	ACRelicDescActor();
-	virtual void BeginPlay() override;
-	virtual void Tick(float DeltaTime) override;
-
+	void UpdateData(FCRelicDataParam Param);
+	void VisibleComponent(bool bShown);
+	FString FormatTextWithLineBreaks(const FString& Text, int32 MaxLength);
 };

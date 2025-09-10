@@ -42,7 +42,14 @@ protected:
 	UPROPERTY(EditDefaultsOnly)
 	UStaticMeshComponent* RotationBoard;
 
+private:
+	UPROPERTY(EditDefaultsOnly)
+    class UWidgetComponent* ProgressWidgetComp;
 
+	UPROPERTY()
+	class URestoreProgressUI* ProgressUI;
+
+protected:
 	UPROPERTY()
 	AActor* SpawnedRelic;
 

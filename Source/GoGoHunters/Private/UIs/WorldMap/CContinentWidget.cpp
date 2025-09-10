@@ -27,27 +27,27 @@ void UCContinentWidget::SetContinentData(const FCContinentData& ContinentData)
 	// 현재 대륙 데이터 저장
 	CurrentContinentData = ContinentData;
 	
-	if (!ContinentData.ContinentName.TrimStartAndEnd().IsEmpty()) 
-	{
-		Txt_Title->SetText(FText::AsCultureInvariant(ContinentData.ContinentName));
-	}
+	// if (!ContinentData.ContinentName.TrimStartAndEnd().IsEmpty()) 
+	// {
+	// 	Txt_Title->SetText(FText::AsCultureInvariant(ContinentData.ContinentName));
+	// }
 
-	FString strDesc = "";
-	if (!ContinentData.ContinentDesc.TrimStartAndEnd().IsEmpty()) 
-	{
-		strDesc += ContinentData.ContinentDesc;
-	}
-	
-	if (ContinentData.RelicsArray.Num() > 0)
-	{
-		strDesc += TEXT("\r\n\r\n등장 유물\r\n");
-		for (const auto& Relic : ContinentData.RelicsArray) 
-		{
-			strDesc += TEXT("※") + Relic + TEXT("\r\n");
-		}
-	}
+	// FString strDesc = "";
+	// if (!ContinentData.ContinentDesc.TrimStartAndEnd().IsEmpty()) 
+	// {
+	// 	strDesc += ContinentData.ContinentDesc;
+	// }
+	//
+	// if (ContinentData.RelicsArray.Num() > 0)
+	// {
+	// 	strDesc += TEXT("\r\n\r\n등장 유물\r\n");
+	// 	for (const auto& Relic : ContinentData.RelicsArray) 
+	// 	{
+	// 		strDesc += TEXT("※") + Relic + TEXT("\r\n");
+	// 	}
+	// }
 
-	Txt_Desc->SetText(FText::AsCultureInvariant(strDesc));
+	// Txt_Desc->SetText(FText::AsCultureInvariant(strDesc));
 
 	if (!ContinentData.UseJoin)
 	{
@@ -57,7 +57,7 @@ void UCContinentWidget::SetContinentData(const FCContinentData& ContinentData)
 	}
 	else
 	{
-		Btn_Join->SetVisibility(ESlateVisibility::SelfHitTestInvisible);
+		Btn_Join->SetVisibility(ESlateVisibility::Visible);
 		SB_Exit->SetVisibility(ESlateVisibility::SelfHitTestInvisible);
 		SB_Exit_NotUseJoin->SetVisibility(ESlateVisibility::Hidden);
 	}

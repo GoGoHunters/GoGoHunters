@@ -19,7 +19,7 @@ AAC_Key::AAC_Key()
 
 	KeyMeshComponent = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("KeyMesh"));
 	KeyMeshComponent->AttachToComponent(KeySceneComponent, FAttachmentTransformRules::KeepRelativeTransform);
-	//KeyMeshComponent->SetCollisionEnabled ÃßÈÄ ÄÝ¸®Àü ¼³Á¤
+	//KeyMeshComponent->SetCollisionEnabled ï¿½ï¿½ï¿½ï¿½ ï¿½Ý¸ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 
 	KeyTextComponent = CreateDefaultSubobject<UTextRenderComponent>(TEXT("KeyText"));
 	KeyTextComponent->AttachToComponent(KeySceneComponent, FAttachmentTransformRules::KeepRelativeTransform);
@@ -57,7 +57,7 @@ AAC_Key::AAC_Key()
 void AAC_Key::BeginPlay()
 {
 	Super::BeginPlay();
-
+	KeyMeshComponent->SetCollisionProfileName(FName("Keyboard"));
 }
 
 void AAC_Key::SetKeyText(const FString& NewText)
@@ -106,10 +106,11 @@ void AAC_Key::KeyPress()
 	this->KeySceneComponent->SetRelativeLocation(FVector(0, 0, key_press_move));
 }
 
-void AAC_Key::KeyRelease()
+void AAC_Key::KeyRelease(bool bTrigger)
 {
 	this->KeySceneComponent->SetRelativeLocation(FVector::ZeroVector);
 	UE_LOG(LogTemp, Display, TEXT("Key Release"));
+	if (!bTrigger) return;
 	if (OnkeyClicked.IsBound())
 	{
 		OnkeyClicked.Broadcast(this->key_word);

@@ -16,6 +16,7 @@
 #include "LHJ/Tutorial/CTutorialManager.h"
 #include "LHM/UI/WarningUI.h"
 #include "LHM/UI/CollectionBoxUI.h"
+#include "LHJ/Trigger/CWorkingAreaTrigger.h"
 
 // Sets default values
 AExcavationManager::AExcavationManager()
@@ -215,6 +216,13 @@ void AExcavationManager::ChangeExcavationPhase()
 	CurrentActiveManager->StartExcavation();
 
 	PlayTami(TEXT("PlayExcavationPhase2_PlantedFlag"));
+
+	// 타미 위치 고정
+	for (TActorIterator<ACWorkingAreaTrigger> It(GetWorld()); It; ++It)
+	{
+		It->SetTemporaryDeactivation(true);
+		break;
+	}
 
 	// Progress UI 가시화
 	PhaseUI->SetVisibilityFlagTrigger(false);

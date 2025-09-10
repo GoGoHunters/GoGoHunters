@@ -27,7 +27,7 @@ private:
 	UPROPERTY(BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
 	bool bStartPlayerDistCheck = false;
 	UPROPERTY(EditDefaultsOnly, Category="Param|Dist")
-	float Dist = 410.f;
+	float Dist = 200.f;
 	
 	ACCollectingBook();
 	virtual void BeginPlay() override;	

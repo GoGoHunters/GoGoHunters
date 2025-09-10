@@ -11,7 +11,6 @@
 // Sets default values
 AAC_KeyBoard::AAC_KeyBoard()
 {
-
 	static ConstructorHelpers::FObjectFinder<UStaticMesh> MeshAsset(TEXT("/Game/KeyBoard/assets/Cube_KeyBoard.Cube_KeyBoard"));
 
 	if (MeshAsset.Succeeded())
@@ -35,8 +34,10 @@ AAC_KeyBoard::AAC_KeyBoard()
 	}
 
 	CHelpers::CreateComponent<UWidgetComponent>(this, &KeyBoardInputWidgetComp, "KeyBoardInputWidget", RootComponent);
+	KeyBoardInputWidgetComp->SetCastShadow(false);
 	CHelpers::CreateComponent<UWidgetComponent>(this, &AlertMsgWidgetComp, "AlertMsgWidgetComp", RootComponent);
 	AlertMsgWidgetComp->SetVisibility(false);
+	AlertMsgWidgetComp->SetCastShadow(false);
 }
 
 // Called when the game starts or when spawned
@@ -58,6 +59,19 @@ void AAC_KeyBoard::BeginPlay()
 		if (AlertMsgWidget)
 			AlertMsgWidget->SetKeyboard(this);
 	}
+}
+
+void AAC_KeyBoard::EndPlay(const EEndPlayReason::Type EndPlayReason)
+{
+	for (FKeyDataLayer& CachedKeys : KeysLayer)
+	{
+		for (AAC_Key*& CachedKey : CachedKeys.Keys)
+		{
+			CachedKey->Destroy();
+		}
+	}
+	
+	Super::EndPlay(EndPlayReason);
 }
 
 /*
@@ -208,7 +222,7 @@ void AAC_KeyBoard::UpdateVisibleLayer(int index)
 
 void AAC_KeyBoard::EnterPlayerInitial(const FString& Initial)
 {
-	GEngine->AddOnScreenDebugMessage(-1, 10.f, FColor::Red, FString::Printf(TEXT("%s"), *Initial));
+	// GEngine->AddOnScreenDebugMessage(-1, 10.f, FColor::Red, FString::Printf(TEXT("%s"), *Initial));
 	AlertMsgWidgetComp->SetVisibility(true);
 	AlertMsgWidget->SetInitialText(Initial);	
 }

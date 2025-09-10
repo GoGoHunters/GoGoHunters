@@ -42,7 +42,7 @@ private:
 	int32 CurrentWarningCount = 0;
 
 public:
-	void SetOwningWidgetActor(class AExcavationWarningWidgetActor* InActor) { OwningWidgetActor = InActor; }
+	void SetOwningWidgetActor(class AExcavationProgressWidgetActor* InActor) { OwningWidgetActor = InActor; }
 
 	void SetWarningVisibility(bool bVisible);
 
@@ -50,7 +50,7 @@ public:
 
 private:
 	UPROPERTY()
-	class AExcavationWarningWidgetActor* OwningWidgetActor;
+	class AExcavationProgressWidgetActor* OwningWidgetActor;
 
 	void FindAndConnectExcavationManager();
 

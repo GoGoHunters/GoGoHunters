@@ -12,7 +12,7 @@ void UCAlertMsgWidget::NativeConstruct()
 	Super::NativeConstruct();
 	BtnOk->OnClicked.AddDynamic(this, &UCAlertMsgWidget::UCAlertMsgWidget::OnClickBtnOk);
 	BtnNo->OnClicked.AddDynamic(this, &UCAlertMsgWidget::UCAlertMsgWidget::OnClickClose);
-	BtnClose->OnClicked.AddDynamic(this, &UCAlertMsgWidget::UCAlertMsgWidget::OnClickClose);
+	BtnClose->OnClicked.AddDynamic(this, &UCAlertMsgWidget::UCAlertMsgWidget::OnClickBtnClose);
 	BtnClose2->OnClicked.AddDynamic(this, &UCAlertMsgWidget::UCAlertMsgWidget::OnClickClose);
 }
 
@@ -40,6 +40,17 @@ void UCAlertMsgWidget::OnClickBtnOk()
 		break;
 	}
 	bRequest = false;
+}
+
+void UCAlertMsgWidget::OnClickBtnClose()
+{
+	OnClickClose();
+	// 등록 성공 후 닫을 때만 복원실 이동 선택
+	for (TActorIterator<AExcavationManager> It(GetWorld()); It; ++It)
+	{
+		(*It)->ShowLobbyRestoreButtons();
+		break;
+	}
 }
 
 void UCAlertMsgWidget::OnClickClose()
