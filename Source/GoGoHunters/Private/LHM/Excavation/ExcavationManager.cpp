@@ -220,8 +220,11 @@ void AExcavationManager::ChangeExcavationPhase()
 	// 타미 위치 고정
 	for (TActorIterator<ACWorkingAreaTrigger> It(GetWorld()); It; ++It)
 	{
-		It->SetTemporaryDeactivation(true);
-		break;
+		if ((*It)->ActorHasTag("TamiTrigger"))
+		{
+			It->SetTemporaryDeactivation(false);
+			break;			
+		}
 	}
 
 	// Progress UI 가시화
