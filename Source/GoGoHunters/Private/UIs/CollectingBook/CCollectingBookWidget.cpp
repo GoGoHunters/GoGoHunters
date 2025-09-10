@@ -1,3 +1,13 @@
+#include "Containers/UnrealString.h"
+// 리터럴 "\\n"을 실제 줄바꿈으로 변환하고 CRLF를 정규화
+static FString NormalizeNewlines(const FString& In)
+{
+    FString S = In;
+    S.ReplaceInline(TEXT("\r\n"), TEXT("\n"));
+    S.ReplaceInline(TEXT("\r"), TEXT(""));
+    S.ReplaceInline(TEXT("\\n"), TEXT("\n"));
+    return S;
+}
 #include "UIs/CollectingBook/CCollectingBookWidget.h"
 #include "base/GI_Base.h"
 #include "Components/Button.h"
@@ -94,7 +104,7 @@ void UCCollectingBookWidget::ShowRelicDetailPage(const FCRelicCollectingBook& In
 		FText FormattedDateText = FText::FromString(InRelicCollectingBookData.DropDate.ToString(TEXT("%Y-%m-%d")));
 		Txt_DropDate->SetText(FormattedDateText);
 
-		Txt_Desc->SetText(InRelicCollectingBookData.RelicDetailData.RelicDesc);
+		Txt_Desc->SetText(FText::FromString(NormalizeNewlines(InRelicCollectingBookData.RelicDetailData.RelicDesc.ToString())));
 	}
 	else
 	{

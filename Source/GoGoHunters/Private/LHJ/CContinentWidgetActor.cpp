@@ -159,6 +159,10 @@ void ACContinentWidgetActor::SetContinentData(const FCContinentData& ContinentDa
 			strDesc += TEXT("※") + Relic + TEXT("\n");
 		}
 	}
+	// 리터럴 "\\n"을 실제 줄바꿈으로 변환하여 출력
+	strDesc.ReplaceInline(TEXT("\r\n"), TEXT("\n"));
+	strDesc.ReplaceInline(TEXT("\r"), TEXT(""));
+	strDesc.ReplaceInline(TEXT("\\n"), TEXT("\n"));
 	DescTextComp->SetText(FText::AsCultureInvariant(strDesc));
 
 	if (!ContinentData.UseJoin)
