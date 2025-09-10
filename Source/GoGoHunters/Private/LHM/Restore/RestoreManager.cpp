@@ -7,6 +7,7 @@
 #include "LHM/Restore/RestorePuzzleActor.h"
 #include "LHM/Restore/RestorWidgetActor.h"
 #include "EngineUtils.h"
+#include "LHM/UI/RestorationCompleteUI.h"
 
 // Sets default values
 ARestoreManager::ARestoreManager()
@@ -58,7 +59,9 @@ void ARestoreManager::NotifyPuzzleCompleted(class ARestorePuzzleActor* PuzzleAct
 		GI->SaveRelicData(NewSaveData);
 	}
 
-	// 2. 완료 UI 표시 예정
+	// 2. 완료 UI 표시
+	if (CompleteUI) CompleteUI->SetCompleteVisibility(true);
+	 
 	// 3. 스탬프 애니메이션 예정
 	// 4. AI 타미 대사 예정
 }
