@@ -98,7 +98,7 @@ void ARestorePuzzleActor::InitPuzzle(const FCRelicData& InRelicData, ARestoreMan
 
 	// 유물은 회전판 옆 박스에 스폰
 	FTransform SpawnTransform = FTransform::Identity;
-	SpawnTransform.SetLocation(FVector(256, -7, 0)); // (X=256.000000,Y=-7.000000,Z=0.000000)
+	SpawnTransform.SetLocation(FVector(-225, 296, 2)); // (X=-225.000000,Y=296.000000,Z=2.000000)
 
 	SpawnedRelic = GetWorld()->SpawnActor<AActor>(RelicClass, SpawnTransform, SpawnParams);
 
