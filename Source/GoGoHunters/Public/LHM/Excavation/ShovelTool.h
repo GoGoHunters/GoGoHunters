@@ -6,6 +6,15 @@
 #include "GameFramework/Actor.h"
 #include "ShovelTool.generated.h"
 
+// 실제 땅파기 패턴을 위한 상태 관리
+UENUM(BlueprintType)
+enum class EDigPatternState : uint8
+{
+	Idle,
+	Stabbing,    // 내리꽂기 중
+	Lifting      // 위로 퍼내기 중
+};
+
 UCLASS()
 class GOGOHUNTERS_API AShovelTool : public AActor
 {
@@ -37,10 +46,27 @@ public:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Digging")
 	bool bIsDigging;
-
+	
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Digging")
+	EDigPatternState CurrentDigState = EDigPatternState::Idle;
+	
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Digging")
 	bool bCanTriggerDigTrace = false;
 
+	// 내리꽂기 관련 변수들
+	FVector StabStartLocation;
+	float StabStartTime = 0.0f;
+	float MaxStabTime = 2.0f;  // 2초 내에 완료해야 함
+	float MinStabDepth = 5.0f; // 최소 15cm 깊이
+	//float MaxStabDepth = 100.0f; // 최대 40cm 깊이
+	bool bReachedMinDepth = false;
+	
+	// 위로 퍼내기 관련 변수들
+	float LiftStartTime = 0.0f;
+	float MaxLiftTime = 1.5f;  // 1.5초 내에 완료해야 함
+	float MinLiftHeight = 5.0f; // 최소 10cm 위로 올라가야 함
+	
+	// 기존 변수들
 	float CooldownTime = 1.0f;
 	bool bWasDiggingLastFrame = false;
 	FVector PreviousLocation;
@@ -56,6 +82,10 @@ public:
 	FVector PreviousSplatLocation;*/
     
 	void UpdateDigSwingState(float DeltaTime);
+	void UpdateDigPatternState(float DeltaTime);
+	bool EvaluateStabbingMotion(const FVector& CurrentLocation, const FVector& Velocity);
+	bool EvaluateLiftingMotion(const FVector& CurrentLocation, const FVector& Velocity);
+	void ResetDigPattern();
 
 	//UFUNCTION(BlueprintCallable)
 	//void EvaluateShovelLiftMotion(float DeltaTime);
