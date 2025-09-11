@@ -98,7 +98,7 @@ void ARestorePuzzleActor::InitPuzzle(const FCRelicData& InRelicData, ARestoreMan
 
 	// 유물은 회전판 옆 박스에 스폰
 	FTransform SpawnTransform = FTransform::Identity;
-	SpawnTransform.SetLocation(FVector(-225, 296, 2)); // (X=-225.000000,Y=296.000000,Z=2.000000)
+	SpawnTransform.SetLocation(FVector(-225, 296, 4)); // (X=-225.000000,Y=296.000000,Z=2.000000)
 
 	SpawnedRelic = GetWorld()->SpawnActor<AActor>(RelicClass, SpawnTransform, SpawnParams);
 
@@ -132,7 +132,13 @@ void ARestorePuzzleActor::InitPuzzle(const FCRelicData& InRelicData, ARestoreMan
 		if (APieceActor* Piece = Cast<APieceActor>(ChildActors[i]))
 		{
 			PieceActors.Add(Piece);
-			InitialPieceTransforms.Add(Piece, Piece->GetActorTransform());
+			FVector NewLoc = Piece->GetActorTransform().GetLocation() + FVector(0,0,5);
+			FQuat NewRot = Piece->GetActorRotation().Quaternion();
+			FTransform NewTransform;
+			NewTransform.SetLocation(NewLoc);
+			NewTransform.SetRotation(NewRot);
+			NewTransform.SetScale3D(Piece->GetActorScale());
+			InitialPieceTransforms.Add(Piece, NewTransform);
 			Piece->SetPieceIndex(i); // 이름 순서대로 인덱스 지정
 			UE_LOG(LogTemp, Warning, TEXT("PieceActors(%d): %s"), i, *Piece->GetName());
 		}
