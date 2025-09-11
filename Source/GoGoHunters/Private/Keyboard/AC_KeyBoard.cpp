@@ -208,14 +208,14 @@ void AAC_KeyBoard::UpdateVisibleLayer(int index)
 {
 	for (AAC_Key* key: KeysLayer[KeyLayoutIndex].Keys)
 	{
-		key->SetActorEnableCollision(true);
-		key->SetActorHiddenInGame(false);
-	}
-	KeyLayoutIndex = index;
-	for (AAC_Key* key : KeysLayer[KeyLayoutIndex].Keys)
-	{
 		key->SetActorEnableCollision(false);
 		key->SetActorHiddenInGame(true);
+	}
+	KeyLayoutIndex = index % KeysLayer.Num();
+	for (AAC_Key* key : KeysLayer[KeyLayoutIndex].Keys)
+	{
+		key->SetActorEnableCollision(true);
+		key->SetActorHiddenInGame(false);
 	}
 	UpdateKeybaordSize();
 }

@@ -140,6 +140,7 @@ bool UCTextInputWidget::HandleCommandLabel(const FString& Label)
 	if (Label.Equals(TEXT("BackSpace"), ESearchCase::IgnoreCase)) 	{ Backspace();           return true; }
 	// Shift 입력은 무시	
 	if (Label.Equals(TEXT("Shift"), ESearchCase::IgnoreCase))     	{                        return true; }
+	if (Label.Equals(TEXT("Caps"), ESearchCase::IgnoreCase))     	{                        return true; }
 	//
 	if (Label.Equals(TEXT("Enter"), ESearchCase::IgnoreCase))		{ KeyBoard->EnterPlayerInitial(GetText()); bRequest = true; return true; }
 	return false;
