@@ -6,6 +6,23 @@
 #include "GameFramework/Actor.h"
 #include "CollectionBox.generated.h"
 
+
+USTRUCT()
+struct FMovingPiece
+{
+	GENERATED_BODY()
+
+	UPROPERTY() UStaticMeshComponent* Mesh = nullptr;
+	UPROPERTY() FTransform Start;
+	UPROPERTY() FTransform Target;
+	UPROPERTY() float Elapsed = 0.f;
+	UPROPERTY() float Duration = 0.35f;
+
+	FMovingPiece() {}
+	FMovingPiece(UStaticMeshComponent* InMesh, const FTransform& InStart, const FTransform& InTarget, float InDuration)
+		: Mesh(InMesh), Start(InStart), Target(InTarget), Elapsed(0.f), Duration(InDuration) {}
+};
+
 UCLASS()
 class GOGOHUNTERS_API ACollectionBox : public AActor
 {
@@ -67,6 +84,35 @@ public:
 
 	UFUNCTION(BlueprintImplementableEvent)
     void K2_CloseLid();
+
+// 유물 스냅
+public:
+	/** Snap 포인트 루트 */
+	UPROPERTY(VisibleAnywhere, Category="Snap")
+	USceneComponent* SnapRoot;
+
+	/** Snap 포인트 8개 (01~08) */
+	UPROPERTY(VisibleAnywhere, Category="Snap")
+	TArray<USceneComponent*> SnapPoints;
+
+	/** 스냅 보간 시간(초) */
+	UPROPERTY(EditAnywhere, Category="Snap")
+	float SnapDuration = 0.35f;
+
+protected:
+	// Lerp 이동 중인 조각들
+	UPROPERTY()
+	TArray<FMovingPiece> MovingPieces;
+
+	// 태그에서 Relic 인덱스(0~7) 파싱
+	int32 GetRelicIndexFromTags(const UPrimitiveComponent* Comp) const;
+
+	// 스냅 시작
+	void StartSnapMove(UStaticMeshComponent* Mesh, int32 SnapIndex);
+
+	// 스냅 진행(Tick)
+	void TickSnapMoves(float DeltaTime);
+
 
 // CollectionBox UI
 public:

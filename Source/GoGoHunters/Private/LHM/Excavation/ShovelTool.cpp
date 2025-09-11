@@ -71,6 +71,12 @@ void AShovelTool::SetIsDigging(bool bNewIsDigging)
 		bCanTriggerDigTrace = false;
 		bDigActionCompleted = false;
 		DigActionTimer = 0.0f;
+		ResetDigPattern();
+		UE_LOG(LogTemp, Log, TEXT("[Shovel] bIsDiggin false"));
+	}
+	else
+	{
+		UE_LOG(LogTemp, Log, TEXT("[Shovel] bIsDiggin true"));
 	}
 }
 
@@ -94,49 +100,8 @@ void AShovelTool::UpdateDigSwingState(float DeltaTime)
 			}
 		}
 
-		AMH_VRPlayer* VRPlayer = Cast<AMH_VRPlayer>(this->GetAttachParentActor());
-		if (VRPlayer)
-		{
-			UMotionControllerComponent* HandController = VRPlayer->RHandController;
-
-			if (!bWasDiggingLastFrame)
-			{
-				PreviousLocation = HandController->GetComponentLocation();
-				bWasDiggingLastFrame = true;
-				return; // 첫 프레임은 계산 생략
-			}
-
-			FVector CurrentLocation = HandController->GetComponentLocation();
-
-			FVector Velocity = (CurrentLocation - PreviousLocation) / DeltaTime;
-			PreviousLocation = CurrentLocation;
-
-			FVector NormalizedVelocity = Velocity.GetSafeNormal();
-
-			bool bIsMovingDownward = FVector::DotProduct(NormalizedVelocity, FVector::DownVector) > 0.5f;				// -Z 방향
-			bool bIsMovingForward = FVector::DotProduct(NormalizedVelocity, HandController->GetForwardVector()) > 0.5f;	// X 방향
-
-			float SwingThreshold = 50.0f;
-			bool bFastEnough = Velocity.Size() > SwingThreshold;
-			bool bCanDigNow = bFastEnough && bIsMovingDownward && bIsMovingForward;
-			
-			// 찔르기 조건이 만족되면 한 번만 true로 설정
-			if (bCanDigNow && !bCanTriggerDigTrace && !bDigActionCompleted)
-			{
-				bCanTriggerDigTrace = true;
-			}
-			// 찔르기 조건이 만족되지 않으면 false로 설정
-			else if (!bCanDigNow)
-			{
-				bCanTriggerDigTrace = false;
-			}
-
-			/*UE_LOG(LogTemp, Log, TEXT("Speed: %.1f | DownDot: %.2f | ForwardDot: %.2f | CanDig: %s"),
-				   Velocity.Size(),
-				   FVector::DotProduct(NormalizedVelocity, FVector::DownVector),
-				   FVector::DotProduct(NormalizedVelocity, VRPlayer->GetActorForwardVector()),
-				   bCanTriggerDigTrace ? TEXT("True") : TEXT("False"));*/
-		}
+		// 새로운 땅파기 패턴 감지
+		UpdateDigPatternState(DeltaTime);
 	}
 	else
 	{
@@ -144,13 +109,8 @@ void AShovelTool::UpdateDigSwingState(float DeltaTime)
 		{
 			bWasDiggingLastFrame = false;
 			bCanTriggerDigTrace = false;
+			ResetDigPattern();
 		}
-
-		/*if (bWasLiftingLastFrame)
-		{
-			bWasLiftingLastFrame = false;
-			bIsShovelLifting = false;
-		}*/
 	}
 }
 
@@ -191,6 +151,139 @@ void AShovelTool::UpdateDigSwingState(float DeltaTime)
 //	UE_LOG(LogTemp, Log, TEXT("Speed: %.2f | Dot: %.2f | Velocity: %s | Up: %s"),
 //		   Speed, Dot, *NormalizedVelocity.ToString(), *UpDirection.ToString());
 //}
+
+void AShovelTool::UpdateDigPatternState(float DeltaTime)
+{
+	AMH_VRPlayer* VRPlayer = Cast<AMH_VRPlayer>(this->GetAttachParentActor());
+	if (!VRPlayer) return;
+
+	UMotionControllerComponent* HandController = VRPlayer->RHandController;
+	if (!HandController) return;
+	if (!SplatPoint) return;
+
+	if (!bWasDiggingLastFrame)
+	{
+		PreviousLocation = SplatPoint->GetComponentLocation();
+		bWasDiggingLastFrame = true;
+		UE_LOG(LogTemp, Verbose, TEXT("[Shovel] Init previous location for pattern calc (SplatPoint)"));
+		return; // 첫 프레임은 계산 생략
+	}
+
+	FVector CurrentLocation = SplatPoint->GetComponentLocation();
+	FVector Velocity = (CurrentLocation - PreviousLocation) / DeltaTime;
+	PreviousLocation = CurrentLocation;
+
+	// 깊이 체크
+	//float CurrentDepth = StabStartLocation.Z - CurrentLocation.Z;
+
+	// 현재 상태에 따른 처리
+	switch (CurrentDigState)
+	{
+	case EDigPatternState::Idle:
+		// 내리꽂기 동작 감지
+		if (EvaluateStabbingMotion(CurrentLocation, Velocity))
+		{
+			CurrentDigState = EDigPatternState::Stabbing;
+			StabStartLocation = CurrentLocation;
+			StabStartTime = GetWorld()->GetTimeSeconds();
+			bReachedMinDepth = false;
+			UE_LOG(LogTemp, Log, TEXT("[Shovel] -> Stabbing | StartZ=%.1f"), StabStartLocation.Z);
+		}
+		break;
+
+	case EDigPatternState::Stabbing:
+		// 시간 초과 체크
+		if (GetWorld()->GetTimeSeconds() - StabStartTime > MaxStabTime)
+		{
+			ResetDigPattern();
+			return;
+		}
+
+		//// 깊이 체크
+		//float CurrentDepth = StabStartLocation.Z - CurrentLocation.Z;
+		if ((StabStartLocation.Z - CurrentLocation.Z) >= MinStabDepth)
+		{
+			bReachedMinDepth = true;
+			UE_LOG(LogTemp, Log, TEXT("[Shovel] Reached MinStabDepth | Depth=%.1f / Min=%.1f"), (StabStartLocation.Z - CurrentLocation.Z), MinStabDepth);
+		}
+
+		// 위로 퍼내기 동작 감지
+		if (bReachedMinDepth && EvaluateLiftingMotion(CurrentLocation, Velocity))
+		{
+			CurrentDigState = EDigPatternState::Lifting;
+			LiftStartTime = GetWorld()->GetTimeSeconds();
+			UE_LOG(LogTemp, Log, TEXT("[Shovel] -> Lifting"));
+		}
+		break;
+
+	case EDigPatternState::Lifting:
+		// 시간 초과 체크
+		if (GetWorld()->GetTimeSeconds() - LiftStartTime > MaxLiftTime)
+		{
+			ResetDigPattern();
+			return;
+		}
+
+		// 충분히 위로 올라갔는지 체크
+		float LiftHeight = CurrentLocation.Z - StabStartLocation.Z;
+		if (LiftHeight >= MinLiftHeight)
+		{
+			// 땅파기 성공!
+			bCanTriggerDigTrace = true;
+			ResetDigPattern();
+			UE_LOG(LogTemp, Log, TEXT("[Shovel] Dig SUCCESS | LiftHeight=%.1f / Min=%.1f"), LiftHeight, MinLiftHeight);
+		}
+		else
+		{
+			UE_LOG(LogTemp, Log, TEXT("[Shovel] Dig FAILED | LiftHeight=%.1f / Min=%.1f"), LiftHeight, MinLiftHeight);
+		}
+		break;
+	}
+}
+
+bool AShovelTool::EvaluateStabbingMotion(const FVector& CurrentLocation, const FVector& Velocity)
+{
+	// 아래 + 앞 방향 동시 체크
+	FVector NormalizedVelocity = Velocity.GetSafeNormal();
+	float DownwardDot = FVector::DotProduct(NormalizedVelocity, FVector::DownVector);
+	float Speed = Velocity.Size();
+
+	// 컨트롤러 Forward 기준 전방성 확인
+	float ForwardDot = 0.0f;
+	if (AMH_VRPlayer* VRPlayer = Cast<AMH_VRPlayer>(GetAttachParentActor()))
+	{
+		if (UMotionControllerComponent* HandController = VRPlayer->RHandController)
+		{
+			ForwardDot = FVector::DotProduct(NormalizedVelocity, HandController->GetForwardVector());
+		}
+	}
+
+	// 임계값: 아래 0.5+, 앞 0.5+, 속도 30cm/s+
+	bool bPass = (DownwardDot > 0.5f) && (ForwardDot > 0.5f) && (Speed > 30.0f);
+	UE_LOG(LogTemp, Log, TEXT("[Shovel][Stab] DownDot=%.2f ForwardDot=%.2f Speed=%.1f -> %s"), DownwardDot, ForwardDot, Speed, bPass ? TEXT("PASS") : TEXT("FAIL"));
+	return bPass;
+}
+
+bool AShovelTool::EvaluateLiftingMotion(const FVector& CurrentLocation, const FVector& Velocity)
+{
+	// 위 방향으로 충분히 빠르게 움직이는지 체크
+	FVector NormalizedVelocity = Velocity.GetSafeNormal();
+	float UpwardDot = FVector::DotProduct(NormalizedVelocity, FVector::UpVector);
+	float Speed = Velocity.Size();
+	
+	// 위 방향으로 0.6 이상, 속도 20cm/s 이상
+	bool bPass = (UpwardDot > 0.6f) && (Speed > 60.0f);
+	UE_LOG(LogTemp, Log, TEXT("[Shovel][Lift] UpDot=%.2f Speed=%.1f -> %s"), UpwardDot, Speed, bPass ? TEXT("PASS") : TEXT("FAIL"));
+	return bPass;
+}
+
+void AShovelTool::ResetDigPattern()
+{
+	CurrentDigState = EDigPatternState::Idle;
+	bReachedMinDepth = false;
+	StabStartTime = 0.0f;
+	LiftStartTime = 0.0f;
+}
 
 void AShovelTool::OnDigActionCompleted()
 {

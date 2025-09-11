@@ -116,7 +116,7 @@ void ARelicsManager::BeginPlay()
 		if (ProgressActor)
 		{
 			ProgressActor->AttachToActor(this, FAttachmentTransformRules::KeepRelativeTransform);
-			ProgressActor->SetActorLocation(GetActorLocation() + FVector(-260, 0, 240));
+			ProgressActor->SetActorLocation(GetActorLocation() + FVector(-260, -60, 240)); // (X=-260.000000,Y=-60.000000,Z=240.000000)
 			ProgressActor->SetActorHiddenInGame(true);
 		}
 	}
@@ -217,8 +217,8 @@ void ARelicsManager::SpawnCollectionBox()
 	if (IsValid(CollectionBox)) return;
 	if (!CollectionBoxClass) return;
 
-	FVector SpawnLocation = GetActorLocation() + FVector(25, -46, 191); // (X=25.000000,Y=-46.000000,Z=191.000000)
-	FRotator SpawnRotation = GetActorRotation() + FRotator(0, 125, 0);
+	FVector SpawnLocation = GetActorLocation() + FVector(0.5, -72, 192); // (X=0.500000,Y=-72.000000,Z=192.000000)
+	FRotator SpawnRotation = GetActorRotation() + FRotator(0, 115, 0);
 
 	FActorSpawnParameters Params;
 	Params.Owner = this;
