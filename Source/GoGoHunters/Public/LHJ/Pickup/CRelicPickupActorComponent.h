@@ -17,9 +17,12 @@ public:
 	void Drop(USceneComponent* DropFrom) override;
 	
 private:
+	// Drop 경로에서의 간접 호출을 구분하기 위한 플래그
+	bool bInvokedFromDrop = false;
+	
 	UCRelicPickupActorComponent();
 	virtual void BeginPlay() override;
 	virtual void TickComponent(float DeltaTime, enum ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 	virtual void GrabOverrideFunc() override;
-	virtual void ReleaseOverrideFunc() override;
+	virtual void ReleaseOverrideFunc() override;	
 };
