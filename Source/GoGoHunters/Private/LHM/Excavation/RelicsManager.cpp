@@ -116,7 +116,7 @@ void ARelicsManager::BeginPlay()
 		if (ProgressActor)
 		{
 			ProgressActor->AttachToActor(this, FAttachmentTransformRules::KeepRelativeTransform);
-			ProgressActor->SetActorLocation(GetActorLocation() + FVector(-260, 0, 240));
+			ProgressActor->SetActorLocation(GetActorLocation() + FVector(-260, -60, 240)); // (X=-260.000000,Y=-60.000000,Z=240.000000)
 			ProgressActor->SetActorHiddenInGame(true);
 		}
 	}

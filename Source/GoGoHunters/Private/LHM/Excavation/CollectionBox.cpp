@@ -37,6 +37,18 @@ ACollectionBox::ACollectionBox()
 		WidgetComponent->SetDrawSize(FVector2D(200, 100));
 		WidgetComponent->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 	}
+
+	// 스냅포인트
+	SnapRoot = CreateDefaultSubobject<USceneComponent>(TEXT("SnapRoot"));
+	SnapRoot->SetupAttachment(RootComponent);
+
+	for (int32 i = 0; i < 8; ++i)
+	{
+		const FString Name = FString::Printf(TEXT("SnapPoint%02d"), i + 1);
+		USceneComponent* Snap = CreateDefaultSubobject<USceneComponent>(*Name);
+		Snap->SetupAttachment(SnapRoot);
+		SnapPoints.Add(Snap);
+	}
 }
 
 // Called when the game starts or when spawned
@@ -45,7 +57,7 @@ void ACollectionBox::BeginPlay()
 	Super::BeginPlay();
 
 	TriggerVolume->OnComponentBeginOverlap.AddDynamic(this, &ACollectionBox::OnOverlapBegin);
-	TriggerVolume->OnComponentEndOverlap.AddDynamic(this, &ACollectionBox::OnOverlapEnd);
+	//TriggerVolume->OnComponentEndOverlap.AddDynamic(this, &ACollectionBox::OnOverlapEnd);
 
 	if (WidgetComponent)
 	{
@@ -75,6 +87,9 @@ void ACollectionBox::Tick(float DeltaTime)
 			}
 		}
 	}
+
+	// 스냅 보간 진행
+	TickSnapMoves(DeltaTime);
 }
 
 void ACollectionBox::OnOverlapBegin(UPrimitiveComponent* Overlapped, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& Hit)
@@ -86,30 +101,27 @@ void ACollectionBox::OnOverlapBegin(UPrimitiveComponent* Overlapped, AActor* Oth
 	{
 		if (OtherComp == Mesh)
 		{
-			// 수거 처리: Detach + 물리/충돌 제거
-			Mesh->DetachFromComponent(FDetachmentTransformRules::KeepWorldTransform);
-			Mesh->ComponentTags.Add(FName("Collected"));
-
-			// 이펙트/사운드/텍스트
-			UGameplayStatics::PlaySound2D(GetWorld(), CollectionSFX); // 수거 효과음
-			CollectedMeshes.Add(Mesh);
-
-			UE_LOG(LogTemp, Log, TEXT("[CollectionBox] 유물 수거됨: %s"), *Relic->GetName());
-
-			// UI 업데이트
-			/*if (Relic->GetBrushingUI() && Relic->GetBrushingUI()->GetMeshToWidgetMap().Contains(Mesh))
+			// 태그에서 스냅 대상 찾기
+			const int32 SnapIdx = GetRelicIndexFromTags(OtherComp);
+			if (SnapIdx != INDEX_NONE)
 			{
-				if (UDecalProgressUI* Widget = Relic->GetBrushingUI()->GetMeshToWidgetMap()[Mesh])
+				// 수거 처리: Detach + 태그/사운드/목록
+				Mesh->DetachFromComponent(FDetachmentTransformRules::KeepWorldTransform);
+				Mesh->ComponentTags.Add(FName("Collected"));
+				UGameplayStatics::PlaySound2D(GetWorld(), CollectionSFX);
+				CollectedMeshes.Add(Mesh);
+
+				// UI 업데이트
+				if (Relic->GetBrushingUI())
 				{
-					Widget->SetCollectedImage(true);
+					Relic->GetBrushingUI()->SetCollectedImage(true);
 				}
-			}*/
-			if (Relic->GetBrushingUI())
-			{
-				Relic->GetBrushingUI()->SetCollectedImage(true);
-			}
 
-			CheckAllCollected();
+				// 스냅 이동 시작
+				StartSnapMove(Mesh, SnapIdx);
+
+				CheckAllCollected();
+			}
 			break;
 		}
 	}
@@ -128,14 +140,6 @@ void ACollectionBox::OnOverlapEnd(UPrimitiveComponent* OverlappedComp, AActor* O
 			Mesh->ComponentTags.Remove(FName("Collected"));
 			CollectedMeshes.Remove(Mesh);
 
-			// UI 되돌리기
-			/*if (Relic->GetBrushingUI() && Relic->GetBrushingUI()->GetMeshToWidgetMap().Contains(Mesh))
-			{
-				if (UDecalProgressUI* Widget = Relic->GetBrushingUI()->GetMeshToWidgetMap()[Mesh])
-				{
-					Widget->SetCollectedImage(false);
-				}
-			}*/
 			if (Relic->GetBrushingUI())
 			{
 				Relic->GetBrushingUI()->SetCollectedImage(false);
@@ -167,8 +171,6 @@ void ACollectionBox::CheckAllCollected()
 
 	const int32 TotalCount = TargetRelic->RelicsMeshes.Num();
 	const int32 CollectedCount = CollectedMeshes.Num();
-
-	UE_LOG(LogTemp, Log, TEXT("[CollectionBox] Relics collected (%d/%d)"), CollectedCount, TotalCount);
 
 	if (CollectedCount == 1)
 	{
@@ -242,6 +244,75 @@ void ACollectionBox::ResetCollectedRelics()
 void ACollectionBox::PlayBoxCloseAnimation()
 {
 	K2_CloseLid();
+}
+
+int32 ACollectionBox::GetRelicIndexFromTags(const UPrimitiveComponent* Comp) const
+{
+	if (!Comp) return INDEX_NONE;
+
+	static const FName TagNames[8] = {
+		FName("Relic01"), FName("Relic02"), FName("Relic03"), FName("Relic04"),
+		FName("Relic05"), FName("Relic06"), FName("Relic07"), FName("Relic08")
+	};
+
+	for (int32 i = 0; i < 8; ++i)
+	{
+		if (Comp->ComponentTags.Contains(TagNames[i]))
+		{
+			return i; // 0~7
+		}
+	}
+	return INDEX_NONE;
+}
+
+void ACollectionBox::StartSnapMove(UStaticMeshComponent* Mesh, int32 SnapIndex)
+{
+	if (!Mesh) return;
+	if (!SnapPoints.IsValidIndex(SnapIndex) || !SnapPoints[SnapIndex]) return;
+
+	// 이동 시작 전 안전장치
+	Mesh->SetSimulatePhysics(false);
+	Mesh->SetEnableGravity(false);
+	Mesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+
+	const FTransform Start = Mesh->GetComponentTransform();
+	const FTransform Target = SnapPoints[SnapIndex]->GetComponentTransform();
+
+	MovingPieces.Add(FMovingPiece(Mesh, Start, Target, SnapDuration));
+}
+
+void ACollectionBox::TickSnapMoves(float DeltaTime)
+{
+	if (MovingPieces.Num() == 0) return;
+
+	for (int32 i = MovingPieces.Num() - 1; i >= 0; --i)
+	{
+		FMovingPiece& M = MovingPieces[i];
+		if (!IsValid(M.Mesh))
+		{
+			MovingPieces.RemoveAtSwap(i);
+			continue;
+		}
+
+		M.Elapsed += DeltaTime;
+		float Alpha = FMath::Clamp(M.Elapsed / FMath::Max(0.001f, M.Duration), 0.f, 1.f);
+
+		// 트랜스폼 Lerp
+		const FTransform Cur = UKismetMathLibrary::TLerp(M.Start, M.Target, Alpha);
+		M.Mesh->SetWorldTransform(Cur, false, nullptr, ETeleportType::TeleportPhysics);
+
+		if (Alpha >= 1.f - KINDA_SMALL_NUMBER)
+		{
+			// 마무리 스냅(정착)
+			M.Mesh->SetWorldTransform(M.Target, false, nullptr, ETeleportType::TeleportPhysics);
+
+			// 필요하다면 Attach는 생략(요구사항: SetTransform만)
+			// M.Mesh->AttachToComponent(SnapPoints[SnapIndex], FAttachmentTransformRules::KeepWorldTransform);
+
+			// 충돌/중력은 계속 끈 상태 유지(상자 안에서 고정 전시라면)
+			MovingPieces.RemoveAtSwap(i);
+		}
+	}
 }
 
 void ACollectionBox::SetColleionCloseBtnUI(bool bVisible)
