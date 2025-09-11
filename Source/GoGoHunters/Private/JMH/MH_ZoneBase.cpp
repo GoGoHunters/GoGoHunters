@@ -6,6 +6,8 @@
 #include "Components/BoxComponent.h"
 #include "JMH/MH_VRPlayer.h"
 #include "LHM/UI/RestoreUI.h"
+#include "Kismet/GameplayStatics.h"
+#include "Kismet/KismetMathLibrary.h"
 
 
 // Sets default values
@@ -65,6 +67,17 @@ void AMH_ZoneBase::BeginPlay()
 void AMH_ZoneBase::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
+
+	if (RestoreListComponent && IsValid(RestoreListComponent->GetWidget()) && RestoreListComponent->IsVisible())
+	{
+		APlayerCameraManager* CamManager = UGameplayStatics::GetPlayerCameraManager(GetWorld(), 0);
+		if (CamManager)
+		{
+			FVector CamLocation = CamManager->GetCameraLocation();
+			FRotator LookAtRotation = UKismetMathLibrary::FindLookAtRotation(RestoreListComponent->GetComponentLocation(), CamLocation);
+			RestoreListComponent->SetWorldRotation(LookAtRotation);
+		}
+	}
 }
 
 void AMH_ZoneBase::OnPlayerInteracted_Implementation(AActor* Player)
