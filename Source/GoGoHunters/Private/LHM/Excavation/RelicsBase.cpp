@@ -200,13 +200,6 @@ void ARelicsBase::ReduceDustOpacity(const FVector& BrushLocation, float Amount, 
     if (BrushingUI && TotalInitialOpacity > 0.0f)
     {
         float Progress = TotalRemainingOpacity / TotalInitialOpacity;
-
-		// Progress가 0.75 이하일 때 Tami 음성 재생
-        if (Progress <= 0.8f)
-        {
-            if(!bIsPlayingTami) PlayTami();
-        }
-
         BrushingUI->UpdateProgress(Progress);
     }
 
@@ -282,6 +275,13 @@ void ARelicsBase::ReduceDustOpacity(const FVector& BrushLocation, float Amount, 
 
 void ARelicsBase::CheckAllDelcalsRemoved()
 {
+    // 3번째로 완료된 유물일 때 타미 칭찬
+    NumDustingCompletedRelics++;
+    if (NumDustingCompletedRelics == 3)
+    {
+        if (!bIsPlayingTami) PlayTami();
+    }
+
     if (DustDecals.Num() == 0)
     {
         UE_LOG(LogTemp, Log, TEXT("[RelicsBase] 모든 데칼 제거 완료!"));
