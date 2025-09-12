@@ -42,7 +42,6 @@ void UDetectionComponent::BeginPlay()
 
 	if (AActor* Owner = GetOwner())
 	{
-		// 태그로 VFX 찾기
 		TArray<UActorComponent*> Found = Owner->GetComponentsByTag(UNiagaraComponent::StaticClass(), VFXComponentTag);
 		if (Found.Num() > 0)
 		{
@@ -104,7 +103,7 @@ void UDetectionComponent::UpdateVisualFeedback(float Progress)
 
 	if (!VisualEffect->IsActive())
 	{
-		VisualEffect->Activate(true); // 수동으로 켜기
+		VisualEffect->Activate(true);
 	}
 }
 
