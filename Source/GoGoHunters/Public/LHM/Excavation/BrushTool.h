@@ -37,7 +37,8 @@ public:
 
 protected:
 	void PlayVibration(float Intensity);
-	void UpdateVisualFeedback(float Intensity);
+	void UpdateDustFeedback(float Intensity);
+	void UpdateSwipeFeedback(float Speed);
 	void PlaySoundFeedback(float Intensity);
 	
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="Effects")
@@ -48,6 +49,13 @@ protected:
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="Effects")
     class USoundBase* SoundEffect;
+
+public:
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Effects|BrushTrail")
+    class UNiagaraComponent* SwipeVFX;
+
+    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Effects|BrushTrail")
+	class UNiagaraSystem* SwipeSystem;
 
 public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
@@ -76,6 +84,7 @@ public:
 	float SwipeSpeed = 0.0f;
 
 	void SetIsBrushing(bool _bIsBrushing);
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	bool bIsBrushing = false;
 
 private:

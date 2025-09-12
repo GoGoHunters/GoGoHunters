@@ -48,6 +48,11 @@ protected:
 
 	float DetectionProgress = 0.0f;
 
+// 나이아가라
+public:
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Effects")
+	class UNiagaraComponent* VFX;
+
 private:
 	UPROPERTY()
 	class UDetectionUI* DetectionUI;

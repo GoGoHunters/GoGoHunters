@@ -49,16 +49,6 @@ void AShovelTool::Tick(float DeltaTime)
 	Super::Tick(DeltaTime);
 	
 	UpdateDigSwingState(DeltaTime);
-
-	/*if (bIsDigHoldState)
-	{
-		HoldTimer += DeltaTime;
-		EvaluateShovelLiftMotion(DeltaTime);
-	}
-	else
-	{
-		if(HoldTimer > MaxHoldTime) bIsDigHoldState = false;
-	}*/
 }
 
 void AShovelTool::SetIsDigging(bool bNewIsDigging)
@@ -114,44 +104,6 @@ void AShovelTool::UpdateDigSwingState(float DeltaTime)
 	}
 }
 
-//void AShovelTool::EvaluateShovelLiftMotion(float DeltaTime)
-//{
-//	if(!bIsDigging || !bCanTriggerDigTrace || !SplatPoint)
-//	{
-//		bIsShovelLifting = false;
-//		bWasDiggingLastFrame = false;
-//		return;
-//	}
-//
-//	if(!bWasLiftingLastFrame)
-//	{
-//		PreviousSplatLocation = SplatPoint->GetComponentLocation();
-//		bWasLiftingLastFrame = true;
-//		bIsShovelLifting = false;
-//		return; // 첫 프레임은 계산 생략
-//	}
-//
-//	// 위치 기준 속도 계산
-//	FVector CurrentLocation = SplatPoint->GetComponentLocation();
-//	FVector Velocity = (CurrentLocation - PreviousSplatLocation) / DeltaTime;
-//	PreviousSplatLocation = CurrentLocation;
-//
-//	// 방향 일치 판단
-//	float Speed = Velocity.Size();
-//	FVector NormalizedVelocity = Velocity.GetSafeNormal();
-//	FVector UpDirection = SplatPoint->GetUpVector();
-//
-//	//float Dot = FVector::DotProduct(NormalizedVelocity, UpDirection);
-//	float Dot = NormalizedVelocity.Z;
-//
-//	// Dot 값이 0.5 이상이고 속도가 100 이상일 때만 리프팅으로 간주
-//	bIsShovelLifting = Dot > 0.5f && Speed > 100.0f;
-//
-//	//UE_LOG(LogTemp, Log, TEXT("[LiftCheck] Dot: %.2f, Speed: %.1f"), Dot, Speed);
-//	UE_LOG(LogTemp, Log, TEXT("Speed: %.2f | Dot: %.2f | Velocity: %s | Up: %s"),
-//		   Speed, Dot, *NormalizedVelocity.ToString(), *UpDirection.ToString());
-//}
-
 void AShovelTool::UpdateDigPatternState(float DeltaTime)
 {
 	AMH_VRPlayer* VRPlayer = Cast<AMH_VRPlayer>(this->GetAttachParentActor());
@@ -172,9 +124,6 @@ void AShovelTool::UpdateDigPatternState(float DeltaTime)
 	FVector CurrentLocation = SplatPoint->GetComponentLocation();
 	FVector Velocity = (CurrentLocation - PreviousLocation) / DeltaTime;
 	PreviousLocation = CurrentLocation;
-
-	// 깊이 체크
-	//float CurrentDepth = StabStartLocation.Z - CurrentLocation.Z;
 
 	// 현재 상태에 따른 처리
 	switch (CurrentDigState)

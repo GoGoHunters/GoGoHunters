@@ -7,6 +7,16 @@
 #include "Components/DecalComponent.h"
 #include "Kismet/GameplayStatics.h"
 #include "../../../../Plugins/FX/Niagara/Source/Niagara/Public/NiagaraFunctionLibrary.h"
+#include "../../../../Plugins/FX/Niagara/Source/Niagara/Public/NiagaraComponent.h"
+
+// 속도 기반으로 0~1 정규화 → HSV 보간
+static FLinearColor MakeBrushColorFromSpeed(float Speed, float Min, float Max)
+{
+	const float T = FMath::GetRangePct(Min, Max, Speed); // 0~1
+	const FLinearColor Green(0.00f, 1.00f, 0.00f, 1.0f);
+	const FLinearColor Red(1.00f, 0.00f, 0.00f, 1.0f);
+	return FLinearColor::LerpUsingHSV(Green, Red, FMath::Clamp(T, 0.0f, 1.0f));
+}
 
 // Sets default values
 ABrushTool::ABrushTool()
@@ -37,6 +47,11 @@ ABrushTool::ABrushTool()
 
 	BoxMesh->OnComponentBeginOverlap.AddDynamic(this, &ABrushTool::OnBeginOverlap);
 	BoxMesh->OnComponentEndOverlap.AddDynamic(this, &ABrushTool::OnEndOverlap);
+
+	SwipeVFX = CreateDefaultSubobject<UNiagaraComponent>(TEXT("SwipeVFX"));
+	SwipeVFX->SetupAttachment(BoxMesh);
+	SwipeVFX->SetRelativeScale3D(FVector(2.5f));
+	SwipeVFX->bAutoActivate = false;
 }
 
 // Called when the game starts or when spawned
@@ -111,10 +126,16 @@ void ABrushTool::CheckBrushSwipe(float DeltaTime)
 	// [3] 데칼이 남아 있지 않으면 return
 	if (!bHasRemainingDecal) return;
 
+	// [4] 속도 기반 Swipe 나이아가라 재생
+	if (SwipeSpeed > BrushSwipeThresholdMin)
+	{
+		UpdateSwipeFeedback(SwipeSpeed);
+	}
+
+	// [5] 먼지 털기 실행
 	if (SwipeSpeed > BrushSwipeThresholdMin
 		&& SwipeSpeed < BrushSwipeThresholdMax)
 	{
-
 		Relic->ReduceDustOpacity(BoxMesh->GetComponentLocation(), FadeSpeed * DeltaTime, *this);
 	}
 	else if (bCanTriggerWarning && !bWarningCheckPending && SwipeSpeed >= BrushSwipeThresholdMax)
@@ -126,7 +147,7 @@ void ABrushTool::CheckBrushSwipe(float DeltaTime)
 void ABrushTool::UpdateFeedback(float Intensity)
 {
 	PlayVibration(Intensity);
-	UpdateVisualFeedback(Intensity);
+	UpdateDustFeedback(Intensity);
 	PlaySoundFeedback(Intensity);
 }
 
@@ -137,6 +158,12 @@ void ABrushTool::StopFeedback()
 	if (PC)
 	{
 		PC->StopHapticEffect(EControllerHand::Right);
+	}
+
+	// Swipe 나이아가라 중지
+	if (SwipeVFX->IsActive())
+	{
+		SwipeVFX->Deactivate();
 	}
 }
 
@@ -151,7 +178,7 @@ void ABrushTool::PlayVibration(float Intensity)
 	}
 }
 
-void ABrushTool::UpdateVisualFeedback(float Intensity)
+void ABrushTool::UpdateDustFeedback(float Intensity)
 {
 	if(!BrushFX) return;
 	
@@ -163,6 +190,20 @@ void ABrushTool::UpdateVisualFeedback(float Intensity)
 		FVector(1.0f),
 		true, true, ENCPoolMethod::AutoRelease, true
 	);
+}
+
+void ABrushTool::UpdateSwipeFeedback(float Speed)
+{
+	// Swipe 나이아가라
+	if (SwipeVFX)
+	{
+		// 속도→색상 (30 이하면 민트, 200 이상이면 레드, 그 사이는 보간)
+		const FLinearColor Color =
+		MakeBrushColorFromSpeed(Speed, BrushSwipeThresholdMin, BrushSwipeThresholdMax);
+		SwipeVFX->SetNiagaraVariableLinearColor(TEXT("User.User_BrushColor"), Color);
+
+		if(!SwipeVFX->IsActive()) SwipeVFX->Activate(true);
+	}
 }
 
 void ABrushTool::PlaySoundFeedback(float Intensity)
