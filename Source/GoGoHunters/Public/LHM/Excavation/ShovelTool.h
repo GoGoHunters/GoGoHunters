@@ -75,25 +75,12 @@ public:
 	bool bDigActionCompleted = false;
 	float DigActionCooldown = 0.5f; // 찔르기 동작 완료 후 0.5초 대기
 	float DigActionTimer = 0.0f;
-
-    /*UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Digging")
-	bool bIsShovelLifting = false;
-	bool bWasLiftingLastFrame = false;
-	FVector PreviousSplatLocation;*/
     
 	void UpdateDigSwingState(float DeltaTime);
 	void UpdateDigPatternState(float DeltaTime);
 	bool EvaluateStabbingMotion(const FVector& CurrentLocation, const FVector& Velocity);
 	bool EvaluateLiftingMotion(const FVector& CurrentLocation, const FVector& Velocity);
 	void ResetDigPattern();
-
-	//UFUNCTION(BlueprintCallable)
-	//void EvaluateShovelLiftMotion(float DeltaTime);
-
-	//UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Digging")
-	//bool bIsDigHoldState = false;
-	//float HoldTimer = 0.0f;
-	//const float MaxHoldTime = 3.0f; // 1초 동안 기다림
 
 public:
 	UFUNCTION()
