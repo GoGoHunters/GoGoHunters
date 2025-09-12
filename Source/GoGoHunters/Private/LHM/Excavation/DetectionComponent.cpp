@@ -5,6 +5,8 @@
 #include "Haptics/HapticFeedbackEffect_Base.h"
 #include "Kismet/GameplayStatics.h"
 #include "EngineUtils.h"
+#include "../../../../Plugins/FX/Niagara/Source/Niagara/Public/NiagaraFunctionLibrary.h"
+#include "../../../../Plugins/FX/Niagara/Source/Niagara/Public/NiagaraComponent.h"
 
 // Sets default values for this component's properties
 UDetectionComponent::UDetectionComponent()
@@ -34,6 +36,21 @@ UDetectionComponent::UDetectionComponent()
 	}
 }
 
+void UDetectionComponent::BeginPlay()
+{
+	Super::BeginPlay();
+
+	if (AActor* Owner = GetOwner())
+	{
+		// 태그로 VFX 찾기
+		TArray<UActorComponent*> Found = Owner->GetComponentsByTag(UNiagaraComponent::StaticClass(), VFXComponentTag);
+		if (Found.Num() > 0)
+		{
+			VisualEffect = Cast<UNiagaraComponent>(Found[0]);
+		}
+	}
+}
+
 void UDetectionComponent::UpdateFeedback(float Progress)
 {
 	CurrentProgress = Progress;
@@ -51,6 +68,12 @@ void UDetectionComponent::StopFeedback()
 	if (PC)
 	{
 		PC->StopHapticEffect(EControllerHand::Right);
+	}
+
+	// 나이아가라 중지
+	if (VisualEffect && VisualEffect->IsActive())
+	{
+		VisualEffect->Deactivate();
 	}
 
 	// 타이머 초기화
@@ -77,8 +100,12 @@ void UDetectionComponent::PlayVibration(float Intensity)
 
 void UDetectionComponent::UpdateVisualFeedback(float Progress)
 {
-	// 예시: Mesh, Light, Material, Particle 등 시각적 효과 업데이트
-	// 액터의 머티리얼 컬러, 광도 등 변경
+	if (!VisualEffect) return;
+
+	if (!VisualEffect->IsActive())
+	{
+		VisualEffect->Activate(true); // 수동으로 켜기
+	}
 }
 
 void UDetectionComponent::PlaySoundFeedback(float Progress)

@@ -7,7 +7,7 @@
 #include "DetectionComponent.generated.h"
 
 
-UCLASS(/* ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) */)
+UCLASS(ClassGroup = (Custom), meta = (BlueprintSpawnableComponent))
 class GOGOHUNTERS_API UDetectionComponent : public UActorComponent
 {
 	GENERATED_BODY()
@@ -15,6 +15,9 @@ class GOGOHUNTERS_API UDetectionComponent : public UActorComponent
 public:	
 	// Sets default values for this component's properties
 	UDetectionComponent();
+
+protected:
+	virtual void BeginPlay() override;
 
 public:
 	void UpdateFeedback(float Progress);
@@ -34,6 +37,14 @@ private:
 
 	UPROPERTY(EditAnywhere, Category = "Effects")
     class USoundBase* DetectorSound2;
+
+public:
+	UPROPERTY(EditAnywhere, Category = "Effects")
+	FName VFXComponentTag = "DetectorVFX";
+	
+private:
+    UPROPERTY(Transient)
+    class UNiagaraComponent* VisualEffect = nullptr;
 
 	FTimerHandle BeepTimerHandle;
 	float CurrentBeepInterval = 1.0f; // 초기값

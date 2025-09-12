@@ -14,6 +14,7 @@
 #include "LHM/Excavation/RelicsManager.h"
 #include "LHM/Excavation/ExcavationManager.h"
 #include "LHJ/Tutorial/CTutorialManager.h"
+#include "../../../../Plugins/FX/Niagara/Source/Niagara/Public/NiagaraComponent.h"
 
 // Sets default values
 ADetectorTool::ADetectorTool()
@@ -45,7 +46,14 @@ ADetectorTool::ADetectorTool()
 		DetectionWidgetComp->SetRelativeRotation(FRotator(FRotator(90, 180, 0))); // (Pitch=90.000000,Yaw=180.000000,Roll=0.000000)
 		DetectionWidgetComp->SetRelativeScale3D(FVector(0.1));
 		DetectionWidgetComp->SetDrawSize(FVector2D(300, 90));
-	} 
+	}
+
+	// 나이아가라
+	VFX = CreateDefaultSubobject<UNiagaraComponent>(TEXT("VFX"));
+		VFX->SetupAttachment(RootComponent);
+		VFX->SetRelativeLocation(FVector(0, 0, 23.0f));
+		VFX->bAutoActivate = false;
+		VFX->ComponentTags.Add("DetectorVFX");
 }
 
 // Called when the game starts or when spawned
