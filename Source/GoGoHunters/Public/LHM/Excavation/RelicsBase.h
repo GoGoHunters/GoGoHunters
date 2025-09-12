@@ -152,6 +152,7 @@ protected:
 private:
 	void PlayTami();
 	bool bIsPlayingTami = false;
+	int32 NumDustingCompletedRelics = 0;
 
 // 개발자 키
 public:
