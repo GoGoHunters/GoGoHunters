@@ -131,21 +131,26 @@ protected:
 private:
 	void PlayTami(const FName& FunctionName);
 
+public:
 // 키보드 액터 스폰
-	UFUNCTION()
+	UFUNCTION(BlueprintCallable)
 	void SpawnKeyboardActor();
-
+	
 	FTimerHandle KeyboardSpawnTimerHandle;
 
-// 로비 박물관 버튼 노출
+// 개발자 키: 키보드 스폰
+	UPROPERTY(BlueprintReadWrite)
+	bool bUseBtnSpawnKeyboard = false;
+
+// 개발자 키: 로비 복원실 버튼
 public:
 	UFUNCTION()
 	void ShowLobbyRestoreButtons();
 
 	UPROPERTY(BlueprintReadWrite)
-	bool bUseBtnLobbynMuseum = false;
+	bool bUseBtnLobbynRestore = false;
 
-	FTimerHandle LobbyMuseumTimerHandle;
+	FTimerHandle LobbyRestoreTimerHandle;
 
 private:
 	UPROPERTY()
