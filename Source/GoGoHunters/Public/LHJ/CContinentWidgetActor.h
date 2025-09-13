@@ -45,5 +45,5 @@ private:
 	TObjectPtr<ACWorldMap> OuterOwner;
 
 	FVector CloseTextLoc1=FVector(-16.7,-46,0);
-	FVector CloseTextLoc2=FVector(0,-46eh,0);
+	FVector CloseTextLoc2=FVector(0,-46,0);
 };
