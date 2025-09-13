@@ -74,7 +74,7 @@ public:
 	UPROPERTY(EditAnywhere)
 	float BrushSwipeThresholdMin = 30.0f;
 	UPROPERTY(EditAnywhere)
-	float BrushSwipeThresholdMax = 200.0f;
+	float BrushSwipeThresholdMax = 300.0f;
 
 	// 데칼 페이드 속도
 	UPROPERTY(EditAnywhere)

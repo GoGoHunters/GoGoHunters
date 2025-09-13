@@ -199,9 +199,9 @@ void ABrushTool::UpdateSwipeFeedback(float Speed)
 	// Swipe 나이아가라
 	if (SwipeVFX)
 	{
-		// 속도→색상 (30 이하면 민트, 200 이상이면 레드, 그 사이는 보간)
+		// 속도→색상 (30 이하면 그린, 200 이상이면 레드, 그 사이는 보간)
 		const FLinearColor Color = 
-			MakeBrushColorFromSpeed(Speed, BrushSwipeThresholdMin, BrushSwipeThresholdMax);
+			MakeBrushColorFromSpeed(Speed, BrushSwipeThresholdMax * 0.5f, BrushSwipeThresholdMax);
 		SwipeVFX->SetNiagaraVariableLinearColor(TEXT("User.User_BrushColor"), Color);
 
 		if(!SwipeVFX->IsActive()) SwipeVFX->Activate(true);
