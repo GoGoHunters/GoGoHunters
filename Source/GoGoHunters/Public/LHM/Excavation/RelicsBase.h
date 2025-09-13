@@ -142,16 +142,23 @@ public:
 	void SetWarningUI(class UWarningUI* InWarningUI) { WarningUI = InWarningUI; }
 	UWarningUI* GetWarningUI() const { return WarningUI; }
 
+	void SetWarningTextUI(class UWarningTextUI* InWarningUI) { WarningTextUI = InWarningUI; }
+	UWarningTextUI* GetWarningTextUI() const { return WarningTextUI; }
+
 protected:
 	UPROPERTY()
 	class UWarningUI* WarningUI;
 	
+	UPROPERTY()
+	class UWarningTextUI* WarningTextUI;
+
 	int32 WarningCount = 0;
 
 // Tami 음성
 private:
 	void PlayTami();
 	bool bIsPlayingTami = false;
+	int32 NumDustingCompletedRelics = 0;
 
 // 개발자 키
 public:

@@ -48,7 +48,7 @@ void AExcavationManager::BeginPlay()
 
 void AExcavationManager::EndPlay(const EEndPlayReason::Type EndPlayReason)
 {
-	GetWorldTimerManager().ClearTimer(LobbyMuseumTimerHandle);
+	GetWorldTimerManager().ClearTimer(LobbyRestoreTimerHandle);
 	GetWorldTimerManager().ClearTimer(KeyboardSpawnTimerHandle);
 	GetWorldTimerManager().ClearAllTimersForObject(this);
 
@@ -192,6 +192,7 @@ void AExcavationManager::SetCurrentPhase(EExcavationPhase NewPhase)
 		{
 			CurrentActiveManager->GetRelics()->SetBrushingUI(BrushingUI);
 			CurrentActiveManager->GetRelics()->SetWarningUI(WarningUI);
+			CurrentActiveManager->GetRelics()->SetWarningTextUI(WarningTextUI);
 		}
 	}
 
@@ -255,7 +256,7 @@ void AExcavationManager::ChangeCompletedPhase()
 
 	FTimerDelegate D;
 	D.BindUObject(this, &AExcavationManager::SpawnKeyboardActor);
-	GetWorldTimerManager().SetTimer(KeyboardSpawnTimerHandle, D, 8.f, false);
+	GetWorldTimerManager().SetTimer(KeyboardSpawnTimerHandle, D, 7.f, false);
 
 	/*// Phase UI (로비/박물관 이동)
 	
@@ -378,13 +379,15 @@ void AExcavationManager::PlayTami(const FName& FunctionName)
 void AExcavationManager::SpawnKeyboardActor()
 {
 	if(!IsValid(CurrentActiveManager)) return;
+	if (bUseBtnSpawnKeyboard) return;
+
 	CurrentActiveManager->SpawnKeyboard();
 }
 
 void AExcavationManager::ShowLobbyRestoreButtons()
 {
 	if (!IsValid(CurrentActiveManager)) return;
-	if (!IsValid(this) || !IsValid(PhaseUI) || bUseBtnLobbynMuseum) return;
+	if (!IsValid(this) || !IsValid(PhaseUI) || bUseBtnLobbynRestore) return;
 
 	CurrentActiveManager->DestroyKeyboard();
 
