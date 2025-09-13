@@ -76,6 +76,9 @@ private:
 	UPROPERTY()
 	UStaticMeshComponent* GuideMesh;
 
+	UPROPERTY()
+	UStaticMeshComponent* CompletedMesh;
+
 	void PlayFeedback(bool bSuccess);
 
 	// Feedback

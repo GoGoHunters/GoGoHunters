@@ -110,7 +110,7 @@ void ARestorePuzzleActor::InitPuzzle(const FCRelicData& InRelicData, ARestoreMan
 		GuideMesh->SetWorldLocation(RotationBoard->GetComponentLocation() + FVector(0, 0, 25.5f));
 	}
 
-	UStaticMeshComponent* CompletedMesh = Cast<UStaticMeshComponent>(SpawnedRelic->GetComponentsByTag(UStaticMeshComponent::StaticClass(), FName("Complete"))[0]);
+	CompletedMesh = Cast<UStaticMeshComponent>(SpawnedRelic->GetComponentsByTag(UStaticMeshComponent::StaticClass(), FName("Complete"))[0]);
 	if (CompletedMesh)
 	{
 		CompletedMesh->SetHiddenInGame(true);
@@ -254,16 +254,13 @@ void ARestorePuzzleActor::OnPuzzleCompleted()
 	}
 
 	// 가이드 메시 제거 및 완성된 유물 메시 가시화
-	if (GuideMesh) GuideMesh->DestroyComponent(true);
-
-	UStaticMeshComponent* CompletedMesh = Cast<UStaticMeshComponent>(SpawnedRelic->GetComponentsByTag(UStaticMeshComponent::StaticClass(), FName("Complete"))[0]);
-	if (CompletedMesh)
+	if (GuideMesh && CompletedMesh)
 	{
-		CompletedMesh->SetHiddenInGame(false);
-		CompletedMesh->SetCollisionProfileName(FName("GrabbingObject"));
+		GuideMesh->DestroyComponent(true);
+
+		//CompletedMesh->SetHiddenInGame(false);
+		//CompletedMesh->SetCollisionProfileName(FName("GrabbingObject"));
 	}
-	
-	// - 완료 이펙트/사운드 재생
 
 	// 유물 복원 완료 처리
 	RelicData.IsRecover = true;
@@ -340,7 +337,6 @@ void ARestorePuzzleActor::TickSnap(float DeltaSeconds)
 		TargetSnapPoint = nullptr;
 	}
 }
-
 
 void ARestorePuzzleActor::CompletePuzzleInstantly()
 {
