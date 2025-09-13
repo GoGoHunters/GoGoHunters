@@ -115,4 +115,11 @@ private:
 
     void TickSnap(float DeltaSeconds);
 
+// 개발자키 - 모든 조각을 한번에 스냅하고 퍼즐 완료
+public:
+	UFUNCTION(BlueprintCallable, Category = "Developer")
+	void CompletePuzzleInstantly();
+
+	UPROPERTY(BlueprintReadWrite)
+	bool bPressedDevKey = false;
 };

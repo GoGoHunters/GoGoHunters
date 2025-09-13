@@ -104,7 +104,7 @@ void ARestorePuzzleActor::InitPuzzle(const FCRelicData& InRelicData, ARestoreMan
 
 #pragma region SnapPointTransforms & PieceActors 저장
 	// GuideMesh & CompletedMesh 위치 조정
-	/*UStaticMeshComponent* */GuideMesh = Cast<UStaticMeshComponent>(SpawnedRelic->GetComponentsByTag(UStaticMeshComponent::StaticClass(), FName("Guide"))[0]);
+	GuideMesh = Cast<UStaticMeshComponent>(SpawnedRelic->GetComponentsByTag(UStaticMeshComponent::StaticClass(), FName("Guide"))[0]);
 	if (GuideMesh)
 	{
 		GuideMesh->SetWorldLocation(RotationBoard->GetComponentLocation() + FVector(0, 0, 25.5f));
@@ -254,7 +254,6 @@ void ARestorePuzzleActor::OnPuzzleCompleted()
 	}
 
 	// 가이드 메시 제거 및 완성된 유물 메시 가시화
-	/*UStaticMeshComponent* GuideMesh = Cast<UStaticMeshComponent>(SpawnedRelic->GetComponentsByTag(UStaticMeshComponent::StaticClass(), FName("Guide"))[0]);*/
 	if (GuideMesh) GuideMesh->DestroyComponent(true);
 
 	UStaticMeshComponent* CompletedMesh = Cast<UStaticMeshComponent>(SpawnedRelic->GetComponentsByTag(UStaticMeshComponent::StaticClass(), FName("Complete"))[0]);
@@ -342,3 +341,55 @@ void ARestorePuzzleActor::TickSnap(float DeltaSeconds)
 	}
 }
 
+
+void ARestorePuzzleActor::CompletePuzzleInstantly()
+{
+	if (!SpawnedRelic) return;
+	if (PieceActors.IsEmpty()) return;
+	if (bPressedDevKey) return;
+
+	UE_LOG(LogTemp, Warning, TEXT("CompletePuzzleInstantly called - Developer Key"));
+
+	// 모든 조각을 즉시 스냅포인트로 이동시키고 어태치
+	for (int32 i = 0; i < PieceActors.Num(); ++i)
+	{
+		if (!PieceActors.IsValidIndex(i) || !SnapPoints.IsValidIndex(i))
+			continue;
+
+		APieceActor* Piece = Cast<APieceActor>(PieceActors[i]);
+		USceneComponent* SnapPoint = SnapPoints[i];
+
+		if (!Piece || !SnapPoint)
+			continue;
+
+		// 1. DetachFromActor
+		Piece->DetachFromActor(FDetachmentTransformRules::KeepWorldTransform);
+
+		// 2. 물리 끄기
+		if (UPrimitiveComponent* Primitive = Cast<UPrimitiveComponent>(Piece->GetRootComponent()))
+		{
+			Primitive->SetSimulatePhysics(false);
+			Primitive->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+		}
+
+		// 3. 즉시 스냅포인트로 이동
+		Piece->SetActorTransform(SnapPoint->GetComponentTransform(), false, nullptr, ETeleportType::TeleportPhysics);
+
+		// 4. 스냅포인트에 어태치
+		Piece->AttachToComponent(SnapPoint, FAttachmentTransformRules::SnapToTargetNotIncludingScale);
+
+		// 5. 상태 업데이트
+		Piece->SetSnapped(true);
+		Piece->DestroyPickupComp();
+
+		// 6. UI 업데이트
+		if (ProgressUI) ProgressUI->SetSnappedImage();
+
+		UE_LOG(LogTemp, Warning, TEXT("Piece %d snapped instantly"), i);
+	}
+
+	// 퍼즐 완료 체크
+	CheckPuzzleCompleted();
+
+	bPressedDevKey = true;
+}
