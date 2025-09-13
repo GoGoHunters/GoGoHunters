@@ -94,13 +94,15 @@ void ARestorePuzzleActor::InitPuzzle(const FCRelicData& InRelicData, ARestoreMan
 	if (!RelicClass) return;
 
 	FActorSpawnParameters SpawnParams;
-	SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+	//SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
 
 	// 유물은 회전판 옆 박스에 스폰
-	FTransform SpawnTransform = FTransform::Identity;
-	SpawnTransform.SetLocation(FVector(-225, 296, 4)); // (X=-225.000000,Y=296.000000,Z=2.000000)
+	//FTransform SpawnTransform = FTransform::Identity;
+	//SpawnTransform.SetLocation(FVector(-225, 296, 4)); // (X=-225.000000,Y=296.000000,Z=2.000000)
+	FVector SpawnLoc = GetActorLocation() + FVector(-84, 13, -10.5); // (X=-84.000000,Y=13.000000,Z=-10.500000)
+	FRotator SpawnRot = GetActorRotation() + FRotator(0, -90, 0); // (Pitch=0.000000,Yaw=-90.000000,Roll=-0.000000)
 
-	SpawnedRelic = GetWorld()->SpawnActor<AActor>(RelicClass, SpawnTransform, SpawnParams);
+	SpawnedRelic = GetWorld()->SpawnActor<AActor>(RelicClass, SpawnLoc, SpawnRot, SpawnParams);
 
 #pragma region SnapPointTransforms & PieceActors 저장
 	// GuideMesh & CompletedMesh 위치 조정
