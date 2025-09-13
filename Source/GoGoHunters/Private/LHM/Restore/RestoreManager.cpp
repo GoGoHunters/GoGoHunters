@@ -8,6 +8,8 @@
 #include "LHM/Restore/RestorWidgetActor.h"
 #include "EngineUtils.h"
 #include "LHM/UI/RestorationCompleteUI.h"
+#include "LevelSequenceActor.h"
+#include "LevelSequencePlayer.h"
 
 // Sets default values
 ARestoreManager::ARestoreManager()
@@ -32,6 +34,22 @@ void ARestoreManager::BeginPlay()
 			ActivePuzzleActor = Cast<ARestorePuzzleActor>(Found[0]);
 		}
 	}
+
+	for (TActorIterator<AActor> It(GetWorld(), AActor::StaticClass()); It; ++It)
+	{
+		if (IsValid(*It) && (*It)->ActorHasTag(FName("BabyDino")))
+		{
+			BabyDino = *It;
+			BabyDino->SetActorHiddenInGame(true);
+			break;
+		}
+	}
+
+	// 시퀀스 이벤트 바인딩
+	if (CompletionSequenceActor && CompletionSequenceActor->GetSequencePlayer())
+	{
+		CompletionSequenceActor->GetSequencePlayer()->OnFinished.AddDynamic(this, &ARestoreManager::OnSequenceEndPlay);
+	}
 }
 
 void ARestoreManager::StartRestoration(const FCRelicData& RelicData)
@@ -49,20 +67,39 @@ void ARestoreManager::NotifyPuzzleCompleted(class ARestorePuzzleActor* PuzzleAct
 {
 	if (!PuzzleActor) return;
 
-	const FCRelicData& CompletedRelic = PuzzleActor->GetRelicData();
-
 	// 1. 유물 데이터 저장 요청
 	if (UGI_Base* GI = GetGameInstance<UGI_Base>())
 	{
 		FRelicSaveData NewSaveData;
-		NewSaveData.RelicData = CompletedRelic;
+		NewSaveData.RelicData = PuzzleActor->GetRelicData();
 		GI->SaveRelicData(NewSaveData);
 	}
 
-	// 2. 완료 UI 표시
-	if (CompleteUI) CompleteUI->SetCompleteVisibility(true);
+	// 2. 완성 시퀀스 플레이
+	PlayCompleteSequence();
 	 
-	// 3. 스탬프 애니메이션 예정
-	// 4. AI 타미 대사 예정
+	// 3. 스탬프 애니메이션
+	// 4. AI 타미 대사
 }
 
+void ARestoreManager::PlayCompleteSequence()
+{
+	if (BabyDino)
+	{
+		BabyDino->SetActorHiddenInGame(false);
+	}
+
+	if (CompletionSequenceActor && CompletionSequenceActor->GetSequencePlayer())
+	{
+		CompletionSequenceActor->GetSequencePlayer()->Play();
+	}
+}
+
+void ARestoreManager::OnSequenceEndPlay()
+{
+	// 시퀀스가 끝나면 박물관 레벨 이동 UI 가시화
+	if (CompleteUI) 
+	{
+		CompleteUI->SetCompleteVisibility(true);
+	}
+}

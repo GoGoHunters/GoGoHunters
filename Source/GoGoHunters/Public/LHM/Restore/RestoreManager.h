@@ -37,15 +37,21 @@ private:
 	UPROPERTY()
 	TObjectPtr<class URestorationCompleteUI> CompleteUI;
 
-	//UPROPERTY(EditAnywhere, Category = "Puzzle")
-	//TSubclassOf<class ARestorePuzzleActor> PuzzleActorClass;
-
-	//UPROPERTY()
-	//TObjectPtr<class ARestorePuzzleActor> ActivePuzzleActor;
-
 	UPROPERTY(EditInstanceOnly)
 	class ARestorePuzzleActor* ActivePuzzleActor;
 
 	UPROPERTY()
 	FCRelicData CurrentRelicData;
+
+
+private:
+	void PlayCompleteSequence();	
+
+	UFUNCTION()
+	void OnSequenceEndPlay();
+
+	UPROPERTY(EditAnywhere, Category="Sequence")
+	TObjectPtr<class ALevelSequenceActor> CompletionSequenceActor;
+
+	AActor* BabyDino = nullptr;
 };
