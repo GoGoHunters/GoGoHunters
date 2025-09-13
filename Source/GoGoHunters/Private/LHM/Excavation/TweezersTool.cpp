@@ -88,7 +88,7 @@ void ATweezersTool::PickUpRelic()
 	CandidateMesh->SetSimulatePhysics(false);
 	CandidateMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 	CandidateMesh->AttachToComponent(PickupPoint, FAttachmentTransformRules::SnapToTargetIncludingScale);
-	CandidateMesh->OnComponentHit.RemoveDynamic(this, &ATweezersTool::OnRelicHit);
+	//CandidateMesh->OnComponentHit.RemoveDynamic(this, &ATweezersTool::OnRelicHit);
 
 	// 사운드 재생
 	if (SoundFX) UGameplayStatics::PlaySoundAtLocation(this, SoundFX, PickupPoint->GetComponentLocation());
@@ -187,7 +187,7 @@ void ATweezersTool::DropPickedRelic()
 			// 충돌 순간 속도 체크를 위한 이벤트 활성화 + 바인딩
 			Relic->SetNotifyRigidBodyCollision(true);
 			Relic->OnComponentHit.RemoveAll(this);
-			Relic->OnComponentHit.AddDynamic(this, &ATweezersTool::OnRelicHit);
+			//Relic->OnComponentHit.AddDynamic(this, &ATweezersTool::OnRelicHit);
 
 			if (AttachBase)
 			{
@@ -241,7 +241,6 @@ void ATweezersTool::HandleHardImpactFeedbackAndWarn(UPrimitiveComponent* HitComp
 		if (HardImpactHaptic)
 		{
 			PC->PlayHapticEffect(HardImpactHaptic, EControllerHand::Right);
-			//PC->PlayHapticEffect(HardImpactHaptic, EControllerHand::Left);
 		}
 	}
 
