@@ -8,6 +8,8 @@
 #include "Kismet/GameplayStatics.h"
 #include "../../../../Plugins/FX/Niagara/Source/Niagara/Public/NiagaraFunctionLibrary.h"
 #include "../../../../Plugins/FX/Niagara/Source/Niagara/Public/NiagaraComponent.h"
+#include "EngineUtils.h"
+#include "LHM/UI/WarningTextUI.h"
 
 // 속도 기반으로 0~1 정규화 → HSV 보간
 static FLinearColor MakeBrushColorFromSpeed(float Speed, float Min, float Max)
@@ -198,8 +200,8 @@ void ABrushTool::UpdateSwipeFeedback(float Speed)
 	if (SwipeVFX)
 	{
 		// 속도→색상 (30 이하면 민트, 200 이상이면 레드, 그 사이는 보간)
-		const FLinearColor Color =
-		MakeBrushColorFromSpeed(Speed, BrushSwipeThresholdMin, BrushSwipeThresholdMax);
+		const FLinearColor Color = 
+			MakeBrushColorFromSpeed(Speed, BrushSwipeThresholdMin, BrushSwipeThresholdMax);
 		SwipeVFX->SetNiagaraVariableLinearColor(TEXT("User.User_BrushColor"), Color);
 
 		if(!SwipeVFX->IsActive()) SwipeVFX->Activate(true);
@@ -262,6 +264,12 @@ void ABrushTool::HandleBrushHardSwipeFeedbackAndWarn()
 		}
 	}
 
+	// 3) 경고 문구
+	if (Relic && Relic->GetWarningTextUI())
+	{
+		Relic->GetWarningTextUI()->PlayAlertAnim();
+	}
+
 	if (UWorld* World = GetWorld())
 	{
 		World->GetTimerManager().ClearTimer(WarningDelayHandle);
@@ -284,7 +292,7 @@ void ABrushTool::OnWarningDelayElapsed()
 {
 	// 2초 경과 후 상태 평가
 	const bool bStillOverlapping = (CurrentOverlappingRelic != nullptr);
-	const bool bShouldWarn = bStillOverlapping && (Relic != nullptr) && !bWarningWindowHadDropBelow && (SwipeSpeed >= BrushSwipeThresholdMax);
+	//const bool bShouldWarn = bStillOverlapping && (Relic != nullptr) && !bWarningWindowHadDropBelow && (SwipeSpeed >= BrushSwipeThresholdMax);
 
 	/*UE_LOG(LogTemp, Log, TEXT("[BrushTool] Warning Delay Elapsed: StillOverlapping=%d, RelicValid=%d, HadDropBelow=%d, SwipeSpeed=%.2f, ShouldWarn=%d"),
 		bStillOverlapping,
@@ -297,7 +305,7 @@ void ABrushTool::OnWarningDelayElapsed()
 	bWarningCheckPending = false;
 	bWarningWindowHadDropBelow = false;
 
-	if (bShouldWarn)
+	/*if (bShouldWarn)
 	{
 		// 경고 사운드 및 UI 표시
 		if (WarningSFX) UGameplayStatics::PlaySoundAtLocation(this, WarningSFX, GetActorLocation());
@@ -321,7 +329,9 @@ void ABrushTool::OnWarningDelayElapsed()
 	{
 		// 경고 미표시 → 즉시 재트리거 허용
 		bCanTriggerWarning = true;
-	}
+	}*/
+
+	bCanTriggerWarning = true;
 }
 
 void ABrushTool::CancelPendingWarningCheck()

@@ -104,6 +104,7 @@ public:
 	void SetCollectionBoxUI(class UCollectionBoxUI* InCollectionBoxUI) { CollectionBoxUI = InCollectionBoxUI; }
 
 	void SetWarningUI(class UWarningUI* InWarningUI) { WarningUI = InWarningUI; }
+	void SetWarningTextUI(class UWarningTextUI* InWarningTextUI) { WarningTextUI = InWarningTextUI; }
 	
 	void HandleWarningReset(); // 경고 3회 → 3초 뒤 호출
 
@@ -112,6 +113,9 @@ public:
 	
     UPROPERTY()
     class UWarningUI* WarningUI;
+
+	UPROPERTY()
+    class UWarningTextUI* WarningTextUI;
 
 protected:
     UPROPERTY()

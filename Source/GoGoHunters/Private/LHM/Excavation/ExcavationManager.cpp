@@ -192,6 +192,7 @@ void AExcavationManager::SetCurrentPhase(EExcavationPhase NewPhase)
 		{
 			CurrentActiveManager->GetRelics()->SetBrushingUI(BrushingUI);
 			CurrentActiveManager->GetRelics()->SetWarningUI(WarningUI);
+			CurrentActiveManager->GetRelics()->SetWarningTextUI(WarningTextUI);
 		}
 	}
 

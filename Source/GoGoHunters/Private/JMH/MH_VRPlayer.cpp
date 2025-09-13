@@ -126,6 +126,22 @@ void AMH_VRPlayer::BeginPlay()
 			RelicsGroundRefs.Add(*It);
 		}
 	}
+
+	if (CurrentLevel == "LV_TestExcavation")
+	{
+		// Excavation Warning UI 
+		if (WarningUIActorClass)
+		{
+			FActorSpawnParameters SpawnParams;
+			SpawnParams.Owner = this;
+			AActor* WarningUI = GetWorld()->SpawnActor<AActor>(WarningUIActorClass, FVector::ZeroVector, FRotator::ZeroRotator, SpawnParams);
+			if (WarningUI)
+			{
+				WarningUI->AttachToComponent(VRCamera, FAttachmentTransformRules::SnapToTargetNotIncludingScale, NAME_None);
+				WarningUI->SetActorEnableCollision(false);
+			}
+		}
+	}
 #pragma endregion 발굴 레벨에서만 초기화
 
 	// 레벨에 있는 튜토리얼 매니저를 찾아서 저장
