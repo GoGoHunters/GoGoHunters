@@ -31,10 +31,6 @@ public:
 protected:
 	UPROPERTY(EditAnywhere,BlueprintReadWrite, Category = "Zone")
 	FName ZoneTag;
-	
-	UPROPERTY(VisibleAnywhere)
-	class UStaticMeshComponent* ZoneVisual;
-	
 	// 진입 시 출력할 가이드 메시지
 	UPROPERTY(EditAnywhere, Category = "Zone")
 	FString GuideMessage;

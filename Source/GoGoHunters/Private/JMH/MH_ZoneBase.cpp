@@ -24,9 +24,6 @@ AMH_ZoneBase::AMH_ZoneBase()
 	CollisionBox->SetCollisionResponseToAllChannels(ECR_Ignore);
 
 	// 시각적 표시용 메쉬
-	ZoneVisual = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("ZoneVisual"));
-	ZoneVisual->SetupAttachment(RootComponent);
-	ZoneVisual->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 
 	MessageWidgetComponent = CreateDefaultSubobject<UWidgetComponent>(TEXT("MessageUI"));
 	MessageWidgetComponent->SetupAttachment(RootComponent);
