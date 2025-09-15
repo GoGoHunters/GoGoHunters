@@ -24,7 +24,7 @@ class GOGOHUNTERS_API UCCollectingBookWidget : public UUserWidget
 public:
 	UFUNCTION(BlueprintCallable)
 	void InitData();
-	void ShowRelicDetailPage(const FCRelicCollectingBook& InRelicCollectingBookData);
+	void ShowRelicDetailPage(FCRelicCollectingBook& InRelicCollectingBookData) const;
 	
 private:
 	UPROPERTY(EditDefaultsOnly, meta = (BindWidget))

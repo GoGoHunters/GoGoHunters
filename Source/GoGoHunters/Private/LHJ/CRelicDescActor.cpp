@@ -56,6 +56,8 @@ void ACRelicDescActor::UpdateData(FCRelicDataParam Param)
 		VisibleComponent(true);
 		TitleTextComp->SetText(Param.RelicDetailData.RelicName);
 		FString FormattedDesc = FormatTextWithLineBreaks(Param.RelicDetailData.RelicDesc.ToString(), 30);
+
+		DescTextComp->SetWorldSize(1.4f);
 		DescTextComp->SetText(FText::FromString(FormattedDesc));
 
 		if (Param.RelicData.CollectorName == NAME_None)
@@ -74,7 +76,9 @@ void ACRelicDescActor::UpdateData(FCRelicDataParam Param)
 	else
 	{
 		VisibleComponent(false);
-		DescTextComp->SetText(FText::FromString(FString::Printf(TEXT("전시 준비 중 입니다."))));		
+		
+		DescTextComp->SetWorldSize(3.2f);
+		DescTextComp->SetText(FText::FromString(FString::Printf(TEXT("전시 준비 중 입니다"))));		
 	}
 }
 

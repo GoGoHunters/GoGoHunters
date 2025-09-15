@@ -87,7 +87,7 @@ void UCCollectingBookWidget::GoToList()
 	WS_Main->SetActiveWidgetIndex(0);
 }
 
-void UCCollectingBookWidget::ShowRelicDetailPage(const FCRelicCollectingBook& InRelicCollectingBookData)
+void UCCollectingBookWidget::ShowRelicDetailPage(FCRelicCollectingBook& InRelicCollectingBookData) const
 {
 	if (InRelicCollectingBookData.IsDrop)
 	{
@@ -114,9 +114,9 @@ void UCCollectingBookWidget::ShowRelicDetailPage(const FCRelicCollectingBook& In
 
 		if (InRelicCollectingBookData.RelicDetailData.RelicBlindImage)
 		{
-			FSlateBrush newBrush = Img_Thumbnail->GetBrush();
+			FSlateBrush newBrush = Img_BlindThumbnail->GetBrush();
 			newBrush.SetResourceObject(InRelicCollectingBookData.RelicDetailData.RelicBlindImage);
-			Img_Thumbnail->SetBrush(newBrush);			
+			Img_BlindThumbnail->SetBrush(newBrush);
 		}
 		
 		Txt_HiddenDesc->SetText(InRelicCollectingBookData.RelicDetailData.RelicToolTipDesc);
