@@ -31,7 +31,6 @@ AMH_ZoneBase::AMH_ZoneBase()
 	// 복원 리스트 UI
 	RestoreListComponent = CreateDefaultSubobject<UWidgetComponent>(TEXT("RestoreListUI"));
 	RestoreListComponent->SetupAttachment(RootComponent);
-	
 }
 
 // Called when the game starts or when spawned
