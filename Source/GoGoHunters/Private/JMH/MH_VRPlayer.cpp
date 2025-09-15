@@ -174,13 +174,13 @@ void AMH_VRPlayer::SetupPlayerInputComponent(UInputComponent* PlayerInputCompone
 
 	UEnhancedInputComponent* EnhancedInput = Cast<UEnhancedInputComponent>(PlayerInputComponent);
 
-	EnhancedInput->BindAction(IA_MHTurn, ETriggerEvent::Triggered, this, &AMH_VRPlayer::TestTurn);
+	//EnhancedInput->BindAction(IA_MHTurn, ETriggerEvent::Triggered, this, &AMH_VRPlayer::TestTurn);
 	EnhancedInput->BindAction(IA_MHVRTurn, ETriggerEvent::Triggered, this, &AMH_VRPlayer::VRTurn);
-	EnhancedInput->BindAction(IA_MHLookUp, ETriggerEvent::Triggered, this, &AMH_VRPlayer::TestLookUp);
+	//EnhancedInput->BindAction(IA_MHLookUp, ETriggerEvent::Triggered, this, &AMH_VRPlayer::TestLookUp);
 	EnhancedInput->BindAction(IA_MHInteract, ETriggerEvent::Triggered, this, &AMH_VRPlayer::TriggerInteract);
 	EnhancedInput->BindAction(IA_MHInteract, ETriggerEvent::Completed, this, &AMH_VRPlayer::TriggerInteractCompleted);
-	EnhancedInput->BindAction(IA_MHTestTeleportStart, ETriggerEvent::Started, this, &AMH_VRPlayer::F_TeleportStart);
-	EnhancedInput->BindAction(IA_MHTestTeleportEnd, ETriggerEvent::Completed, this, &AMH_VRPlayer::F_TeleportEnd);
+	//EnhancedInput->BindAction(IA_MHTestTeleportStart, ETriggerEvent::Started, this, &AMH_VRPlayer::F_TeleportStart);
+	//EnhancedInput->BindAction(IA_MHTestTeleportEnd, ETriggerEvent::Completed, this, &AMH_VRPlayer::F_TeleportEnd);
 	EnhancedInput->BindAction(IA_MHVRTeleport, ETriggerEvent::Started, this, &AMH_VRPlayer::F_TeleportStart);
 	EnhancedInput->BindAction(IA_MHVRTeleport, ETriggerEvent::Completed, this, &AMH_VRPlayer::F_TeleportEnd);
 
@@ -193,10 +193,10 @@ void AMH_VRPlayer::SetupPlayerInputComponent(UInputComponent* PlayerInputCompone
 	EnhancedInput->BindAction(IA_RotateHeldObject, ETriggerEvent::Triggered, this, &AMH_VRPlayer::HandleThumbstickInput);
 
 	// Excavation Tool Actions
-	EnhancedInput->BindAction(IA_ExcavationTool1, ETriggerEvent::Started, this, &AMH_VRPlayer::ExcavationTool1);
-	EnhancedInput->BindAction(IA_ExcavationTool2, ETriggerEvent::Started, this, &AMH_VRPlayer::ExcavationTool2);
-	EnhancedInput->BindAction(IA_ExcavationTool3, ETriggerEvent::Started, this, &AMH_VRPlayer::ExcavationTool3);
-	EnhancedInput->BindAction(IA_ExcavationTool4, ETriggerEvent::Started, this, &AMH_VRPlayer::ExcavationTool4);
+	//EnhancedInput->BindAction(IA_ExcavationTool1, ETriggerEvent::Started, this, &AMH_VRPlayer::ExcavationTool1);
+	//EnhancedInput->BindAction(IA_ExcavationTool2, ETriggerEvent::Started, this, &AMH_VRPlayer::ExcavationTool2);
+	//EnhancedInput->BindAction(IA_ExcavationTool3, ETriggerEvent::Started, this, &AMH_VRPlayer::ExcavationTool3);
+	//EnhancedInput->BindAction(IA_ExcavationTool4, ETriggerEvent::Started, this, &AMH_VRPlayer::ExcavationTool4);
 	EnhancedInput->BindAction(IA_ExcavationDetect, ETriggerEvent::Triggered, this, &AMH_VRPlayer::ExcavationDetectStart);
 	EnhancedInput->BindAction(IA_ExcavationDetect, ETriggerEvent::Completed, this, &AMH_VRPlayer::ExcavationDetectEnd);
 	EnhancedInput->BindAction(IA_ExcavationDig, ETriggerEvent::Started, this, &AMH_VRPlayer::ExcavationDigStart);
