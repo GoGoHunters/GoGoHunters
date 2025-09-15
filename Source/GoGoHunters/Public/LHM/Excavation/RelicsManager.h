@@ -112,7 +112,7 @@ public:
 	TSubclassOf<class AAC_KeyBoard> KeyBoardClass;
 
 	UPROPERTY()
-	class AAC_KeyBoard* KeyBoardActor;
+	class AAC_KeyBoard* KeyBoardActor = nullptr;
 
 // 개발자 키
 public:

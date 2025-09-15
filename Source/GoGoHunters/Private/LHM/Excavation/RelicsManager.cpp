@@ -274,6 +274,7 @@ void ARelicsManager::SpawnKeyboard()
 {
 	if (!IsValid(Relics)) return;
 	if (!KeyBoardClass) return;
+	if (KeyBoardActor) return;
 
 	FVector SpawnLocation = GetActorLocation() + FVector(-169, 20, 290);
 	FRotator SpawnRotation = GetActorRotation() + FRotator(0, 270, 70); // (Pitch=0.000000,Yaw=90.000000,Roll=-70.000000)
