@@ -50,10 +50,15 @@ ABrushTool::ABrushTool()
 	BoxMesh->OnComponentBeginOverlap.AddDynamic(this, &ABrushTool::OnBeginOverlap);
 	BoxMesh->OnComponentEndOverlap.AddDynamic(this, &ABrushTool::OnEndOverlap);
 
-	SwipeVFX = CreateDefaultSubobject<UNiagaraComponent>(TEXT("SwipeVFX"));
-	SwipeVFX->SetupAttachment(BoxMesh);
-	SwipeVFX->SetRelativeScale3D(FVector(2.5f));
-	SwipeVFX->bAutoActivate = false;
+	SwipeVFX1 = CreateDefaultSubobject<UNiagaraComponent>(TEXT("SwipeVFX1"));
+	SwipeVFX1->SetupAttachment(BoxMesh);
+	SwipeVFX1->SetRelativeScale3D(FVector(4.5f));
+	SwipeVFX1->bAutoActivate = false;
+
+	SwipeVFX2 = CreateDefaultSubobject<UNiagaraComponent>(TEXT("SwipeVFX2"));
+	SwipeVFX2->SetupAttachment(BoxMesh);
+	SwipeVFX2->SetRelativeScale3D(FVector(4.5f));
+	SwipeVFX2->bAutoActivate = false;
 }
 
 // Called when the game starts or when spawned
@@ -163,10 +168,8 @@ void ABrushTool::StopFeedback()
 	}
 
 	// Swipe 나이아가라 중지
-	if (SwipeVFX->IsActive())
-	{
-		SwipeVFX->Deactivate();
-	}
+	if (SwipeVFX1->IsActive()) SwipeVFX1->Deactivate();
+	else if(SwipeVFX2->IsActive()) SwipeVFX2->Deactivate();
 }
 
 void ABrushTool::PlayVibration(float Intensity)
@@ -196,15 +199,29 @@ void ABrushTool::UpdateDustFeedback(float Intensity)
 
 void ABrushTool::UpdateSwipeFeedback(float Speed)
 {
-	// Swipe 나이아가라
-	if (SwipeVFX)
-	{
-		// 속도→색상 (30 이하면 그린, 200 이상이면 레드, 그 사이는 보간)
-		const FLinearColor Color = 
-			MakeBrushColorFromSpeed(Speed, BrushSwipeThresholdMax * 0.5f, BrushSwipeThresholdMax);
-		SwipeVFX->SetNiagaraVariableLinearColor(TEXT("User.User_BrushColor"), Color);
+	//// Swipe 나이아가라
+	//if (SwipeVFX)
+	//{
+	//	// 속도→색상 (30 이하면 그린, 200 이상이면 레드, 그 사이는 보간)
+	//	const FLinearColor Color = 
+	//		MakeBrushColorFromSpeed(Speed, BrushSwipeThresholdMax * 0.5f, BrushSwipeThresholdMax);
+	//	SwipeVFX->SetNiagaraVariableLinearColor(TEXT("User.User_BrushColor"), Color);
 
-		if(!SwipeVFX->IsActive()) SwipeVFX->Activate(true);
+	//	if(!SwipeVFX->IsActive()) SwipeVFX->Activate(true);
+	//}
+
+	if (SwipeVFX1 && SwipeVFX1->IsActive()) SwipeVFX1->Deactivate();
+	else if (SwipeVFX2 && SwipeVFX2->IsActive()) SwipeVFX2->Deactivate();
+
+	if (Speed >= BrushSwipeThresholdMax)
+	{
+		if (SwipeVFX1 && SwipeVFX1->IsActive()) SwipeVFX1->Deactivate();
+		if (SwipeVFX2 && !SwipeVFX2->IsActive()) SwipeVFX2->Activate(true);
+	}
+	else
+	{
+		if (SwipeVFX2 && SwipeVFX2->IsActive()) SwipeVFX2->Deactivate();
+		if (SwipeVFX1 && !SwipeVFX1->IsActive()) SwipeVFX1->Activate(true);
 	}
 }
 

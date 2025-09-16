@@ -52,7 +52,9 @@ protected:
 
 public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Effects|BrushTrail")
-    class UNiagaraComponent* SwipeVFX;
+    class UNiagaraComponent* SwipeVFX1;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Effects|BrushTrail")
+    class UNiagaraComponent* SwipeVFX2;
 
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Effects|BrushTrail")
 	class UNiagaraSystem* SwipeSystem;
