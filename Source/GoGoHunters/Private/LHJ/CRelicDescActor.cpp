@@ -25,17 +25,17 @@ ACRelicDescActor::ACRelicDescActor()
 	DescTextComp->SetTranslucentSortPriority(2);
 	
 	CHelpers::CreateComponent<UTextRenderComponent>(this, &CollectorTextComp, "CollectorTextComp", RootComponent);
-	CollectorTextComp->SetRelativeLocation(FVector(6.5, 30, 22));
+	CollectorTextComp->SetRelativeLocation(FVector(6.5, 30, 20));
 	CollectorTextComp->SetHorizontalAlignment(EHTA_Left);
 	CollectorTextComp->SetVerticalAlignment(EVRTA_TextCenter);
-	CollectorTextComp->SetWorldSize(1.f);
+	CollectorTextComp->SetWorldSize(1.5f);
 	CollectorTextComp->SetTranslucentSortPriority(2);
 	
 	CHelpers::CreateComponent<UTextRenderComponent>(this, &DateTextComp, "DateTextComp", RootComponent);
-	DateTextComp->SetRelativeLocation(FVector(6.5, 30, 19));
-	DateTextComp->SetHorizontalAlignment(EHTA_Left);
+	DateTextComp->SetRelativeLocation(FVector(6.5, -30, 20));
+	DateTextComp->SetHorizontalAlignment(EHTA_Right);
 	DateTextComp->SetVerticalAlignment(EVRTA_TextCenter);
-	DateTextComp->SetWorldSize(1.f);
+	DateTextComp->SetWorldSize(1.5f);
 	DateTextComp->SetTranslucentSortPriority(2);
 }
 

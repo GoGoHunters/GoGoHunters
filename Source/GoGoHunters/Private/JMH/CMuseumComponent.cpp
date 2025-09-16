@@ -505,6 +505,7 @@ void UCMuseumComponent::LoadPlacedRelic()
 				if (FindNearbyPlaceArea(Data.PlacedTransform.GetLocation(), 10.f, FoundArea, FoundScale))
 				{
 					Data.PlacedTransform.SetScale3D(FoundScale);
+					Data.PlacedTransform.SetLocation(FoundArea->GetActorLocation());
 					Data.PlaceArea = FoundArea; // 유효하면 갱신
 				}
 
