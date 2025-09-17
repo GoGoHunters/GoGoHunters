@@ -168,8 +168,8 @@ void ABrushTool::StopFeedback()
 	}
 
 	// Swipe 나이아가라 중지
-	if (SwipeVFX1->IsActive()) SwipeVFX1->Deactivate();
-	else if(SwipeVFX2->IsActive()) SwipeVFX2->Deactivate();
+	if (SwipeVFX1->IsActive()) SwipeVFX1->DeactivateImmediate();
+	else if(SwipeVFX2->IsActive()) SwipeVFX2->DeactivateImmediate();
 }
 
 void ABrushTool::PlayVibration(float Intensity)
@@ -210,17 +210,17 @@ void ABrushTool::UpdateSwipeFeedback(float Speed)
 	//	if(!SwipeVFX->IsActive()) SwipeVFX->Activate(true);
 	//}
 
-	if (SwipeVFX1 && SwipeVFX1->IsActive()) SwipeVFX1->Deactivate();
-	else if (SwipeVFX2 && SwipeVFX2->IsActive()) SwipeVFX2->Deactivate();
+	if (SwipeVFX1 && SwipeVFX1->IsActive()) SwipeVFX1->DeactivateImmediate();
+	else if (SwipeVFX2 && SwipeVFX2->IsActive()) SwipeVFX2->DeactivateImmediate();
 
 	if (Speed >= BrushSwipeThresholdMax)
 	{
-		if (SwipeVFX1 && SwipeVFX1->IsActive()) SwipeVFX1->Deactivate();
+		if (SwipeVFX1 && SwipeVFX1->IsActive()) SwipeVFX1->DeactivateImmediate();
 		if (SwipeVFX2 && !SwipeVFX2->IsActive()) SwipeVFX2->Activate(true);
 	}
 	else
 	{
-		if (SwipeVFX2 && SwipeVFX2->IsActive()) SwipeVFX2->Deactivate();
+		if (SwipeVFX2 && SwipeVFX2->IsActive()) SwipeVFX2->DeactivateImmediate();
 		if (SwipeVFX1 && !SwipeVFX1->IsActive()) SwipeVFX1->Activate(true);
 	}
 }
