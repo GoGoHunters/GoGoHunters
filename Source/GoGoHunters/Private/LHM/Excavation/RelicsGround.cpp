@@ -39,18 +39,29 @@ void ARelicsGround::SetShovelReference(class AShovelTool* NewShovelRef)
 	if (Shovel_Ref) OnGroundDug.AddDynamic(Shovel_Ref, &AShovelTool::UpdateFeedback);
 }
 
+void ARelicsGround::ClearShovelReference()
+{
+	if (Shovel_Ref)
+	{
+		OnGroundDug.RemoveDynamic(Shovel_Ref, &AShovelTool::UpdateFeedback);
+	}
+	Shovel_Ref = nullptr;
+}
+
 void ARelicsGround::TriggerOnGroundDug(FVector ImpactLocation)
 {
 	OnGroundDug.Broadcast(ImpactLocation);
 
-	if (Shovel_Ref)
+	if (IsValid(Shovel_Ref))
 	{
 		Shovel_Ref->OnDigActionCompleted();
 	}
 
 	// 파괴량 측정은 한 프레임 지연 후
-	FTimerHandle TimerHandle;
-	GetWorldTimerManager().SetTimer(TimerHandle, this, &ARelicsGround::UpdateDigProgress, 0.1f, false);
+	//FTimerHandle TimerHandle;
+	//GetWorldTimerManager().SetTimer(TimerHandle, this, &ARelicsGround::UpdateDigProgress, 0.1f, false);
+
+	UpdateDigProgress();
 }
 
 void ARelicsGround::UpdateDigProgress()

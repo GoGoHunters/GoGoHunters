@@ -141,6 +141,9 @@ void AMH_VRPlayer::BeginPlay()
 				WarningUI->SetActorEnableCollision(false);
 			}
 		}
+
+		// 시작할 때 탐지기 장착
+		ExcavationTool1();
 	}
 #pragma endregion 발굴 레벨에서만 초기화
 

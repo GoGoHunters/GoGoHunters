@@ -31,6 +31,8 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Diggind Events")
 	void SetRelicsManager(class ARelicsManager* NewRelicsManager) { RelicsManager = NewRelicsManager; }
 
+	void ClearShovelReference();
+
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Digging Events")
 	class AShovelTool* Shovel_Ref;
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Digging Events")

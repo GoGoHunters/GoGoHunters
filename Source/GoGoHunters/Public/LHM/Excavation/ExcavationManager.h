@@ -71,6 +71,9 @@ public:
 
 protected:
 	UPROPERTY()
+	class AMH_VRPlayer* Player;
+
+	UPROPERTY()
 	TArray<class ARelicsManager*> AllRelicsManagers;
 
 	UPROPERTY()

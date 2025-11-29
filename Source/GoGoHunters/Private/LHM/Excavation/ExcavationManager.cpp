@@ -17,6 +17,7 @@
 #include "LHM/UI/WarningUI.h"
 #include "LHM/UI/CollectionBoxUI.h"
 #include "LHJ/Trigger/CWorkingAreaTrigger.h"
+#include "JMH/MH_VRPlayer.h"
 
 // Sets default values
 AExcavationManager::AExcavationManager()
@@ -41,6 +42,8 @@ void AExcavationManager::BeginPlay()
 	{
 		AllRelicsManagers.Add(*It);
 	}
+
+	Player = Cast<AMH_VRPlayer>(UGameplayStatics::GetPlayerCharacter(this, 0));
 
 	// 초기 단계 설정
 	SetCurrentPhase(EExcavationPhase::Detection);
@@ -98,6 +101,9 @@ void AExcavationManager::NotifyExcavationCompleted(class ARelicsManager* FromMan
 	DiggingUI->SetVisibility(ESlateVisibility::Hidden);
 	BrushingUI->SetVisibility(ESlateVisibility::Visible);
 
+	// 붓 도구 장착
+	if (Player) Player->ExcavationTool3();
+
 	// 붓질 단계로 전환
 	SetCurrentPhase(EExcavationPhase::Brushing);
 	UE_LOG(LogTemp, Log, TEXT("[ExcavationManager] 땅 파기 완료! 붓질 단계로 전환: %s"), *FromManager->GetName());
@@ -115,6 +121,9 @@ void AExcavationManager::NotifyDustingCompleted(class ARelicsManager* FromManage
 
 	// 타미 음성
 	PlayTami(TEXT("PlayExcavationPhase5_StartCollection"));
+
+	// 집게 도구 장착
+	if (Player) Player->ExcavationTool4();
 
 	// 수거 단계로 전환
 	SetCurrentPhase(EExcavationPhase::Collection);
@@ -137,6 +146,9 @@ void AExcavationManager::NotifyCollectionCompleted(class ARelicsManager* FromMan
 
 	// 경고 UI 리셋
 	if (WarningUI) WarningUI->ResetWarnings();
+
+	// 도구 해제
+	if (Player) Player->ExcavationTool4();
 }
 
 void AExcavationManager::SetCurrentPhase(EExcavationPhase NewPhase)
@@ -233,6 +245,9 @@ void AExcavationManager::ChangeExcavationPhase()
 	DiggingUI->SetVisibility(ESlateVisibility::Visible);
 	//PlayPopupUiAnim(false);
 
+	// 삽 도구 장착
+	if (Player) Player->ExcavationTool2();
+
 	// 삽질 단계로 전환
 	SetCurrentPhase(EExcavationPhase::Digging);
 }
@@ -252,11 +267,17 @@ void AExcavationManager::ChangeCompletedPhase()
 	// 타미 음성
 	PlayTami(TEXT("PlayExcavationCompleted2"));
 
-	GetWorldTimerManager().ClearTimer(KeyboardSpawnTimerHandle);
+	/*GetWorldTimerManager().ClearTimer(KeyboardSpawnTimerHandle);
 
 	FTimerDelegate D;
 	D.BindUObject(this, &AExcavationManager::SpawnKeyboardActor);
-	GetWorldTimerManager().SetTimer(KeyboardSpawnTimerHandle, D, 7.f, false);
+	GetWorldTimerManager().SetTimer(KeyboardSpawnTimerHandle, D, 7.f, false);*/
+
+	GetWorldTimerManager().ClearTimer(LobbyRestoreTimerHandle);
+
+	FTimerDelegate D;
+	D.BindUObject(this, &AExcavationManager::ShowLobbyRestoreButtons);
+	GetWorldTimerManager().SetTimer(LobbyRestoreTimerHandle, D, 7.f, false);
 
 	/*// Phase UI (로비/박물관 이동)
 	
@@ -325,7 +346,7 @@ void AExcavationManager::UpdateDiggingProgress()
 {
 	if (!CurrentActiveManager) return;
 	if (!DiggingUI) return;
-	
+
 	float DigProgress = 0.0f;
 	if (CurrentActiveManager->GetCurrentDigProgress(DigProgress))
 	{

@@ -13,6 +13,7 @@
 #include "Keyboard/AC_KeyBoard.h"
 #include "LHM/Excavation/ExcavationProgressWidgetActor.h"
 #include "LHM/Excavation/ExcavationWidgetActor.h"
+#include "JMH/MH_VRPlayer.h"
 
 // Sets default values
 ARelicsManager::ARelicsManager()
@@ -57,22 +58,22 @@ ARelicsManager::ARelicsManager()
 		}*/
 
 		GroundChild1 = CreateDefaultSubobject<UChildActorComponent>(TEXT("GroundLayer_1"));
-		GroundChild2 = CreateDefaultSubobject<UChildActorComponent>(TEXT("GroundLayer_2"));
+		//GroundChild2 = CreateDefaultSubobject<UChildActorComponent>(TEXT("GroundLayer_2"));
 
 		GroundChild1->SetupAttachment(RootComponent);
-		GroundChild2->SetupAttachment(RootComponent);
+		//GroundChild2->SetupAttachment(RootComponent);
 
 		GroundChild1->SetChildActorClass(RelicsGroundClass);
-		GroundChild2->SetChildActorClass(RelicsGroundClass);
+		//GroundChild2->SetChildActorClass(RelicsGroundClass);
 
 		GroundChild1->SetRelativeLocation(FVector(-69, -13.6, 221)); // (X=-69.138980,Y=-13.695208,Z=221.159939)
 		GroundChild1->SetRelativeScale3D(FVector(0.41));
 
-		GroundChild2->SetRelativeLocation(FVector(-69, -13.6, 201)); // (X=-69.138980,Y=-13.695208,Z=201.159939)
-		GroundChild2->SetRelativeScale3D(FVector(0.28));
+		//GroundChild2->SetRelativeLocation(FVector(-69, -13.6, 201)); // (X=-69.138980,Y=-13.695208,Z=201.159939)
+		//GroundChild2->SetRelativeScale3D(FVector(0.28));
 
 		GroundChildActors.Add(GroundChild1);
-		GroundChildActors.Add(GroundChild2);
+		//GroundChildActors.Add(GroundChild2);
 	}
 
 	CurrentLayerIndex = 0;
@@ -87,18 +88,18 @@ void ARelicsManager::BeginPlay()
 
 	GroundLayers.Empty();
 
-	if (GroundChild1 && GroundChild2)
+	if (GroundChild1 /*&& GroundChild2*/)
 	{
 		Ground1 = Cast<ARelicsGround>(GroundChild1->GetChildActor());
-		Ground2 = Cast<ARelicsGround>(GroundChild2->GetChildActor());
+		//Ground2 = Cast<ARelicsGround>(GroundChild2->GetChildActor());
 
 		GroundLayers.Add(Ground1);
-		GroundLayers.Add(Ground2);
+		//GroundLayers.Add(Ground2);
 
 		Ground1->SetActorHiddenInGame(true); // 시작 시 숨김
-		Ground2->SetActorHiddenInGame(true); // 시작 시 숨김
+		//Ground2->SetActorHiddenInGame(true); // 시작 시 숨김
 		Ground1->SetRelicsManager(this);
-		Ground2->SetRelicsManager(this);
+		//Ground2->SetRelicsManager(this);
 	}
 
 	if (RelicsChild)
@@ -175,6 +176,8 @@ void ARelicsManager::StartExcavation()
 
 void ARelicsManager::NotifyGroundProgress(float Progress)
 {
+	if (bBrushPhaseStarted) return;
+
 	if (CurrentLayerIndex >= GroundLayers.Num()) return;
 
 	if (bPressedDevKey) Progress = 0.07f;
@@ -186,18 +189,26 @@ void ARelicsManager::NotifyGroundProgress(float Progress)
 		auto CurrentLayer = GroundLayers[CurrentLayerIndex];
 		if (IsValid(CurrentLayer))
 		{
+			if (AMH_VRPlayer* Player = Cast<AMH_VRPlayer>(UGameplayStatics::GetPlayerCharacter(this, 0)))
+			{
+				Player->RelicsGroundRefs.Remove(CurrentLayer);
+			}
+
 			CurrentLayer->Destroy();
-			GroundLayers[CurrentLayerIndex] = nullptr;
+			//GroundLayers[CurrentLayerIndex] = nullptr;
 			UE_LOG(LogTemp, Log, TEXT("Destroyed Ground Layer %d"), CurrentLayerIndex + 1);
 		}
 
-		CurrentLayerIndex++;
-
+		//CurrentLayerIndex++;
+		GroundLayers.RemoveAt(CurrentLayerIndex);
 		UE_LOG(LogTemp, Log, TEXT("Destroyed Ground Layer %d / GroundLayers.num is %d"), CurrentLayerIndex + 1, GroundLayers.Num());
 
-		if (CurrentLayerIndex >= GroundLayers.Num())
+		//if (CurrentLayerIndex >= GroundLayers.Num())
+		if (GroundLayers.Num() == 0)
 		{
+			bBrushPhaseStarted = true;
 			EnterBrushPhase(); // 마지막 레이어 제거 후 붓 단계로 전환
+			return;
 		}
 	}
 }
@@ -238,34 +249,53 @@ bool ARelicsManager::GetCurrentDigProgress(float& OutProgress) const
 {
 	int32 TotalLayers = GroundLayers.Num();
 
-	if (TotalLayers == 0)
+	/*if (TotalLayers == 0)
 	{
 		OutProgress = 0.0f;
 		return false;
+	}*/
+
+	// 모든 레이어가 제거된 경우 100%로 간주
+	if (TotalLayers == 0)
+	{
+		OutProgress = 1.0f;
+		return true;
 	}
 
 	float TotalProgress = 0.0f;
 
 	for (int32 i = 0; i < TotalLayers; ++i)
 	{
+		// 배열 인덱스 안전 검사
+		if (!GroundLayers.IsValidIndex(i))
+		{
+			// 존재하지 않는 레이어 → 이미 제거된 것으로 간주
+			TotalProgress += 1.0f;
+			continue;
+		}
+
 		ARelicsGround* Ground = GroundLayers[i];
 		if (!IsValid(Ground)) // Destroy된 레이어는 파괴 완료로 간주
 		{
 			TotalProgress += 1.0f;
+			continue;
 		}
-		else if (!IsValid(Ground->HeightFieldRT) || !Ground->HeightFieldRT->GetResource())
+
+		// RenderTarget 안전 검사
+		if (!IsValid(Ground->HeightFieldRT) || !Ground->HeightFieldRT->GetResource())
 		{
-			UE_LOG(LogTemp, Warning, TEXT("Layer %d HeightFieldRT is invalid after destroy"), i);
+			UE_LOG(LogTemp, Warning, TEXT("[RelicsManager] Layer %d HeightFieldRT invalid → treated as destroyed"), i);
 			TotalProgress += 1.0f; // 이미 파괴된 걸로 간주
+			continue;
 		}
-		else
-		{
-			float Destruction = Ground->CalculateDestructionFromRenderTarget();
-			float Normalized = FMath::Clamp(Destruction / 0.07f, 0.0f, 1.0f); // layer[0]: 6%/layer[i]: 1% 기준으로 정규화
-			TotalProgress += Normalized;
-		}
+
+		// 정상적인 파괴도 계산
+		float Destruction = Ground->CalculateDestructionFromRenderTarget();
+		float Normalized = FMath::Clamp(Destruction / 0.07f, 0.0f, 1.0f); // layer[0]: 6%/layer[i]: 1% 기준으로 정규화
+		TotalProgress += Normalized;
 	}
 
+	// 평균 계산 (0~1)
 	OutProgress = TotalProgress / static_cast<float>(TotalLayers); // 전체 평균
 	return true;
 }
