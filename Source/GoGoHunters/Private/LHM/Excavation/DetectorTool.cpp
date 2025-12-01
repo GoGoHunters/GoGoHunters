@@ -73,7 +73,7 @@ void ADetectorTool::Tick(float DeltaTime)
 
 	if (bIsDetecting)
 	{
-		PlayTami1();
+		//PlayTami1();
 
 		UpdateDetection(DeltaTime);
 	}
@@ -171,7 +171,7 @@ void ADetectorTool::UpdateDetection(float DeltaTime)
 		DetectionUI->UpdateUI(DetectionProgress, false);
 	}
 
-	if (DetectionProgress >= 50.f) PlayTami2();
+	//if (DetectionProgress >= 50.f) PlayTami2();
 
 	if (DetectionProgress >= 100.f)
 	{

@@ -77,7 +77,7 @@ void AExcavationManager::NotifyDetectionCompleted(class ARelicsManager* FromMana
 
 	CurrentActiveManager = FromManager;
 
-	// 타미 음성
+	/*// 타미 음성
 	PlayTami(TEXT("PlayExcavationPhase2_StartFlag"));
 
 	// Phase UI 가시화 (깃발 트리거)
@@ -87,7 +87,10 @@ void AExcavationManager::NotifyDetectionCompleted(class ARelicsManager* FromMana
 	{
 		if (PhaseUI->bUseFlagTrigger) return; // 이미 가시화된 경우 중복 실행 방지
 		PhaseUI->SetVisibilityFlagTrigger(true);
-	}, 9.0f, false);
+	}, 9.0f, false);*/
+
+	if (PhaseUI->bUseFlagTrigger) return; // 이미 가시화된 경우 중복 실행 방지
+	PhaseUI->SetVisibilityFlagTrigger(true);
 }
 
 void AExcavationManager::NotifyExcavationCompleted(class ARelicsManager* FromManager)
@@ -96,7 +99,7 @@ void AExcavationManager::NotifyExcavationCompleted(class ARelicsManager* FromMan
 	if (!DiggingUI || !BrushingUI) return;
 
 	// 타미 음성
-	PlayTami(TEXT("PlayExcavationPhase4_DiscoveryRelic"));
+	//PlayTami(TEXT("PlayExcavationPhase4_DiscoveryRelic"));
 
 	DiggingUI->SetVisibility(ESlateVisibility::Hidden);
 	BrushingUI->SetVisibility(ESlateVisibility::Visible);
@@ -120,7 +123,7 @@ void AExcavationManager::NotifyDustingCompleted(class ARelicsManager* FromManage
 	FromManager->SpawnCollectionBox();
 
 	// 타미 음성
-	PlayTami(TEXT("PlayExcavationPhase5_StartCollection"));
+	//PlayTami(TEXT("PlayExcavationPhase5_StartCollection"));
 
 	// 집게 도구 장착
 	if (Player) Player->ExcavationTool4();
@@ -139,7 +142,7 @@ void AExcavationManager::NotifyCollectionCompleted(class ARelicsManager* FromMan
 	CurrentActiveManager = FromManager;
 	CollectionBox = FromCollectionBox;
 
-	PlayTami(TEXT("PlayExcavationCompleted1"));
+	//PlayTami(TEXT("PlayExcavationCompleted1"));
 
 	// UI에서 완료버튼 클릭하면 수거함 닫기
 	CollectionBoxUI->SetVisibilityCloseLid(true);
@@ -228,7 +231,7 @@ void AExcavationManager::ChangeExcavationPhase()
 	
 	CurrentActiveManager->StartExcavation();
 
-	PlayTami(TEXT("PlayExcavationPhase2_PlantedFlag"));
+	//PlayTami(TEXT("PlayExcavationPhase2_PlantedFlag"));
 
 	// 타미 위치 고정
 	for (TActorIterator<ACWorkingAreaTrigger> It(GetWorld()); It; ++It)
@@ -264,8 +267,10 @@ void AExcavationManager::ChangeCompletedPhase()
 	// 수거함 닫기 애니메이션
 	CollectionBox->PlayBoxCloseAnimation();
 
+	ShowLobbyRestoreButtons();
+
 	// 타미 음성
-	PlayTami(TEXT("PlayExcavationCompleted2"));
+	//PlayTami(TEXT("PlayExcavationCompleted2"));
 
 	/*GetWorldTimerManager().ClearTimer(KeyboardSpawnTimerHandle);
 
@@ -273,11 +278,10 @@ void AExcavationManager::ChangeCompletedPhase()
 	D.BindUObject(this, &AExcavationManager::SpawnKeyboardActor);
 	GetWorldTimerManager().SetTimer(KeyboardSpawnTimerHandle, D, 7.f, false);*/
 
-	GetWorldTimerManager().ClearTimer(LobbyRestoreTimerHandle);
-
+	/*GetWorldTimerManager().ClearTimer(LobbyRestoreTimerHandle);
 	FTimerDelegate D;
 	D.BindUObject(this, &AExcavationManager::ShowLobbyRestoreButtons);
-	GetWorldTimerManager().SetTimer(LobbyRestoreTimerHandle, D, 7.f, false);
+	GetWorldTimerManager().SetTimer(LobbyRestoreTimerHandle, D, 7.f, false);*/
 
 	/*// Phase UI (로비/박물관 이동)
 	

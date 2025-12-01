@@ -326,13 +326,25 @@ void ARelicsManager::PlayTamiCompliments(int32 CurrentLayer, float Progress)
 	// 레이어와 진행도에 따른 1회성 재생 가드
 	if (CurrentLayerIndex == 0)
 	{
-		if (!bPlayedCompliment2 && Progress >= 0.02f)
+		if (!bPlayedCompliment2 && Progress >= 0.001f)
 		{
 			bPlayedCompliment2 = true;
 			PlayTami(TEXT("PlayExcavationCompliment2"));
 		}
+
+		if (bPlayedCompliment2 && !bPlayedVisibleRelic && Progress >= 0.03f)
+		{
+			bPlayedVisibleRelic = true;
+			PlayTami(TEXT("PlayExcavationPhase3_VisibleRelic"));
+		}
+
+		if (bPlayedVisibleRelic && !bPlayedCompliment3 && Progress >= 0.05f)
+		{
+			bPlayedCompliment3 = true;
+			PlayTami(TEXT("PlayExcavationCompliment3"));
+		}
 	}
-	else if (CurrentLayerIndex == 1)
+	/*else if (CurrentLayerIndex == 1)
 	{
 		if (!bPlayedVisibleRelic && Progress >= 0.01f)
 		{
@@ -345,7 +357,7 @@ void ARelicsManager::PlayTamiCompliments(int32 CurrentLayer, float Progress)
 			bPlayedCompliment3 = true;
 			PlayTami(TEXT("PlayExcavationCompliment3"));
 		}
-	}
+	}*/
 }
 
 void ARelicsManager::PlayTami(const FName& FunctionName)
