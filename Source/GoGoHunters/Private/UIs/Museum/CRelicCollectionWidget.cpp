@@ -28,7 +28,7 @@ void UCRelicCollectionWidget::InitRelicWidgets()
 	PlaceableRelics.Empty();
 	for (const auto& Relic : RelicData)
 	{
-		if (Relic.IsPlace) continue;
+		if (Relic.IsPlace || !Relic.IsRecover) continue;
 		PlaceableRelics.Add(Relic);
 	}
 

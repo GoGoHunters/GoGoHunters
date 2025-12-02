@@ -29,7 +29,13 @@ private:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
 	UTextRenderComponent* DateTextComp;
 	
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
+	bool bCollectorVisible = false;
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
+	bool bCollectingDateVisible = false;
+	
 	ACRelicDescActor();
+	virtual void BeginPlay() override;	
 	void UpdateData(FCRelicDataParam Param);
 	void VisibleComponent(bool bShown);
 	FString FormatTextWithLineBreaks(const FString& Text, int32 MaxLength);

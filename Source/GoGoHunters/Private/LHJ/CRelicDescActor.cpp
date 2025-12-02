@@ -39,6 +39,13 @@ ACRelicDescActor::ACRelicDescActor()
 	DateTextComp->SetTranslucentSortPriority(2);
 }
 
+void ACRelicDescActor::BeginPlay()
+{
+	Super::BeginPlay();
+	CollectorTextComp->SetVisibility(bCollectorVisible);
+	DateTextComp->SetVisibility(bCollectingDateVisible);
+}
+
 void ACRelicDescActor::UpdateDescriptionWidget(bool bUpdate, FCRelicData InRelicData,
                                                FCRelicDetailData InRelicDetailData)
 {
@@ -85,8 +92,10 @@ void ACRelicDescActor::UpdateData(FCRelicDataParam Param)
 void ACRelicDescActor::VisibleComponent(bool bShown)
 {
 	TitleTextComp->SetVisibility(bShown);
-	CollectorTextComp->SetVisibility(bShown);
-	DateTextComp->SetVisibility(bShown);
+	if (bCollectorVisible)
+		CollectorTextComp->SetVisibility(bShown);
+	if (bCollectingDateVisible)
+		DateTextComp->SetVisibility(bShown);
 }
 
 FString ACRelicDescActor::FormatTextWithLineBreaks(const FString& Text, int32 MaxLength)
