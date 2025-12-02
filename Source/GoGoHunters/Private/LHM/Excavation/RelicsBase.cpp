@@ -275,9 +275,9 @@ void ARelicsBase::ReduceDustOpacity(const FVector& BrushLocation, float Amount, 
 
 void ARelicsBase::CheckAllDelcalsRemoved()
 {
-    // 3번째로 완료된 유물일 때 타미 칭찬
+    // 1번째로 완료된 유물일 때 타미 칭찬
     NumDustingCompletedRelics++;
-    if (NumDustingCompletedRelics == 3)
+    if (NumDustingCompletedRelics == 1)
     {
         if (!bIsPlayingTami) PlayTami();
     }

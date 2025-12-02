@@ -43,6 +43,42 @@ void AShovelTool::BeginPlay()
 
 }
 
+void AShovelTool::EndPlay(const EEndPlayReason::Type EndPlayReason)
+{
+	// ShovelTool이 Destroy될 때 모든 RelicsGround에서 델리게이트 바인딩 제거
+	// 이렇게 하지 않으면 델리게이트 시스템이 무효한 참조에 접근하여 크래시 발생
+	for (TActorIterator<ARelicsGround> It(GetWorld()); It; ++It)
+	{
+		if (IsValid(*It))
+		{
+			(*It)->ClearShovelReference();
+		}
+	}
+
+	// 부모로부터 분리하여 물리 시스템이 더 이상 접근하지 않도록 함
+	DetachFromActor(FDetachmentTransformRules::KeepWorldTransform);
+	
+	// 모든 컴포넌트의 Tick 중지 및 비활성화
+	TArray<UActorComponent*> AllComponents;
+	GetComponents(AllComponents);
+	for (UActorComponent* Comp : AllComponents)
+	{
+		if (IsValid(Comp))
+		{
+			Comp->SetComponentTickEnabled(false);
+			Comp->SetActive(false);
+			
+			// PrimitiveComponent인 경우 충돌도 비활성화
+			if (UPrimitiveComponent* PrimComp = Cast<UPrimitiveComponent>(Comp))
+			{
+				PrimComp->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+			}
+		}
+	}
+
+	Super::EndPlay(EndPlayReason);
+}
+
 // Called every frame
 void AShovelTool::Tick(float DeltaTime)
 {

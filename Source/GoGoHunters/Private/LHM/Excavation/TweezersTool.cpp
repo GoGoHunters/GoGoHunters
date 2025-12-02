@@ -96,7 +96,7 @@ void ATweezersTool::PickUpRelic()
 	PickedRelic = RelicCandidate;
 
 	// 타미 음성
-	if(!bIsPlayingTami) PlayTami();
+	//if(!bIsPlayingTami) PlayTami();
 
 	//UE_LOG(LogTemp, Log, TEXT("[TweezersTool] Picked up %s"), *CandidateMesh->GetName());
 
